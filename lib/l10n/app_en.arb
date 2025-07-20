@@ -347,5 +347,47 @@
     "skillReligionDescription": "Possess knowledge of deities, sacred rites, religious customs, and spiritual lore.",
     "skillSleightOfHandDescription": "Perform quick, precise, or concealed manual tricks, such as picking pockets or performing magic.",
     "skillStealthDescription": "Move silently and remain unseen to avoid detection.",
-    "skillSurvivalDescription": "Track creatures, hunt for food, find shelter, and navigate harsh natural environments."
+    "skillSurvivalDescription": "Track creatures, hunt for food, find shelter, and navigate harsh natural environments.",
+    "chooseCreationMethod": "Choose how to create your character:",
+    "blankCharacter": "Blank Character",
+    "characterCreator": "Character Creator",
+    "confirmTooltip": "Confirm",
+    "selectMethodHint": "Select Method",
+    "standardArray": "Standard Array",
+    "pointBuy": "Point Buy",
+    "roll4d6": "Roll 4d6 Drop Lowest",
+    "custom": "Custom",
+    "assignRacialBonuses": "Assign Racial Bonuses:",
+    "assignBonusHint": "Assign bonus",
+    "selectValue": "Select value",
+    "selectRoll": "Select roll",
+    "roll": "Roll",
+    "pointsUsed": "Points Used: {used} / {pool}",
+    "pleaseAssignAll": "Please assign all six ability scores.",
+    "rolledValuesLabel": "Rolled values: {values}",
+    "assignRolledValues": "Assign rolled values to abilities:",
+    "rollAllTooltip": "Roll All",
+    "chooserace": "Choose Race",
+    "choosebackground": "Choose Background",
+    "completeallsteps": "Please complete all steps before creating the character.",
+    "choosefeat": "Choose Feat",
+    "setabilityscores": "Set Ability Scores",
+    "usedpoints": "Points Used: {used} / {pool}",
+    "@usedpoints": {
+        "description": "Used points",
+        "placeholders": {
+            "used": {},
+            "pool": {}
+        }
+    },
+    "rolledstats": "Rolled values: {values}",
+    "@rolledstats": {
+        "description": "Rolled values",
+        "placeholders": {
+            "values": {}
+        }
+    },
+    "notrolledyet" : "Not rolled yet",
+    "exitConfirmationMessage": "Are you sure you want to leave? Your progress will be lost.",
+    "exitCharacterCreator": "Exit Character Creator"
 }

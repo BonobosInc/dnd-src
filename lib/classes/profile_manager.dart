@@ -515,6 +515,109 @@ class ProfileManager {
     selectedID = profile.id;
   }
 
+  Future<void> characterCreator(
+    String name,
+    RaceData race,
+    ClassData classData,
+    BackgroundData background,
+    FeatData? feat,
+    Map<String, int> abilityScores,
+  ) async {
+    final profileDbPath = await _getPath();
+
+    Map<String, int> proficiencies = {};
+
+    await createProfile(name);
+
+    final newest = profiles.isNotEmpty
+        ? profiles.reduce((a, b) => a.id > b.id ? a : b)
+        : null;
+
+    if (newest != null && newest.name == name) {
+      selectedProfile = newest.name;
+      selectedID = newest.id;
+    }
+
+    // Step 3: Open database and update basic info
+    currentDb = await openDatabase(profileDbPath);
+
+    updateProfileInfo(field: Defines.infoName, value: name);
+    updateProfileInfo(field: Defines.infoRace, value: race.name);
+    updateProfileInfo(field: Defines.infoClass, value: classData.name);
+    updateProfileInfo(field: Defines.infoBackground, value: background.name);
+
+    for (final trait in race.traits) {
+      addFeat(
+        featName: trait.name,
+        description: trait.description,
+        type: "Rasse",
+      );
+    }
+
+    final levelOne = classData.autolevels.firstWhere(
+      (entry) => int.tryParse(entry.level) == 1,
+      orElse: () => Autolevel(level: '1', features: [], slots: null),
+    );
+
+    for (final feature in levelOne.features) {
+      addFeat(
+        featName: feature.name,
+        description: feature.description,
+        type: "Klasse",
+      );
+    }
+
+    final slots = levelOne.slots?.slots ?? [];
+    for (int i = 0; i < slots.length; i++) {
+      if (slots[i] > 0) {
+        updateSpellSlots(spellslot: i.toString(), total: slots[i]);
+      }
+    }
+
+    proficiencies = parseRaceProficiencies(race.proficiency);
+
+
+
+  }
+
+  Map<String, int> parseRaceProficiencies(String? proficiencyString) {
+    const skillNameMap = {
+      "Acrobatics": Defines.skillAcrobatics,
+      "Animal Handling": Defines.skillAnimalHandling,
+      "Arcana": Defines.skillArcana,
+      "Athletics": Defines.skillAthletics,
+      "Deception": Defines.skillDeception,
+      "History": Defines.skillHistory,
+      "Insight": Defines.skillInsight,
+      "Intimidation": Defines.skillIntimidation,
+      "Investigation": Defines.skillInvestigation,
+      "Medicine": Defines.skillMedicine,
+      "Nature": Defines.skillNature,
+      "Perception": Defines.skillPerception,
+      "Performance": Defines.skillPerformance,
+      "Persuasion": Defines.skillPersuasion,
+      "Religion": Defines.skillReligion,
+      "Sleight of Hand": Defines.skillSleightOfHand,
+      "Stealth": Defines.skillStealth,
+      "Survival": Defines.skillSurvival,
+    };
+
+    final parsed = (proficiencyString?.isNotEmpty ?? false)
+        ? proficiencyString!
+            .split(',')
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty)
+            .toSet()
+        : <String>{};
+
+    final result = <String, int>{};
+    for (final entry in skillNameMap.entries) {
+      result[entry.value] = parsed.contains(entry.key) ? 1 : 0;
+    }
+
+    return result;
+  }
+
   Future<void> deleteProfile(Character profile) async {
     selectedID = null;
     selectedProfile = null;

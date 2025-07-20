@@ -952,4 +952,99 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get skillSurvivalDescription => 'Track creatures, hunt for food, find shelter, and navigate harsh natural environments.';
+
+  @override
+  String get chooseCreationMethod => 'Choose how to create your character:';
+
+  @override
+  String get blankCharacter => 'Blank Character';
+
+  @override
+  String get characterCreator => 'Character Creator';
+
+  @override
+  String get confirmTooltip => 'Confirm';
+
+  @override
+  String get selectMethodHint => 'Select Method';
+
+  @override
+  String get standardArray => 'Standard Array';
+
+  @override
+  String get pointBuy => 'Point Buy';
+
+  @override
+  String get roll4d6 => 'Roll 4d6 Drop Lowest';
+
+  @override
+  String get custom => 'Custom';
+
+  @override
+  String get assignRacialBonuses => 'Assign Racial Bonuses:';
+
+  @override
+  String get assignBonusHint => 'Assign bonus';
+
+  @override
+  String get selectValue => 'Select value';
+
+  @override
+  String get selectRoll => 'Select roll';
+
+  @override
+  String get roll => 'Roll';
+
+  @override
+  String pointsUsed(Object pool, Object used) {
+    return 'Points Used: $used / $pool';
+  }
+
+  @override
+  String get pleaseAssignAll => 'Please assign all six ability scores.';
+
+  @override
+  String rolledValuesLabel(Object values) {
+    return 'Rolled values: $values';
+  }
+
+  @override
+  String get assignRolledValues => 'Assign rolled values to abilities:';
+
+  @override
+  String get rollAllTooltip => 'Roll All';
+
+  @override
+  String get chooserace => 'Choose Race';
+
+  @override
+  String get choosebackground => 'Choose Background';
+
+  @override
+  String get completeallsteps => 'Please complete all steps before creating the character.';
+
+  @override
+  String get choosefeat => 'Choose Feat';
+
+  @override
+  String get setabilityscores => 'Set Ability Scores';
+
+  @override
+  String usedpoints(Object used, Object pool) {
+    return 'Points Used: $used / $pool';
+  }
+
+  @override
+  String rolledstats(Object values) {
+    return 'Rolled values: $values';
+  }
+
+  @override
+  String get notrolledyet => 'Not rolled yet';
+
+  @override
+  String get exitConfirmationMessage => 'Are you sure you want to leave? Your progress will be lost.';
+
+  @override
+  String get exitCharacterCreator => 'Exit Character Creator';
 }

@@ -347,5 +347,47 @@
     "skillReligionDescription": "Besitze Wissen über Götter, heilige Rituale, religiöse Bräuche und spirituelle Überlieferungen.",
     "skillSleightOfHandDescription": "Führe schnelle, präzise oder verdeckte manuelle Tricks aus, wie Taschendiebstahl oder Zauberkunststücke.",
     "skillStealthDescription": "Bewege dich lautlos und bleibe ungesehen, um einer Entdeckung zu entgehen.",
-    "skillSurvivalDescription": "Spüre Kreaturen auf, jage nach Nahrung, finde Unterschlupf und navigiere in rauer Natur."
+    "skillSurvivalDescription": "Spüre Kreaturen auf, jage nach Nahrung, finde Unterschlupf und navigiere in rauer Natur.",
+    "chooseCreationMethod": "Wähle, wie du deinen Charakter erstellen möchtest:",
+    "blankCharacter": "Leerer Charakterbogen",
+    "characterCreator": "Charaktererstellung",
+    "confirmTooltip": "Bestätigen",
+    "selectMethodHint": "Methode auswählen",
+    "standardArray": "Standardwerte",
+    "pointBuy": "Punktekauf",
+    "roll4d6": "4d6 würfeln, niedrigsten verwerfen",
+    "custom": "Benutzerdefiniert",
+    "assignRacialBonuses": "Volksbonus zuweisen:",
+    "assignBonusHint": "Bonus zuweisen",
+    "selectValue": "Wert auswählen",
+    "selectRoll": "Wurf auswählen",
+    "roll": "Wurf",
+    "pointsUsed": "Punkte verwendet: {used} / {pool}",
+    "pleaseAssignAll": "Bitte weisen Sie alle sechs Fähigkeitswerte zu.",
+    "rolledValuesLabel": "Gewürfelte Werte: {values}",
+    "assignRolledValues": "Gewürfelte Werte den Fähigkeiten zuweisen:",
+    "rollAllTooltip": "Alle würfeln",
+    "chooserace": "Volk auswählen",
+    "choosebackground": "Hintergrund auswählen",
+    "completeallsteps": "Bitte schließe alle Schritte ab, bevor du den Charakter erstellst.",
+    "choosefeat": "Wähle eine Fertigkeit",
+    "setabilityscores": "Attributswerte festlegen",
+    "usedpoints": "Verwendete Punkte: {used} / {pool}",
+    "@usedpoints": {
+        "description": "Used points",
+        "placeholders": {
+            "used": {},
+            "pool": {}
+        }
+    },
+    "rolledstats": "Gewürfelte Werte: {values}",
+    "@rolledstats": {
+        "description": "Rolled values",
+        "placeholders": {
+            "values": {}
+        }
+    },
+    "notrolledyet" : "Noch nicht gewürfelt",
+    "exitConfirmationMessage": "Bist du sicher, dass du abbrechen möchtest? Dein Fortschritt geht verloren.",
+    "exitCharacterCreator": "Charaktererstellung beenden"
 }

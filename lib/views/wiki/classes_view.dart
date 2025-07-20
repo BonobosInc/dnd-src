@@ -5,11 +5,13 @@ import 'package:dnd/l10n/app_localizations.dart';
 class ClassDetailPage extends StatefulWidget {
   final ClassData classData;
   final bool importFeat;
+  final bool characterCreator;
 
   const ClassDetailPage({
     super.key,
     required this.classData,
     this.importFeat = false,
+    this.characterCreator = false,
   });
 
   @override
@@ -51,7 +53,17 @@ class ClassDetailPageState extends State<ClassDetailPage> {
                   },
                 ),
               ]
-            : null,
+            : widget.characterCreator
+                ? [
+                    IconButton(
+                      icon: const Icon(Icons.check),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop(widget.classData);
+                      },
+                    ),
+                  ]
+                : null,
       ),
       body: ListView(
         padding: const EdgeInsets.all(8.0),

@@ -18,6 +18,12 @@ class WikiParser {
 
   WikiParser();
 
+  bool isEmpty() {
+    return classes.isEmpty ||
+        races.isEmpty ||
+        backgrounds.isEmpty;
+  }
+
   Future<void> loadXml() async {
     String savedFilePath;
 

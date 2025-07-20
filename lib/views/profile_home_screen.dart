@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:dnd/views/character_creator/character_creator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -41,8 +42,56 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
   }
 
   Future<void> _addNewProfile() async {
-    TextEditingController controller = TextEditingController();
+    if (widget.wikiParser.isEmpty())
+    {
+      await _showBlankCharacterDialog();
+      return;
+    }
+
+    final String? creationChoice = await _askCreationMethod();
+    if (creationChoice == 'creator') {
+      await _navigateToCharacterCreator();
+    } else if (creationChoice == 'blank') {
+      await _showBlankCharacterDialog();
+    }
+  }
+
+  Future<String?> _askCreationMethod() async {
     final loc = AppLocalizations.of(context)!;
+
+    return showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(loc.newchar),
+          content: Text(loc.chooseCreationMethod),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop('blank'),
+              child: Text(loc.blankCharacter),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop('creator'),
+              child: Text(loc.characterCreator),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _navigateToCharacterCreator() async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CharacterCreatorPage(wikiParser: widget.wikiParser, profileManager: profileManager),
+      ),
+    );
+  }
+
+  Future<void> _showBlankCharacterDialog() async {
+    final loc = AppLocalizations.of(context)!;
+    TextEditingController controller = TextEditingController();
 
     await showDialog(
       context: context,
@@ -55,8 +104,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
               title: Text(loc.newchar),
               content: TextField(
                 controller: controller,
-                decoration:
-                    InputDecoration(hintText: loc.entercharactername),
+                decoration: InputDecoration(hintText: loc.entercharactername),
               ),
               actions: <Widget>[
                 TextButton(
@@ -67,46 +115,39 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                   onPressed: isCreatingProfile
                       ? null
                       : () async {
-                          String profileName = controller.text;
-                          if (profileName.isNotEmpty) {
-                            String lowerCaseProfileName =
-                                profileName.toLowerCase();
+                          String profileName = controller.text.trim();
+                          if (profileName.isEmpty) return;
 
-                            bool profileExists = profileManager.profiles
-                                .map((profile) => profile.name.toLowerCase())
-                                .contains(lowerCaseProfileName);
+                          String lower = profileName.toLowerCase();
+                          bool exists = profileManager.profiles
+                              .map((p) => p.name.toLowerCase())
+                              .contains(lower);
 
-                            if (profileExists) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    AppLocalizations.of(context)!
-                                        .characterExists(profileName),
-                                    style: TextStyle(
-                                        color: AppColors.textColorLight),
-                                  ),
-                                  backgroundColor: AppColors.warningColor,
+                          if (exists) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  loc.characterExists(profileName),
+                                  style: TextStyle(
+                                      color: AppColors.textColorLight),
                                 ),
+                                backgroundColor: AppColors.warningColor,
+                              ),
+                            );
+                            return;
+                          }
+
+                          setState(() => isCreatingProfile = true);
+                          await profileManager.createProfile(profileName);
+                          setState(() => isCreatingProfile = false);
+
+                          await _initializeProfiles();
+                          if (context.mounted) {
+                            Navigator.of(context).pop();
+                            if (profileName.contains("69")) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Nice!')),
                               );
-                            } else {
-                              setState(() {
-                                isCreatingProfile = true;
-                              });
-
-                              await profileManager.createProfile(profileName);
-
-                              setState(() {
-                                isCreatingProfile = false;
-                              });
-                              await _initializeProfiles();
-                              if (context.mounted) {
-                                Navigator.of(context).pop();
-                                if (profileName.contains("69")) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Nice!')),
-                                  );
-                                }
-                              }
                             }
                           }
                         },
@@ -172,8 +213,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
           title: Text(loc.changeName),
           content: TextField(
             controller: controller,
-            decoration: InputDecoration(
-                hintText: loc.enternewname),
+            decoration: InputDecoration(hintText: loc.enternewname),
           ),
           actions: <Widget>[
             TextButton(
@@ -205,7 +245,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                         SnackBar(
                           content: Text(
                             AppLocalizations.of(context)!
-                                        .characterExists(newName),
+                                .characterExists(newName),
                             style: TextStyle(color: AppColors.textColorLight),
                           ),
                           backgroundColor: AppColors.warningColor,
@@ -325,14 +365,11 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                             if (success) {
                               Navigator.of(context).pop();
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text(loc.exportgood)),
+                                SnackBar(content: Text(loc.exportgood)),
                               );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content:
-                                        Text(loc.exportbad)),
+                                SnackBar(content: Text(loc.exportbad)),
                               );
                             }
                           }
@@ -402,14 +439,19 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await _addNewProfile();
+        },
+        child: const Icon(Icons.group_add),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       appBar: AppBar(
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: (value) async {
-              if (value == 'create') {
-                await _addNewProfile();
-              } else if (value == 'clear') {
+              if (value == 'clear') {
                 await _clearDatabase();
               } else if (value == 'import') {
                 await _importProfileFromXmlFile();
@@ -426,10 +468,6 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
             },
             itemBuilder: (BuildContext context) {
               return [
-                PopupMenuItem<String>(
-                  value: 'create',
-                  child: Text(loc.createnewchar),
-                ),
                 PopupMenuItem<String>(
                   value: 'import',
                   child: Text(loc.importchar),
@@ -469,7 +507,8 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                             child: Material(
                               elevation: 4,
                               borderRadius: BorderRadius.circular(12),
-                              shadowColor: Colors.black.withAlpha((0.5 * 255).toInt()),
+                              shadowColor:
+                                  Colors.black.withAlpha((0.5 * 255).toInt()),
                               child: Container(
                                 padding: const EdgeInsets.all(8.0),
                                 decoration: BoxDecoration(
@@ -506,7 +545,8 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                             return AlertDialog(
                                               title: Text(loc.deletechar),
                                               content: Text(
-                                                  loc.deletecharconfirm(profile.name)),
+                                                  loc.deletecharconfirm(
+                                                      profile.name)),
                                               actions: <Widget>[
                                                 TextButton(
                                                   child: Text(loc.no),
@@ -539,7 +579,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                     },
                                     itemBuilder: (BuildContext context) {
                                       return [
-                                          PopupMenuItem<String>(
+                                        PopupMenuItem<String>(
                                           value: 'dump',
                                           child: Text(loc.export),
                                         ),

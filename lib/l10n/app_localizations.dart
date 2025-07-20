@@ -1960,6 +1960,180 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Spüre Kreaturen auf, jage nach Nahrung, finde Unterschlupf und navigiere in rauer Natur.'**
   String get skillSurvivalDescription;
+
+  /// No description provided for @chooseCreationMethod.
+  ///
+  /// In de, this message translates to:
+  /// **'Wähle, wie du deinen Charakter erstellen möchtest:'**
+  String get chooseCreationMethod;
+
+  /// No description provided for @blankCharacter.
+  ///
+  /// In de, this message translates to:
+  /// **'Leerer Charakterbogen'**
+  String get blankCharacter;
+
+  /// No description provided for @characterCreator.
+  ///
+  /// In de, this message translates to:
+  /// **'Charaktererstellung'**
+  String get characterCreator;
+
+  /// No description provided for @confirmTooltip.
+  ///
+  /// In de, this message translates to:
+  /// **'Bestätigen'**
+  String get confirmTooltip;
+
+  /// No description provided for @selectMethodHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Methode auswählen'**
+  String get selectMethodHint;
+
+  /// No description provided for @standardArray.
+  ///
+  /// In de, this message translates to:
+  /// **'Standardwerte'**
+  String get standardArray;
+
+  /// No description provided for @pointBuy.
+  ///
+  /// In de, this message translates to:
+  /// **'Punktekauf'**
+  String get pointBuy;
+
+  /// No description provided for @roll4d6.
+  ///
+  /// In de, this message translates to:
+  /// **'4d6 würfeln, niedrigsten verwerfen'**
+  String get roll4d6;
+
+  /// No description provided for @custom.
+  ///
+  /// In de, this message translates to:
+  /// **'Benutzerdefiniert'**
+  String get custom;
+
+  /// No description provided for @assignRacialBonuses.
+  ///
+  /// In de, this message translates to:
+  /// **'Volksbonus zuweisen:'**
+  String get assignRacialBonuses;
+
+  /// No description provided for @assignBonusHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Bonus zuweisen'**
+  String get assignBonusHint;
+
+  /// No description provided for @selectValue.
+  ///
+  /// In de, this message translates to:
+  /// **'Wert auswählen'**
+  String get selectValue;
+
+  /// No description provided for @selectRoll.
+  ///
+  /// In de, this message translates to:
+  /// **'Wurf auswählen'**
+  String get selectRoll;
+
+  /// No description provided for @roll.
+  ///
+  /// In de, this message translates to:
+  /// **'Wurf'**
+  String get roll;
+
+  /// No description provided for @pointsUsed.
+  ///
+  /// In de, this message translates to:
+  /// **'Punkte verwendet: {used} / {pool}'**
+  String pointsUsed(Object pool, Object used);
+
+  /// No description provided for @pleaseAssignAll.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte weisen Sie alle sechs Fähigkeitswerte zu.'**
+  String get pleaseAssignAll;
+
+  /// No description provided for @rolledValuesLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Gewürfelte Werte: {values}'**
+  String rolledValuesLabel(Object values);
+
+  /// No description provided for @assignRolledValues.
+  ///
+  /// In de, this message translates to:
+  /// **'Gewürfelte Werte den Fähigkeiten zuweisen:'**
+  String get assignRolledValues;
+
+  /// No description provided for @rollAllTooltip.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle würfeln'**
+  String get rollAllTooltip;
+
+  /// No description provided for @chooserace.
+  ///
+  /// In de, this message translates to:
+  /// **'Volk auswählen'**
+  String get chooserace;
+
+  /// No description provided for @choosebackground.
+  ///
+  /// In de, this message translates to:
+  /// **'Hintergrund auswählen'**
+  String get choosebackground;
+
+  /// No description provided for @completeallsteps.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte schließe alle Schritte ab, bevor du den Charakter erstellst.'**
+  String get completeallsteps;
+
+  /// No description provided for @choosefeat.
+  ///
+  /// In de, this message translates to:
+  /// **'Wähle eine Fertigkeit'**
+  String get choosefeat;
+
+  /// No description provided for @setabilityscores.
+  ///
+  /// In de, this message translates to:
+  /// **'Attributswerte festlegen'**
+  String get setabilityscores;
+
+  /// Used points
+  ///
+  /// In de, this message translates to:
+  /// **'Verwendete Punkte: {used} / {pool}'**
+  String usedpoints(Object used, Object pool);
+
+  /// Rolled values
+  ///
+  /// In de, this message translates to:
+  /// **'Gewürfelte Werte: {values}'**
+  String rolledstats(Object values);
+
+  /// No description provided for @notrolledyet.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch nicht gewürfelt'**
+  String get notrolledyet;
+
+  /// No description provided for @exitConfirmationMessage.
+  ///
+  /// In de, this message translates to:
+  /// **'Bist du sicher, dass du abbrechen möchtest? Dein Fortschritt geht verloren.'**
+  String get exitConfirmationMessage;
+
+  /// No description provided for @exitCharacterCreator.
+  ///
+  /// In de, this message translates to:
+  /// **'Charaktererstellung beenden'**
+  String get exitCharacterCreator;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

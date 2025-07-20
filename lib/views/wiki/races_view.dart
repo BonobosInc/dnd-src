@@ -5,8 +5,14 @@ import 'package:dnd/l10n/app_localizations.dart';
 class RaceDetailPage extends StatefulWidget {
   final RaceData raceData;
   final bool importFeat;
+  final bool characterCreator;
 
-  const RaceDetailPage({super.key, required this.raceData, this.importFeat = false});
+  const RaceDetailPage({
+    super.key,
+    required this.raceData,
+    this.importFeat = false,
+    this.characterCreator = false,
+  });
 
   @override
   RaceDetailPageState createState() => RaceDetailPageState();
@@ -30,7 +36,17 @@ class RaceDetailPageState extends State<RaceDetailPage> {
                   },
                 ),
               ]
-            : null,
+            : widget.characterCreator
+                ? [
+                    IconButton(
+                      icon: const Icon(Icons.check),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop(widget.raceData);
+                      },
+                    ),
+                  ]
+                : null,
       ),
       body: ListView(
         padding: const EdgeInsets.all(8.0),

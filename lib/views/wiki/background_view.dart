@@ -5,11 +5,13 @@ import 'package:dnd/l10n/app_localizations.dart';
 class BackgroundDetailPage extends StatefulWidget {
   final BackgroundData backgroundData;
   final bool importFeat;
+  final bool characterCreator;
 
   const BackgroundDetailPage({
     super.key,
     required this.backgroundData,
     this.importFeat = false,
+    this.characterCreator = false,
   });
 
   @override
@@ -34,7 +36,17 @@ class BackgroundDetailPageState extends State<BackgroundDetailPage> {
                   },
                 ),
               ]
-            : null,
+            : widget.characterCreator
+                ? [
+                    IconButton(
+                      icon: const Icon(Icons.check),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop(widget.backgroundData);
+                      },
+                    ),
+                  ]
+                : null,
       ),
       body: ListView(
         padding: const EdgeInsets.all(8.0),
@@ -65,7 +77,6 @@ class BackgroundDetailPageState extends State<BackgroundDetailPage> {
   Widget _buildTraitsSection(BuildContext context) {
     return Column(
       children: [
-
         ...widget.backgroundData.traits.map((trait) {
           return ListTile(
             title: Text(

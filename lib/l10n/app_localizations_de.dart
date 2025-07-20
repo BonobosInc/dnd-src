@@ -952,4 +952,99 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get skillSurvivalDescription => 'Spüre Kreaturen auf, jage nach Nahrung, finde Unterschlupf und navigiere in rauer Natur.';
+
+  @override
+  String get chooseCreationMethod => 'Wähle, wie du deinen Charakter erstellen möchtest:';
+
+  @override
+  String get blankCharacter => 'Leerer Charakterbogen';
+
+  @override
+  String get characterCreator => 'Charaktererstellung';
+
+  @override
+  String get confirmTooltip => 'Bestätigen';
+
+  @override
+  String get selectMethodHint => 'Methode auswählen';
+
+  @override
+  String get standardArray => 'Standardwerte';
+
+  @override
+  String get pointBuy => 'Punktekauf';
+
+  @override
+  String get roll4d6 => '4d6 würfeln, niedrigsten verwerfen';
+
+  @override
+  String get custom => 'Benutzerdefiniert';
+
+  @override
+  String get assignRacialBonuses => 'Volksbonus zuweisen:';
+
+  @override
+  String get assignBonusHint => 'Bonus zuweisen';
+
+  @override
+  String get selectValue => 'Wert auswählen';
+
+  @override
+  String get selectRoll => 'Wurf auswählen';
+
+  @override
+  String get roll => 'Wurf';
+
+  @override
+  String pointsUsed(Object pool, Object used) {
+    return 'Punkte verwendet: $used / $pool';
+  }
+
+  @override
+  String get pleaseAssignAll => 'Bitte weisen Sie alle sechs Fähigkeitswerte zu.';
+
+  @override
+  String rolledValuesLabel(Object values) {
+    return 'Gewürfelte Werte: $values';
+  }
+
+  @override
+  String get assignRolledValues => 'Gewürfelte Werte den Fähigkeiten zuweisen:';
+
+  @override
+  String get rollAllTooltip => 'Alle würfeln';
+
+  @override
+  String get chooserace => 'Volk auswählen';
+
+  @override
+  String get choosebackground => 'Hintergrund auswählen';
+
+  @override
+  String get completeallsteps => 'Bitte schließe alle Schritte ab, bevor du den Charakter erstellst.';
+
+  @override
+  String get choosefeat => 'Wähle eine Fertigkeit';
+
+  @override
+  String get setabilityscores => 'Attributswerte festlegen';
+
+  @override
+  String usedpoints(Object used, Object pool) {
+    return 'Verwendete Punkte: $used / $pool';
+  }
+
+  @override
+  String rolledstats(Object values) {
+    return 'Gewürfelte Werte: $values';
+  }
+
+  @override
+  String get notrolledyet => 'Noch nicht gewürfelt';
+
+  @override
+  String get exitConfirmationMessage => 'Bist du sicher, dass du abbrechen möchtest? Dein Fortschritt geht verloren.';
+
+  @override
+  String get exitCharacterCreator => 'Charaktererstellung beenden';
 }
