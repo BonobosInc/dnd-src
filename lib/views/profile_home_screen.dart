@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:dnd/views/session/lobby_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -423,6 +424,14 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
               } else if (value == 'info') {
                 showAppStatusDialog(context);
               }
+              else if (value == 'session') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => LobbyPage(),
+                  ),
+                );
+              }
             },
             itemBuilder: (BuildContext context) {
               return [
@@ -445,6 +454,10 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                 const PopupMenuItem<String>(
                   value: 'info',
                   child: Text('BonoDND'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'session',
+                  child: Text('Session'),
                 ),
               ];
             },
