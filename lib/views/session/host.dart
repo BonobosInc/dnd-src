@@ -13,6 +13,41 @@ class HostPage extends StatefulWidget {
 }
 
 class _HostPageState extends State<HostPage> {
+  bool _stopping = false;
+
+  Future<void> _stopHosting() async {
+    if (_stopping) return;
+    final shouldStop = await _showStopConfirmationDialog();
+    if (shouldStop != true) return;
+    setState(() => _stopping = true);
+    await widget.server.stop();
+    if (!mounted) return;
+    Navigator.pop(context);
+    Navigator.pop(context);
+  }
+
+  Future<bool?> _showStopConfirmationDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Confirm Stop Hosting'),
+          content: const Text('Are you sure you want to stop hosting this session? All players will be disconnected.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Stop Hosting'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,10 +62,7 @@ class _HostPageState extends State<HostPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           color: AppColors.textColorLight,
-          onPressed: () async {
-            await widget.server.stop();
-            Navigator.pop(context);
-          },
+          onPressed: _stopHosting,
         ),
       ),
       body: Padding(
@@ -58,7 +90,6 @@ class _HostPageState extends State<HostPage> {
             const SizedBox(height: 10),
             Expanded(
               child: StreamBuilder<List<Map<String, dynamic>>>(
-                // assuming your server exposes a player stream
                 stream: widget.server.playerStream,
                 builder: (context, snapshot) {
                   final players = snapshot.data ?? [];

@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:dnd/classes/profile_manager.dart';
+import 'package:dnd/views/session/client_view.dart';
 import 'package:dnd/views/session/host.dart';
 import 'package:flutter/material.dart';
 import 'package:dnd/configs/colours.dart';
@@ -6,7 +8,16 @@ import 'package:dnd/classes/server.dart';
 import 'package:dnd/classes/client.dart';
 
 class LobbyPage extends StatefulWidget {
-  const LobbyPage({super.key});
+  DnDMulticastServer? _server;
+  DnDClient? _client;
+  List<Character>? profiles;
+  LobbyPage(
+      {super.key,
+      required DnDMulticastServer server,
+      required DnDClient client,
+      required this.profiles})
+      : _server = server,
+        _client = client;
 
   @override
   State<LobbyPage> createState() => _LobbyPageState();
@@ -18,10 +29,6 @@ class _LobbyPageState extends State<LobbyPage> {
   bool serverRunning = false;
 
   final TextEditingController _sessionNameController = TextEditingController();
-  final TextEditingController _playerNameController = TextEditingController();
-
-  DnDMulticastServer? _server;
-  DnDClient? _client;
 
   Timer? _uiRefreshTimer;
 
@@ -40,7 +47,7 @@ class _LobbyPageState extends State<LobbyPage> {
   @override
   void dispose() {
     _uiRefreshTimer?.cancel();
-    _server?.stop();
+    // _server?.stop();
     super.dispose();
   }
 
@@ -49,8 +56,9 @@ class _LobbyPageState extends State<LobbyPage> {
         ? 'Unnamed Session'
         : _sessionNameController.text.trim();
 
-    _server = DnDMulticastServer();
-    await _server!.start();
+    widget._server = DnDMulticastServer();
+    widget._server?.name = name;
+    await widget._server!.start();
 
     setState(() => serverRunning = true);
 
@@ -62,31 +70,74 @@ class _LobbyPageState extends State<LobbyPage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => HostPage(server: _server!, sessionName: name),
+          builder: (_) => HostPage(server: widget._server!, sessionName: name),
         ),
       );
     }
   }
 
-  void _promptJoinServer(String ip, int port) {
+  void _promptJoinServer(String ip, int port) async {
+    if (widget._client?.isConnected == true &&
+        widget._client?.connectedIp == ip &&
+        widget._client?.connectedPort == port) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ClientPage(
+            client: widget._client!,
+            playerName: widget._client!.playerName ?? 'Unknown Player',
+            isFromLobby: true
+          ),
+        ),
+      );
+      return;
+    }
+
+    Character? selectedCharacter;
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           backgroundColor: AppColors.cardColor,
-          title: Text('Join Session',
-              style: TextStyle(color: AppColors.textColorLight)),
-          content: TextField(
-            controller: _playerNameController,
-            decoration: InputDecoration(
-              labelText: 'Enter your name',
-              labelStyle: TextStyle(color: AppColors.textColorDark),
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: AppColors.borderColor),
-              ),
-            ),
+          title: Text(
+            'Choose Character',
             style: TextStyle(color: AppColors.textColorLight),
           ),
+          content: widget.profiles == null || widget.profiles!.isEmpty
+              ? Text(
+                  'No characters found. Please create one first.',
+                  style: TextStyle(color: AppColors.textColorDark),
+                )
+              : StatefulBuilder(
+                  builder: (context, setState) {
+                    return DropdownButtonFormField<Character>(
+                      dropdownColor: AppColors.cardColor,
+                      value: selectedCharacter,
+                      items: widget.profiles!
+                          .map(
+                            (character) => DropdownMenuItem<Character>(
+                              value: character,
+                              child: Text(
+                                character.name,
+                                style:
+                                    TextStyle(color: AppColors.textColorLight),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) =>
+                          setState(() => selectedCharacter = value),
+                      decoration: InputDecoration(
+                        labelText: 'Select your character',
+                        labelStyle: TextStyle(color: AppColors.textColorDark),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: AppColors.borderColor),
+                        ),
+                      ),
+                    );
+                  },
+                ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -98,12 +149,27 @@ class _LobbyPageState extends State<LobbyPage> {
                 backgroundColor: AppColors.currentHealth,
               ),
               onPressed: () async {
-                final name = _playerNameController.text.trim();
-                if (name.isEmpty) return;
+                if (selectedCharacter == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please select a character!')),
+                  );
+                  return;
+                }
+
+                await widget._client!
+                    .joinSession(ip, port, selectedCharacter!);
+
+                if (!mounted) return;
                 Navigator.pop(context);
-                await _client!.joinSession(ip, port, name);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('🎲 Joined as $name')),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ClientPage(
+                      client: widget._client!,
+                      playerName: selectedCharacter!.name,
+                      isFromLobby: true
+                    ),
+                  ),
                 );
               },
               child: const Text('Join'),
@@ -142,7 +208,21 @@ class _LobbyPageState extends State<LobbyPage> {
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
-          onPressed: serverRunning ? null : _startServer,
+          onPressed: () async {
+            if (serverRunning && widget._server != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => HostPage(
+                    server: widget._server!,
+                    sessionName: widget._server!.name,
+                  ),
+                ),
+              );
+            } else {
+              await _startServer();
+            }
+          },
           child: Text(
             serverRunning ? 'Server Running...' : 'Start Hosting',
             style: TextStyle(
@@ -156,12 +236,12 @@ class _LobbyPageState extends State<LobbyPage> {
   }
 
   Widget _buildPlayerView() {
-    if (_client == null) {
-      _client = DnDClient();
-      _client!.listenForServers();
+    if (widget._client == null) {
+      widget._client = DnDClient();
     }
+    widget._client!.listenForServers();
 
-    final sessions = _client?.discoveredSessions.values.toList() ?? [];
+    final sessions = widget._client?.discoveredSessions.values.toList() ?? [];
 
     return Column(
       children: [

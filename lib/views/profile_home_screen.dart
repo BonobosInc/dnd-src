@@ -1,6 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:dnd/views/session/lobby_view.dart';
+import 'package:dnd/classes/client.dart';
+import 'package:dnd/classes/server.dart';
+import 'package:dnd/views/session/client_view.dart';
+import 'package:dnd/views/session/host.dart';
+import 'package:dnd/views/session/session_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -30,6 +34,9 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
   ProfileManager profileManager = ProfileManager();
   bool _isImporting = false;
 
+  DnDMulticastServer? _server;
+  DnDClient? _client;
+
   @override
   void initState() {
     super.initState();
@@ -56,8 +63,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
               title: Text(loc.newchar),
               content: TextField(
                 controller: controller,
-                decoration:
-                    InputDecoration(hintText: loc.entercharactername),
+                decoration: InputDecoration(hintText: loc.entercharactername),
               ),
               actions: <Widget>[
                 TextButton(
@@ -173,8 +179,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
           title: Text(loc.changeName),
           content: TextField(
             controller: controller,
-            decoration: InputDecoration(
-                hintText: loc.enternewname),
+            decoration: InputDecoration(hintText: loc.enternewname),
           ),
           actions: <Widget>[
             TextButton(
@@ -206,7 +211,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                         SnackBar(
                           content: Text(
                             AppLocalizations.of(context)!
-                                        .characterExists(newName),
+                                .characterExists(newName),
                             style: TextStyle(color: AppColors.textColorLight),
                           ),
                           backgroundColor: AppColors.warningColor,
@@ -326,14 +331,11 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                             if (success) {
                               Navigator.of(context).pop();
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text(loc.exportgood)),
+                                SnackBar(content: Text(loc.exportgood)),
                               );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content:
-                                        Text(loc.exportbad)),
+                                SnackBar(content: Text(loc.exportbad)),
                               );
                             }
                           }
@@ -423,14 +425,46 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                 );
               } else if (value == 'info') {
                 showAppStatusDialog(context);
-              }
-              else if (value == 'session') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => LobbyPage(),
-                  ),
-                );
+              } else if (value == 'session') {
+                if (_server?.serverStarted == true) {
+                  if (context.mounted) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => HostPage(
+                            server: _server!, sessionName: _server!.name),
+                      ),
+                    );
+                  }
+                  return;
+                } else if (_client?.connectedIp != null) {
+                  if (context.mounted) {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ClientPage(
+                              client: _client!,
+                              playerName:
+                                  _client!.playerName ?? 'Unknown Player',
+                              isFromLobby: false),
+                        ));
+                  }
+                  return;
+                } else {
+                  setState(() {
+                    _server ??= DnDMulticastServer();
+                    _client ??= DnDClient();
+                  });
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LobbyPage(
+                          server: _server!,
+                          client: _client!,
+                          profiles: profileManager.profiles),
+                    ),
+                  );
+                }
               }
             },
             itemBuilder: (BuildContext context) {
@@ -482,7 +516,8 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                             child: Material(
                               elevation: 4,
                               borderRadius: BorderRadius.circular(12),
-                              shadowColor: Colors.black.withAlpha((0.5 * 255).toInt()),
+                              shadowColor:
+                                  Colors.black.withAlpha((0.5 * 255).toInt()),
                               child: Container(
                                 padding: const EdgeInsets.all(8.0),
                                 decoration: BoxDecoration(
@@ -519,7 +554,8 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                             return AlertDialog(
                                               title: Text(loc.deletechar),
                                               content: Text(
-                                                  loc.deletecharconfirm(profile.name)),
+                                                  loc.deletecharconfirm(
+                                                      profile.name)),
                                               actions: <Widget>[
                                                 TextButton(
                                                   child: Text(loc.no),
@@ -552,7 +588,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                     },
                                     itemBuilder: (BuildContext context) {
                                       return [
-                                          PopupMenuItem<String>(
+                                        PopupMenuItem<String>(
                                           value: 'dump',
                                           child: Text(loc.export),
                                         ),
