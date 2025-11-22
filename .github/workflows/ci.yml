@@ -129,5 +129,7 @@ jobs:
           artifacts: |
             BonoDND-${{ env.version }}.apk
             BonoDND-${{ env.version }}-windows.zip
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_PAT }}
+          owner: BonobosInc
+          repo: dnd
           tag: ${{ env.version }}
