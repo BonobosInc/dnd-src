@@ -123,7 +123,7 @@ jobs:
       - name: Rename Windows ZIP
         run: mv bonodnd-windows.zip BonoDND-${{ env.version }}-windows.zip
 
-      - name: Push APK and Windows ZIP to Release
+      - name: Push APK and Windows ZIP to Release Repo
         uses: ncipollo/release-action@v1
         with:
           artifacts: |
@@ -132,4 +132,13 @@ jobs:
           token: ${{ secrets.RELEASE_PAT }}
           owner: BonobosInc
           repo: dnd
+          tag: ${{ env.version }}
+
+      - name: Push APK and Windows ZIP to SRC Repo
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: |
+            BonoDND-${{ env.version }}.apk
+            BonoDND-${{ env.version }}-windows.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ env.version }}
