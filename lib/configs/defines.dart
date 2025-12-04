@@ -62,6 +62,7 @@ class Defines {
   static const String statInspiration = "inspiration";
   static const String statProficiencyBonus = "proficiencybonus";
   static const String statInitiative = "initiative";
+  static const String statInitiativeBonus = "initiative_bonus";
   static const String statMovement = "movement";
   static const String statMaxHP = "maxhp";
   static const String statCurrentHP = "currenthp";
