@@ -33,6 +33,7 @@ class MainStatsPageState extends State<MainStatsPage> {
   int inspiration = 0;
   int proficiencyBonus = 0;
   int initiative = 0;
+  int initiative_bonus = 0;
   String movement = '0m';
 
   Timer? _timer;
@@ -93,6 +94,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                     10) /
                 2)
             .floor();
+        initiative_bonus = characterData[Defines.statInitiativeBonus] ?? 0;
         movement = characterData[Defines.statMovement].toString();
         currentHitDice = characterData[Defines.statCurrentHitDice];
         maxHitDice = characterData[Defines.statMaxHitDice];
@@ -275,7 +277,9 @@ class MainStatsPageState extends State<MainStatsPage> {
                       ? Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('${loc.value}:'),
+                            Text(field == Defines.statInitiativeBonus
+                                ? '${loc.bonus}:'
+                                : '${loc.value}:'),
                             Row(
                               children: [
                                 IconButton(
@@ -330,8 +334,8 @@ class MainStatsPageState extends State<MainStatsPage> {
                       if (field == Defines.statProficiencyBonus) {
                         proficiencyBonus = int.tryParse(newValue.toString())!;
                       }
-                      if (field == Defines.statInitiative) {
-                        initiative = int.tryParse(newValue.toString())!;
+                      if (field == Defines.statInitiativeBonus) {
+                        initiative_bonus = int.tryParse(newValue.toString())!;
                       }
                       if (field == Defines.statMovement) {
                         movement = newValue;
@@ -515,7 +519,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: newTrackerType,
+                    initialValue: newTrackerType,
                     items: [
                       DropdownMenuItem(value: 'never', child: Text(loc.never)),
                       DropdownMenuItem(
@@ -656,7 +660,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: editedTrackerType,
+                    initialValue: editedTrackerType,
                     items: [
                       DropdownMenuItem(value: 'never', child: Text(loc.never)),
                       DropdownMenuItem(value: 'long', child: Text(loc.longrest)),
@@ -773,7 +777,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButtonFormField<String>(
-                    value: selectedCondition,
+                    initialValue: selectedCondition,
                     items: getConditionOptions(context).map((condition) {
                       return DropdownMenuItem<String>(
                         value: condition,
@@ -843,7 +847,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButtonFormField<String>(
-                    value: selectedCondition,
+                    initialValue: selectedCondition,
                     items: getConditionOptions(context).map((condition) {
                       return DropdownMenuItem<String>(
                         value: condition,
@@ -1259,8 +1263,8 @@ class MainStatsPageState extends State<MainStatsPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildStatCard(
-                        loc.initiative, initiative, Defines.statInitiative,
-                        isCount: true, isClickable: false),
+                        loc.initiative, (initiative + initiative_bonus), Defines.statInitiativeBonus,
+                        isCount: true),
                     _buildStatCard(
                         loc.movement, movement, Defines.statMovement),
                     _buildEditHitDiceCard(),

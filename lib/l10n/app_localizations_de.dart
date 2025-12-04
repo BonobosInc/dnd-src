@@ -150,10 +150,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get never => 'Niemals';
 
   @override
-  String get longrestconfirm => 'Bist du sicher, dass du eine lange Rast machen möchtest?';
+  String get longrestconfirm =>
+      'Bist du sicher, dass du eine lange Rast machen möchtest?';
 
   @override
-  String get shortrestconfirm => 'Bist du sicher, dass du eine kurze Rast machen möchtest?';
+  String get shortrestconfirm =>
+      'Bist du sicher, dass du eine kurze Rast machen möchtest?';
 
   @override
   String get yes => 'Ja';
@@ -168,7 +170,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get deleteimage => 'Bild entfernen';
 
   @override
-  String get deleteimageconfirm => 'Bist du sicher, dass du das Bild entfernen möchtest?';
+  String get deleteimageconfirm =>
+      'Bist du sicher, dass du das Bild entfernen möchtest?';
 
   @override
   String get spells => 'Zauber';
@@ -303,7 +306,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get cleardatabase => 'Datenbank leeren';
 
   @override
-  String get cleardatabaseconfirm => 'Bist du sicher, dass du die Datenbank leeren möchtest? Alle Charaktere und Einstellungen gehen verloren.';
+  String get cleardatabaseconfirm =>
+      'Bist du sicher, dass du die Datenbank leeren möchtest? Alle Charaktere und Einstellungen gehen verloren.';
 
   @override
   String get exportgood => 'Export erfolgreich';
@@ -321,7 +325,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get exportformat => 'Exportformat';
 
   @override
-  String get noexportfilefound => 'Keine XML-Datei wurde zum Exportieren geladen.';
+  String get noexportfilefound =>
+      'Keine XML-Datei wurde zum Exportieren geladen.';
 
   @override
   String get onlyxmlallowed => 'Nur XML-Dateien sind erlaubt';
@@ -867,13 +872,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get downloadingTitle => 'Herunterladen...';
 
   @override
-  String get downloadingContent => 'Bitte warten, die neue Version wird heruntergeladen.';
+  String get downloadingContent =>
+      'Bitte warten, die neue Version wird heruntergeladen.';
 
   @override
   String get installPermissionTitle => 'Installation nicht erlaubt';
 
   @override
-  String get installPermissionContent => 'Bitte erlaube dieser App die Installation von unbekannten Quellen in den Systemeinstellungen.';
+  String get installPermissionContent =>
+      'Bitte erlaube dieser App die Installation von unbekannten Quellen in den Systemeinstellungen.';
 
   @override
   String get openSettings => 'Einstellungen öffnen';
@@ -885,7 +892,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get updateFailedTitle => 'Aktualisierung fehlgeschlagen';
 
   @override
-  String get updateFailedContent => 'Die Aktualisierung konnte nicht heruntergeladen oder installiert werden. Bitte versuche es später erneut.';
+  String get updateFailedContent =>
+      'Die Aktualisierung konnte nicht heruntergeladen oder installiert werden. Bitte versuche es später erneut.';
 
   @override
   String get ok => 'OK';
@@ -894,62 +902,81 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attunement => 'Einstimmung';
 
   @override
-  String get attunementLimit => 'Du kannst dich nur auf maximal 3 Gegenstände einstimmen.';
+  String get attunementLimit =>
+      'Du kannst dich nur auf maximal 3 Gegenstände einstimmen.';
 
   @override
   String get attunementlimitReached => 'Einstimmungsgrenze erreicht.';
 
   @override
-  String get skillAcrobaticsDescription => 'Führe agile Stunts und Manöver aus und behalte dabei Gleichgewicht und Koordination.';
+  String get skillAcrobaticsDescription =>
+      'Führe agile Stunts und Manöver aus und behalte dabei Gleichgewicht und Koordination.';
 
   @override
-  String get skillAnimalHandlingDescription => 'Beruhige, kontrolliere oder verstehe intuitiv das Verhalten von Tieren, um sie zu führen oder zu beeinflussen.';
+  String get skillAnimalHandlingDescription =>
+      'Beruhige, kontrolliere oder verstehe intuitiv das Verhalten von Tieren, um sie zu führen oder zu beeinflussen.';
 
   @override
-  String get skillArcanaDescription => 'Erinnere dich an und wende Wissen über Magie, mystische Traditionen und alte Überlieferungen an.';
+  String get skillArcanaDescription =>
+      'Erinnere dich an und wende Wissen über Magie, mystische Traditionen und alte Überlieferungen an.';
 
   @override
-  String get skillAthleticsDescription => 'Führe körperliche Leistungen wie Klettern, Schwimmen, Springen und andere Kraft- und Ausdauerleistungen aus.';
+  String get skillAthleticsDescription =>
+      'Führe körperliche Leistungen wie Klettern, Schwimmen, Springen und andere Kraft- und Ausdauerleistungen aus.';
 
   @override
-  String get skillDeceptionDescription => 'Täusche andere überzeugend, indem du lügst, irreführst oder manipulativ handelst.';
+  String get skillDeceptionDescription =>
+      'Täusche andere überzeugend, indem du lügst, irreführst oder manipulativ handelst.';
 
   @override
-  String get skillHistoryDescription => 'Erinnere dich an und interpretiere bedeutende historische Ereignisse, Kulturen und Legenden.';
+  String get skillHistoryDescription =>
+      'Erinnere dich an und interpretiere bedeutende historische Ereignisse, Kulturen und Legenden.';
 
   @override
-  String get skillInsightDescription => 'Erkenne die wahren Absichten, Emotionen oder Motive anderer durch das Lesen ihrer Körpersprache und Sprache.';
+  String get skillInsightDescription =>
+      'Erkenne die wahren Absichten, Emotionen oder Motive anderer durch das Lesen ihrer Körpersprache und Sprache.';
 
   @override
-  String get skillIntimidationDescription => 'Setze Drohungen, Gewalt oder eine einschüchternde Präsenz ein, um andere zu beeinflussen oder zu zwingen.';
+  String get skillIntimidationDescription =>
+      'Setze Drohungen, Gewalt oder eine einschüchternde Präsenz ein, um andere zu beeinflussen oder zu zwingen.';
 
   @override
-  String get skillInvestigationDescription => 'Suche nach, analysiere und füge Hinweise zusammen, um Geheimnisse oder Rätsel zu lösen.';
+  String get skillInvestigationDescription =>
+      'Suche nach, analysiere und füge Hinweise zusammen, um Geheimnisse oder Rätsel zu lösen.';
 
   @override
-  String get skillMedicineDescription => 'Diagnostiziere Krankheiten, behandle Wunden und leiste grundlegende medizinische Versorgung zur Stabilisierung Verletzter.';
+  String get skillMedicineDescription =>
+      'Diagnostiziere Krankheiten, behandle Wunden und leiste grundlegende medizinische Versorgung zur Stabilisierung Verletzter.';
 
   @override
-  String get skillNatureDescription => 'Verstehe Pflanzen, Tiere, natürliche Zyklen und Überlebenstaktiken in der Wildnis.';
+  String get skillNatureDescription =>
+      'Verstehe Pflanzen, Tiere, natürliche Zyklen und Überlebenstaktiken in der Wildnis.';
 
   @override
-  String get skillPerceptionDescription => 'Erkenne versteckte Details, leise Geräusche oder Bewegungen, die anderen entgehen könnten.';
+  String get skillPerceptionDescription =>
+      'Erkenne versteckte Details, leise Geräusche oder Bewegungen, die anderen entgehen könnten.';
 
   @override
-  String get skillPerformanceDescription => 'Unterhalte oder fessle ein Publikum durch Musik, Tanz, Schauspiel oder andere Ausdrucksformen.';
+  String get skillPerformanceDescription =>
+      'Unterhalte oder fessle ein Publikum durch Musik, Tanz, Schauspiel oder andere Ausdrucksformen.';
 
   @override
-  String get skillPersuasionDescription => 'Überzeuge oder beeinflusse andere durch Vernunft, Charme oder ehrliche Appelle.';
+  String get skillPersuasionDescription =>
+      'Überzeuge oder beeinflusse andere durch Vernunft, Charme oder ehrliche Appelle.';
 
   @override
-  String get skillReligionDescription => 'Besitze Wissen über Götter, heilige Rituale, religiöse Bräuche und spirituelle Überlieferungen.';
+  String get skillReligionDescription =>
+      'Besitze Wissen über Götter, heilige Rituale, religiöse Bräuche und spirituelle Überlieferungen.';
 
   @override
-  String get skillSleightOfHandDescription => 'Führe schnelle, präzise oder verdeckte manuelle Tricks aus, wie Taschendiebstahl oder Zauberkunststücke.';
+  String get skillSleightOfHandDescription =>
+      'Führe schnelle, präzise oder verdeckte manuelle Tricks aus, wie Taschendiebstahl oder Zauberkunststücke.';
 
   @override
-  String get skillStealthDescription => 'Bewege dich lautlos und bleibe ungesehen, um einer Entdeckung zu entgehen.';
+  String get skillStealthDescription =>
+      'Bewege dich lautlos und bleibe ungesehen, um einer Entdeckung zu entgehen.';
 
   @override
-  String get skillSurvivalDescription => 'Spüre Kreaturen auf, jage nach Nahrung, finde Unterschlupf und navigiere in rauer Natur.';
+  String get skillSurvivalDescription =>
+      'Spüre Kreaturen auf, jage nach Nahrung, finde Unterschlupf und navigiere in rauer Natur.';
 }
