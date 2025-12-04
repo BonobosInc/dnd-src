@@ -1263,7 +1263,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildStatCard(
-                        loc.initiative, (initiative + initiative_bonus), Defines.statInitiativeBonus,
+                        loc.initiative, initiative, Defines.statInitiativeBonus,
                         isCount: true),
                     _buildStatCard(
                         loc.movement, movement, Defines.statMovement),
@@ -1614,6 +1614,7 @@ class MainStatsPageState extends State<MainStatsPage> {
       child: isClickable
           ? GestureDetector(
               onTap: () {
+                if (statType == Defines.statInitiativeBonus) value = initiative_bonus;
                 _showEditStatDialog(name, statType, value, isCount: isCount);
               },
               child: cardContent,
