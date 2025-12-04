@@ -31,7 +31,7 @@ jobs:
         run: |
           cd $FLUTTER_ROOT
           git fetch --tags
-          git checkout 3.29.3
+          git checkout 3.38.3
           flutter --version
           cd -
       - run: flutter --version
