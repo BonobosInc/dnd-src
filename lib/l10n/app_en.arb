@@ -347,5 +347,11 @@
     "skillReligionDescription": "Possess knowledge of deities, sacred rites, religious customs, and spiritual lore.",
     "skillSleightOfHandDescription": "Perform quick, precise, or concealed manual tricks, such as picking pockets or performing magic.",
     "skillStealthDescription": "Move silently and remain unseen to avoid detection.",
-    "skillSurvivalDescription": "Track creatures, hunt for food, find shelter, and navigate harsh natural environments."
+    "skillSurvivalDescription": "Track creatures, hunt for food, find shelter, and navigate harsh natural environments.",
+    "session": "Session",
+    "hostSession": "Host Session",
+    "joinedSession": "Joined Session",
+    "sessionSettings": "Session Settings",
+    "showPlayerHP": "Show Player HP to Clients",
+    "showPlayerAC": "Show Player AC to Clients"
 }

@@ -10,13 +10,16 @@ class DnDMulticastServer {
   String name = "Unnamed Session";
 
   final List<Map<String, dynamic>> _players = [];
+  final List<Map<String, dynamic>> _monsters = [];
   final Map<String, dynamic> _sessionSettings = {
     'sessionName': "Unnamed Session",
   };
 
   final List<Map<String, dynamic>> _playerStats = [];
+  int _currentTurnIndex = 0;
 
   bool get serverStarted => _server != null;
+  Map<String, dynamic> get sessionSettings => _sessionSettings;
 
   final List<WebSocket> _connectedClients = [];
 
@@ -33,7 +36,19 @@ class DnDMulticastServer {
   DnDMulticastServer({this.port = 4040});
 
   Future<void> start() async {
-    _server = await HttpServer.bind(InternetAddress.anyIPv4, port);
+    // Don't start if already running
+    if (_server != null) {
+      print('⚠️ Server already running on port $port');
+      return;
+    }
+
+    try {
+      _server = await HttpServer.bind(InternetAddress.anyIPv4, port);
+    } catch (e) {
+      print('⚠️ Failed to bind to port $port: $e');
+      print('💡 Try stopping any existing servers first');
+      rethrow;
+    }
     localIp = await _getLocalIp();
     print('🧙 DM REST API running at $localIp:$port');
     _sessionSettings['sessionName'] = name;
@@ -57,13 +72,20 @@ class DnDMulticastServer {
 
         _players.add({
           'name': data['name'],
-          'joinedAt': DateTime.now().toIso8601String()
+          'joinedAt': DateTime.now().toIso8601String(),
+          'initiative': 0,
+          'HP': null,
+          'maxHP': null,
+          'tempHP': null,
+          'AC': null,
         });
         _playerStreamController.add(List.from(_players));
 
         _broadcastToClients({
           'type': 'player_joined',
           'players': _players,
+          'monsters': _monsters,
+          'currentTurnIndex': _currentTurnIndex,
           'settings': _sessionSettings,
         });
 
@@ -92,6 +114,8 @@ class DnDMulticastServer {
           _broadcastToClients({
             'type': 'player_left',
             'players': _players,
+            'monsters': _monsters,
+            'currentTurnIndex': _currentTurnIndex,
           });
 
           print('👋 Player left: $name');
@@ -115,19 +139,58 @@ class DnDMulticastServer {
         final body = await utf8.decoder.bind(req).join();
         final data = jsonDecode(body);
 
-        _playerStats.add({
-          'name': data['name'],
-          'stats': {
-            'AC': data['AC'],
-            'HP': data['HP'],
-          }
-        });
+        final playerName = data['name'];
+        final playerIndex = _players.indexWhere((p) => p['name'] == playerName);
+
+        if (playerIndex != -1) {
+          // Update existing player stats
+          _players[playerIndex]['HP'] = data['HP'];
+          _players[playerIndex]['maxHP'] = data['maxHP'];
+          _players[playerIndex]['tempHP'] = data['tempHP'];
+          _players[playerIndex]['AC'] = data['AC'];
+
+          // Broadcast update to all clients
+          _broadcastCombatants();
+
+          print(
+              '📊 Stats updated for: $playerName (HP: ${data['HP']}/${data['maxHP']} (+${data['tempHP']}), AC: ${data['AC']})');
+        } else {
+          print('⚠️ Player $playerName not found in players list');
+        }
 
         req.response
           ..statusCode = HttpStatus.ok
           ..headers.contentType = ContentType.json
           ..close();
-        print('📊 Stats updated for: ${data['name']}');
+      } else if (req.method == 'POST' && req.uri.path == '/initiative') {
+        final body = await utf8.decoder.bind(req).join();
+        final data = jsonDecode(body);
+
+        final playerName = data['name'];
+        final initiative = data['initiative'];
+
+        final playerIndex = _players.indexWhere((p) => p['name'] == playerName);
+        if (playerIndex != -1) {
+          _players[playerIndex]['initiative'] = initiative;
+          _playerStreamController.add(List.from(_players));
+
+          _broadcastToClients({
+            'type': 'initiative_updated',
+            'players': _players,
+          });
+
+          req.response
+            ..statusCode = HttpStatus.ok
+            ..headers.contentType = ContentType.json
+            ..write(jsonEncode({'status': 'updated'}))
+            ..close();
+          print('🎲 Initiative updated for ${playerName}: $initiative');
+        } else {
+          req.response
+            ..statusCode = HttpStatus.notFound
+            ..write('Player not found')
+            ..close();
+        }
       } else {
         req.response
           ..statusCode = HttpStatus.notFound
@@ -152,19 +215,27 @@ class DnDMulticastServer {
     socket.add(jsonEncode({
       'type': 'welcome',
       'players': _players,
+      'monsters': _monsters,
+      'currentTurnIndex': _currentTurnIndex,
       'settings': _sessionSettings,
     }));
   }
 
   void _broadcastToClients(Map<String, dynamic> data) {
     final jsonData = jsonEncode(data);
+    print(
+        '📡 [Server] Broadcasting ${data['type']} to ${_connectedClients.length} clients');
+    print('📡 [Server] Message: $jsonData');
+    int sent = 0;
     for (final client in List<WebSocket>.from(_connectedClients)) {
       try {
         client.add(jsonData);
+        sent++;
       } catch (e) {
         print('⚠️ Failed to send to client: $e');
       }
     }
+    print('📡 [Server] Successfully sent to $sent clients');
   }
 
   Future<void> _startMulticastBroadcast() async {
@@ -197,14 +268,121 @@ class DnDMulticastServer {
     return '127.0.0.1';
   }
 
+  void addMonster(Map<String, dynamic> monster) {
+    _monsters.add(monster);
+    _broadcastCombatants();
+    print('👾 Monster added: ${monster['name']}');
+  }
+
+  void removeMonster(String monsterName) {
+    _monsters.removeWhere((m) => m['name'] == monsterName);
+    _broadcastCombatants();
+    print('🗑️ Monster removed: $monsterName');
+  }
+
+  void updateMonsterStats(String monsterName, {int? hp, int? maxHp, int? ac}) {
+    final monsterIndex = _monsters.indexWhere((m) => m['name'] == monsterName);
+    if (monsterIndex != -1) {
+      if (hp != null) _monsters[monsterIndex]['hp'] = hp;
+      if (maxHp != null) _monsters[monsterIndex]['maxHp'] = maxHp;
+      if (ac != null) _monsters[monsterIndex]['ac'] = ac;
+      _broadcastCombatants();
+      print('📊 Monster stats updated for: $monsterName (HP: ${_monsters[monsterIndex]['hp']}/${_monsters[monsterIndex]['maxHp']}, AC: ${_monsters[monsterIndex]['ac']})');
+    }
+  }
+
+  void updateMonsterName(String oldName, String newName) {
+    final monsterIndex = _monsters.indexWhere((m) => m['name'] == oldName);
+    if (monsterIndex != -1) {
+      _monsters[monsterIndex]['name'] = newName;
+      _broadcastCombatants();
+      print('📝 Monster name updated: $oldName -> $newName');
+    }
+  }
+
+  void nextTurn() {
+    final totalCombatants = _players.length + _monsters.length;
+    if (totalCombatants > 0) {
+      _currentTurnIndex = (_currentTurnIndex + 1) % totalCombatants;
+      _broadcastCombatants();
+      print('➡️ Turn advanced to index: $_currentTurnIndex');
+    }
+  }
+
+  void _broadcastCombatants() {
+    // Combine and sort by initiative (highest to lowest)
+    final allCombatants = [..._players, ..._monsters];
+    allCombatants.sort((a, b) {
+      final aInit = a['initiative'] ?? 0;
+      final bInit = b['initiative'] ?? 0;
+      return bInit.compareTo(aInit); // Descending order
+    });
+
+    // Ensure turn index is valid
+    if (_currentTurnIndex >= allCombatants.length) {
+      _currentTurnIndex = 0;
+    }
+
+    print(
+        '📊 Broadcasting combatants: ${_players.length} players, ${_monsters.length} monsters');
+
+    _playerStreamController.add(allCombatants);
+    _broadcastToClients({
+      'type': 'combatants_updated',
+      'players': _players,
+      'monsters': _monsters,
+      'currentTurnIndex': _currentTurnIndex,
+    });
+  }
+
+  Future<void> updateInitiative(String name, int initiative) async {
+    print('🔍 Looking for combatant: "$name"');
+    print(
+        '🔍 Current players: ${_players.map((p) => '"${p['name']}"').toList()}');
+    print(
+        '🔍 Current monsters: ${_monsters.map((m) => '"${m['name']}"').toList()}');
+
+    // Try to find in players first
+    final playerIndex = _players.indexWhere((p) => p['name'] == name);
+    if (playerIndex != -1) {
+      _players[playerIndex]['initiative'] = initiative;
+      _broadcastCombatants();
+      print('🎲 Initiative updated for player $name: $initiative');
+      return;
+    }
+
+    // Try to find in monsters
+    final monsterIndex = _monsters.indexWhere((m) => m['name'] == name);
+    if (monsterIndex != -1) {
+      _monsters[monsterIndex]['initiative'] = initiative;
+      _broadcastCombatants();
+      print('🎲 Initiative updated for monster $name: $initiative');
+      return;
+    }
+
+    print('⚠️ Combatant $name not found for initiative update');
+  }
+
   Future<void> stop() async {
-    await _server?.close();
     multicastTimer?.cancel();
     multicastSocket?.close();
     for (final client in _connectedClients) {
-      client.close();
+      try {
+        client.close();
+      } catch (e) {
+        print('Error closing client: $e');
+      }
     }
-    await _playerStreamController.close();
+    _connectedClients.clear();
+    try {
+      await _server?.close(force: true);
+    } catch (e) {
+      print('Error closing server: $e');
+    }
+    _server = null;
+    if (!_playerStreamController.isClosed) {
+      await _playerStreamController.close();
+    }
     print('🛑 Server stopped.');
   }
 }

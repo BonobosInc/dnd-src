@@ -1963,6 +1963,42 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Spüre Kreaturen auf, jage nach Nahrung, finde Unterschlupf und navigiere in rauer Natur.'**
   String get skillSurvivalDescription;
+
+  /// No description provided for @session.
+  ///
+  /// In de, this message translates to:
+  /// **'Sitzung'**
+  String get session;
+
+  /// No description provided for @hostSession.
+  ///
+  /// In de, this message translates to:
+  /// **'Sitzung hosten'**
+  String get hostSession;
+
+  /// No description provided for @joinedSession.
+  ///
+  /// In de, this message translates to:
+  /// **'Beigetretene Sitzung'**
+  String get joinedSession;
+
+  /// No description provided for @sessionSettings.
+  ///
+  /// In de, this message translates to:
+  /// **'Sitzungseinstellungen'**
+  String get sessionSettings;
+
+  /// No description provided for @showPlayerHP.
+  ///
+  /// In de, this message translates to:
+  /// **'Spieler HP für Clients anzeigen'**
+  String get showPlayerHP;
+
+  /// No description provided for @showPlayerAC.
+  ///
+  /// In de, this message translates to:
+  /// **'Spieler AC für Clients anzeigen'**
+  String get showPlayerAC;
 }
 
 class _AppLocalizationsDelegate

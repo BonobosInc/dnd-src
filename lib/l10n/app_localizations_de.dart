@@ -979,4 +979,22 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get skillSurvivalDescription =>
       'Spüre Kreaturen auf, jage nach Nahrung, finde Unterschlupf und navigiere in rauer Natur.';
+
+  @override
+  String get session => 'Sitzung';
+
+  @override
+  String get hostSession => 'Sitzung hosten';
+
+  @override
+  String get joinedSession => 'Beigetretene Sitzung';
+
+  @override
+  String get sessionSettings => 'Sitzungseinstellungen';
+
+  @override
+  String get showPlayerHP => 'Spieler HP für Clients anzeigen';
+
+  @override
+  String get showPlayerAC => 'Spieler AC für Clients anzeigen';
 }

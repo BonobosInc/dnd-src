@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:dnd/classes/client.dart';
-import 'package:dnd/classes/server.dart';
+import 'package:dnd/classes/session_manager.dart';
 import 'package:dnd/views/session/client_view.dart';
 import 'package:dnd/views/session/host.dart';
 import 'package:dnd/views/session/session_view.dart';
@@ -33,9 +32,7 @@ class ProfileHomeScreen extends StatefulWidget {
 class ProfileHomeScreenState extends State<ProfileHomeScreen> {
   ProfileManager profileManager = ProfileManager();
   bool _isImporting = false;
-
-  DnDMulticastServer? _server;
-  DnDClient? _client;
+  final SessionManager _sessionManager = SessionManager();
 
   @override
   void initState() {
@@ -426,42 +423,73 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
               } else if (value == 'info') {
                 showAppStatusDialog(context);
               } else if (value == 'session') {
-                if (_server?.serverStarted == true) {
+                if (_sessionManager.isHosting) {
                   if (context.mounted) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => HostPage(
-                            server: _server!, sessionName: _server!.name),
+                            server: _sessionManager.server!,
+                            sessionName: _sessionManager.server!.name,
+                            wikiParser: widget.wikiParser),
                       ),
                     );
                   }
                   return;
-                } else if (_client?.connectedIp != null) {
+                } else if (_sessionManager.isConnected) {
                   if (context.mounted) {
+                    // Find and select the character profile based on player name
+                    final playerName = _sessionManager.client!.playerName;
+                    final matchingProfile = profileManager.profiles.firstWhere(
+                      (profile) => profile.name == playerName,
+                      orElse: () => profileManager.profiles.first,
+                    );
+
+                    await profileManager.selectProfile(matchingProfile);
+
+                    // Load character stats
+                    List<Map<String, dynamic>> stats =
+                        await profileManager.getStats();
+                    int? hp;
+                    int? maxHp;
+                    int? tempHp;
+                    int? ac;
+                    if (stats.isNotEmpty) {
+                      hp = stats.first['HP'] as int?;
+                      maxHp = stats.first['maxHP'] as int?;
+                      tempHp = stats.first['temphp'] as int?;
+                      ac = stats.first['AC'] as int?;
+                      print(
+                          '📊 Loaded stats from profile - HP: $hp/$maxHp (+${tempHp ?? 0}), AC: $ac');
+                    } else {
+                      print('⚠️ No stats found in profile');
+                    }
+
                     Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => ClientPage(
-                              client: _client!,
-                              playerName:
-                                  _client!.playerName ?? 'Unknown Player',
-                              isFromLobby: false),
+                              client: _sessionManager.client!,
+                              playerName: _sessionManager.client!.playerName ??
+                                  'Unknown Player',
+                              isFromLobby: false,
+                              playerHP: hp,
+                              playerMaxHP: maxHp,
+                              playerTempHP: tempHp,
+                              playerAC: ac),
                         ));
                   }
                   return;
                 } else {
-                  setState(() {
-                    _server ??= DnDMulticastServer();
-                    _client ??= DnDClient();
-                  });
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => LobbyPage(
-                          server: _server!,
-                          client: _client!,
-                          profiles: profileManager.profiles),
+                          server: _sessionManager.getOrCreateServer(),
+                          client: _sessionManager.getOrCreateClient(),
+                          profiles: profileManager.profiles,
+                          profileManager: profileManager,
+                          wikiParser: widget.wikiParser),
                     ),
                   );
                 }
@@ -540,6 +568,8 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                             profileManager: profileManager,
                                             wikiParser: widget.wikiParser,
                                             profile: profile,
+                                            server: _sessionManager.server,
+                                            client: _sessionManager.client,
                                           ),
                                         ),
                                       );

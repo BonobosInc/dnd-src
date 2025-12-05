@@ -974,4 +974,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get skillSurvivalDescription =>
       'Track creatures, hunt for food, find shelter, and navigate harsh natural environments.';
+
+  @override
+  String get session => 'Session';
+
+  @override
+  String get hostSession => 'Host Session';
+
+  @override
+  String get joinedSession => 'Joined Session';
+
+  @override
+  String get sessionSettings => 'Session Settings';
+
+  @override
+  String get showPlayerHP => 'Show Player HP to Clients';
+
+  @override
+  String get showPlayerAC => 'Show Player AC to Clients';
 }

@@ -347,5 +347,11 @@
     "skillReligionDescription": "Besitze Wissen über Götter, heilige Rituale, religiöse Bräuche und spirituelle Überlieferungen.",
     "skillSleightOfHandDescription": "Führe schnelle, präzise oder verdeckte manuelle Tricks aus, wie Taschendiebstahl oder Zauberkunststücke.",
     "skillStealthDescription": "Bewege dich lautlos und bleibe ungesehen, um einer Entdeckung zu entgehen.",
-    "skillSurvivalDescription": "Spüre Kreaturen auf, jage nach Nahrung, finde Unterschlupf und navigiere in rauer Natur."
+    "skillSurvivalDescription": "Spüre Kreaturen auf, jage nach Nahrung, finde Unterschlupf und navigiere in rauer Natur.",
+    "session": "Sitzung",
+    "hostSession": "Sitzung hosten",
+    "joinedSession": "Beigetretene Sitzung",
+    "sessionSettings": "Sitzungseinstellungen",
+    "showPlayerHP": "Spieler HP für Clients anzeigen",
+    "showPlayerAC": "Spieler AC für Clients anzeigen"
 }

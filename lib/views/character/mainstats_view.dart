@@ -12,9 +12,10 @@ import 'package:dnd/l10n/app_localizations.dart';
 class MainStatsPage extends StatefulWidget {
   final ProfileManager profileManager;
   final WikiParser wikiParser;
+  final VoidCallback? onStatsChanged;
 
   const MainStatsPage(
-      {super.key, required this.profileManager, required this.wikiParser});
+      {super.key, required this.profileManager, required this.wikiParser, this.onStatsChanged});
 
   @override
   MainStatsPageState createState() => MainStatsPageState();
@@ -198,6 +199,7 @@ class MainStatsPageState extends State<MainStatsPage> {
         }
       }
     });
+    widget.onStatsChanged?.call();
   }
 
   void _decrementHP() {
@@ -210,6 +212,7 @@ class MainStatsPageState extends State<MainStatsPage> {
         _updateStat(Defines.statCurrentHP, currentHP);
       }
     });
+    widget.onStatsChanged?.call();
   }
 
   void _startIncrementingC(int index) {
@@ -482,6 +485,8 @@ class MainStatsPageState extends State<MainStatsPage> {
                   maxHP = newMaxHP;
                   tempHP = newTempHP;
                 });
+
+                widget.onStatsChanged?.call();
 
                 if (context.mounted) Navigator.of(context).pop();
               },

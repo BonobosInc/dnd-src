@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:dnd/classes/profile_manager.dart';
+import 'package:dnd/classes/wiki_parser.dart';
 import 'package:dnd/views/session/client_view.dart';
 import 'package:dnd/views/session/host.dart';
 import 'package:flutter/material.dart';
@@ -11,12 +12,17 @@ class LobbyPage extends StatefulWidget {
   DnDMulticastServer? _server;
   DnDClient? _client;
   List<Character>? profiles;
-  LobbyPage(
-      {super.key,
-      required DnDMulticastServer server,
-      required DnDClient client,
-      required this.profiles})
-      : _server = server,
+  final ProfileManager profileManager;
+  final WikiParser? wikiParser;
+
+  LobbyPage({
+    super.key,
+    required DnDMulticastServer server,
+    required DnDClient client,
+    required this.profiles,
+    required this.profileManager,
+    this.wikiParser,
+  })  : _server = server,
         _client = client;
 
   @override
@@ -27,6 +33,7 @@ class _LobbyPageState extends State<LobbyPage> {
   bool isHosting = false;
   bool isPlayer = false;
   bool serverRunning = false;
+  bool _isListeningForServers = false;
 
   final TextEditingController _sessionNameController = TextEditingController();
 
@@ -47,7 +54,9 @@ class _LobbyPageState extends State<LobbyPage> {
   @override
   void dispose() {
     _uiRefreshTimer?.cancel();
-    // _server?.stop();
+    if (_isListeningForServers) {
+      widget._client?.stopListeningForServers();
+    }
     super.dispose();
   }
 
@@ -70,7 +79,11 @@ class _LobbyPageState extends State<LobbyPage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => HostPage(server: widget._server!, sessionName: name),
+          builder: (_) => HostPage(
+            server: widget._server!,
+            sessionName: name,
+            wikiParser: widget.wikiParser,
+          ),
         ),
       );
     }
@@ -80,14 +93,30 @@ class _LobbyPageState extends State<LobbyPage> {
     if (widget._client?.isConnected == true &&
         widget._client?.connectedIp == ip &&
         widget._client?.connectedPort == port) {
+      // Load character stats for already connected player
+      List<Map<String, dynamic>> stats = await widget.profileManager.getStats();
+      int? hp;
+      int? maxHp;
+      int? tempHp;
+      int? ac;
+      if (stats.isNotEmpty) {
+        hp = stats.first['HP'] as int?;
+        maxHp = stats.first['maxHP'] as int?;
+        tempHp = stats.first['temphp'] as int?;
+        ac = stats.first['AC'] as int?;
+      }
+
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => ClientPage(
-            client: widget._client!,
-            playerName: widget._client!.playerName ?? 'Unknown Player',
-            isFromLobby: true
-          ),
+              client: widget._client!,
+              playerName: widget._client!.playerName ?? 'Unknown Player',
+              isFromLobby: true,
+              playerHP: hp,
+              playerMaxHP: maxHp,
+              playerTempHP: tempHp,
+              playerAC: ac),
         ),
       );
       return;
@@ -113,7 +142,7 @@ class _LobbyPageState extends State<LobbyPage> {
                   builder: (context, setState) {
                     return DropdownButtonFormField<Character>(
                       dropdownColor: AppColors.cardColor,
-                      value: selectedCharacter,
+                      initialValue: selectedCharacter,
                       items: widget.profiles!
                           .map(
                             (character) => DropdownMenuItem<Character>(
@@ -156,8 +185,26 @@ class _LobbyPageState extends State<LobbyPage> {
                   return;
                 }
 
-                await widget._client!
-                    .joinSession(ip, port, selectedCharacter!);
+                // Load character stats
+                await widget.profileManager.selectProfile(selectedCharacter!);
+                List<Map<String, dynamic>> stats =
+                    await widget.profileManager.getStats();
+                int? hp;
+                int? maxHp;
+                int? tempHp;
+                int? ac;
+                if (stats.isNotEmpty) {
+                  hp = stats.first['HP'] as int?;
+                  maxHp = stats.first['maxHP'] as int?;
+                  tempHp = stats.first['temphp'] as int?;
+                  ac = stats.first['AC'] as int?;
+                  print(
+                      '📊 Loaded character stats - HP: $hp/$maxHp (+${tempHp ?? 0}), AC: $ac');
+                } else {
+                  print('⚠️ No stats found for character');
+                }
+
+                await widget._client!.joinSession(ip, port, selectedCharacter!);
 
                 if (!mounted) return;
                 Navigator.pop(context);
@@ -165,10 +212,13 @@ class _LobbyPageState extends State<LobbyPage> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => ClientPage(
-                      client: widget._client!,
-                      playerName: selectedCharacter!.name,
-                      isFromLobby: true
-                    ),
+                        client: widget._client!,
+                        playerName: selectedCharacter!.name,
+                        isFromLobby: true,
+                        playerHP: hp,
+                        playerMaxHP: maxHp,
+                        playerTempHP: tempHp,
+                        playerAC: ac),
                   ),
                 );
               },
@@ -216,6 +266,7 @@ class _LobbyPageState extends State<LobbyPage> {
                   builder: (_) => HostPage(
                     server: widget._server!,
                     sessionName: widget._server!.name,
+                    wikiParser: widget.wikiParser,
                   ),
                 ),
               );
@@ -239,7 +290,12 @@ class _LobbyPageState extends State<LobbyPage> {
     if (widget._client == null) {
       widget._client = DnDClient();
     }
-    widget._client!.listenForServers();
+
+    // Only start listening once
+    if (!_isListeningForServers) {
+      widget._client!.listenForServers();
+      _isListeningForServers = true;
+    }
 
     final sessions = widget._client?.discoveredSessions.values.toList() ?? [];
 
@@ -337,10 +393,16 @@ class _LobbyPageState extends State<LobbyPage> {
             ? IconButton(
                 icon: const Icon(Icons.arrow_back),
                 color: AppColors.textColorLight,
-                onPressed: () => setState(() {
-                  isHosting = false;
-                  isPlayer = false;
-                }),
+                onPressed: () {
+                  if (isPlayer && _isListeningForServers) {
+                    widget._client?.stopListeningForServers();
+                    _isListeningForServers = false;
+                  }
+                  setState(() {
+                    isHosting = false;
+                    isPlayer = false;
+                  });
+                },
               )
             : null,
       ),
