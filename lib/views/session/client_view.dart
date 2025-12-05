@@ -206,13 +206,6 @@ class _ClientPageState extends State<ClientPage> {
           children: [
             Center(
               child: Column(
-                children: [
-                  Text(
-                    'Session: ${widget.client.sessionName ?? 'Loading...'}',
-                    style: const TextStyle(fontSize: 20, color: Colors.white),
-                  ),
-                  const SizedBox(height: 20),
-                ],
               ),
             ),
             Text(
@@ -321,7 +314,7 @@ class _ClientPageState extends State<ClientPage> {
                               ],
                             ),
                             trailing: Text(
-                              'Init: $initiative',
+                              '${loc.initiativeLabel}: $initiative',
                               style: TextStyle(
                                 color: AppColors.textColorDark,
                                 fontSize: 14,

@@ -107,9 +107,21 @@ class _HostPageState extends State<HostPage> {
       backgroundColor: AppColors.primaryColor,
       appBar: AppBar(
         backgroundColor: AppColors.appBarColor,
-        title: Text(
-          loc.hostingSessionTitle(widget.sessionName),
-          style: TextStyle(color: AppColors.textColorLight),
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              loc.hostingSessionTitle(widget.sessionName),
+              style: TextStyle(color: AppColors.textColorLight),
+            ),
+            Text(
+              '${widget.server.localIp ?? loc.unknown}:${widget.server.port}',
+              style: TextStyle(
+                color: AppColors.textColorLight.withValues(alpha: 0.7),
+                fontSize: 12,
+              ),
+            ),
+          ],
         ),
         centerTitle: true,
         leading: IconButton(
@@ -123,19 +135,7 @@ class _HostPageState extends State<HostPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(loc.sessionInfo,
-                style: TextStyle(
-                    color: AppColors.textColorLight,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            Text(
-              'IP Address: ${widget.server.localIp ?? loc.unknown}\n'
-              'Port: ${widget.server.port}',
-              style: TextStyle(color: AppColors.textColorDark),
-            ),
-            const Divider(height: 30, color: Colors.grey),
-            Text(loc.connectedPlayers,
+            Text(loc.playersAndInitiative,
                 style: TextStyle(
                     color: AppColors.textColorLight,
                     fontSize: 16,
@@ -191,7 +191,7 @@ class _HostPageState extends State<HostPage> {
                       final isCurrentTurn = index == _currentTurnIndex;
                       return Card(
                         color: isCurrentTurn
-                            ? AppColors.currentHealth.withOpacity(0.2)
+                            ? AppColors.currentHealth.withValues(alpha: 0.2)
                             : AppColors.cardColor,
                         margin: const EdgeInsets.symmetric(vertical: 8),
                         shape: isCurrentTurn
@@ -475,7 +475,7 @@ class _HostPageState extends State<HostPage> {
               ),
               ListTile(
                 leading: const Icon(Icons.edit),
-                title: Text(loc.editName + ' (${monster['name']})'),
+                title: Text('${loc.editName} (${monster['name']})'),
                 onTap: () {
                   Navigator.pop(context);
                   _editMonsterName(monster);
@@ -483,7 +483,7 @@ class _HostPageState extends State<HostPage> {
               ),
               ListTile(
                 leading: const Icon(Icons.favorite),
-                title: Text(loc.editHp + ' (${monster['hp']}/${monster['maxHp']})'),
+                title: Text('${loc.editHp} (${monster['hp']}/${monster['maxHp']})'),
                 onTap: () {
                   Navigator.pop(context);
                   _editMonsterHP(monster);
@@ -491,7 +491,7 @@ class _HostPageState extends State<HostPage> {
               ),
               ListTile(
                 leading: const Icon(Icons.shield),
-                title: Text(loc.editAc + ' (${monster['ac']})'),
+                title: Text('${loc.editAc} (${monster['ac']})'),
                 onTap: () {
                   Navigator.pop(context);
                   _editMonsterAC(monster);

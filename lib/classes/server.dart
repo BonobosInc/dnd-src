@@ -15,7 +15,6 @@ class DnDMulticastServer {
     'sessionName': "Unnamed Session",
   };
 
-  final List<Map<String, dynamic>> _playerStats = [];
   int _currentTurnIndex = 0;
 
   bool get serverStarted => _server != null;
@@ -264,7 +263,6 @@ class DnDMulticastServer {
   void removeMonster(String monsterName) {
     _monsters.removeWhere((m) => m['name'] == monsterName);
     _broadcastCombatants();
-    print('🗑️ Monster removed: $monsterName');
   }
 
   void updateMonsterStats(String monsterName, {int? hp, int? maxHp, int? ac}) {
@@ -323,12 +321,6 @@ class DnDMulticastServer {
   }
 
   Future<void> updateInitiative(String name, int initiative) async {
-    print('🔍 Looking for combatant: "$name"');
-    print(
-        '🔍 Current players: ${_players.map((p) => '"${p['name']}"').toList()}');
-    print(
-        '🔍 Current monsters: ${_monsters.map((m) => '"${m['name']}"').toList()}');
-
     // Try to find in players first
     final playerIndex = _players.indexWhere((p) => p['name'] == name);
     if (playerIndex != -1) {
