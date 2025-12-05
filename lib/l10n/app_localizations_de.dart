@@ -979,4 +979,161 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get skillSurvivalDescription =>
       'Spüre Kreaturen auf, jage nach Nahrung, finde Unterschlupf und navigiere in rauer Natur.';
+
+  @override
+  String get session => 'Sitzung';
+
+  @override
+  String get hostSession => 'Sitzung hosten';
+
+  @override
+  String get joinedSession => 'Beigetretene Sitzung';
+
+  @override
+  String get sessionSettings => 'Sitzungseinstellungen';
+
+  @override
+  String get showPlayerHP => 'Spieler HP für Clients anzeigen';
+
+  @override
+  String get showPlayerAC => 'Spieler AC für Clients anzeigen';
+
+  @override
+  String get unnamedSession => 'Unbenannte Sitzung';
+
+  @override
+  String hostingSessionMessage(Object sessionName) {
+    return 'Hoste \"$sessionName\"';
+  }
+
+  @override
+  String get chooseCharacter => 'Charakter wählen';
+
+  @override
+  String get noCharactersFound =>
+      'Keine Charaktere gefunden. Bitte erstelle zuerst einen.';
+
+  @override
+  String get selectYourCharacter => 'Wähle deinen Charakter';
+
+  @override
+  String get pleaseSelectCharacter => 'Bitte wähle einen Charakter!';
+
+  @override
+  String get join => 'Beitreten';
+
+  @override
+  String get enterSessionNameHint => 'Sitzungsname eingeben...';
+
+  @override
+  String get serverRunning => 'Server läuft...';
+
+  @override
+  String get startHosting => 'Hosting starten';
+
+  @override
+  String get searchingForSessions => 'Suche nach Sitzungen...';
+
+  @override
+  String get unknownSession => 'Unbekannte Sitzung';
+
+  @override
+  String get hostGame => 'Spiel hosten';
+
+  @override
+  String get joinGame => 'Spiel beitreten';
+
+  @override
+  String get sessionLobby => 'D&D Sitzungslobby';
+
+  @override
+  String get confirmStopHosting => 'Hosting beenden bestätigen';
+
+  @override
+  String get stopHostingWarning =>
+      'Möchtest du das Hosting dieser Sitzung wirklich beenden? Alle Spieler werden getrennt.';
+
+  @override
+  String get stopHosting => 'Hosting beenden';
+
+  @override
+  String setInitiativeFor(Object playerName) {
+    return 'Initiative festlegen für $playerName';
+  }
+
+  @override
+  String hostingSessionTitle(Object sessionName) {
+    return 'Hosting: $sessionName';
+  }
+
+  @override
+  String get sessionInfo => 'Sitzungsinformationen';
+
+  @override
+  String get connectedPlayers => 'Verbundene Spieler:';
+
+  @override
+  String get nextTurn => 'Nächster Zug';
+
+  @override
+  String get noPlayersConnected => 'Noch keine Spieler verbunden.';
+
+  @override
+  String get initiativeLabel => 'Initiative: ';
+
+  @override
+  String get addMonsterNpc => 'Monster/NPC hinzufügen';
+
+  @override
+  String get viewFullDetails => 'Alle Details anzeigen';
+
+  @override
+  String get editName => 'Name bearbeiten';
+
+  @override
+  String get editHp => 'HP bearbeiten';
+
+  @override
+  String get editAc => 'AC bearbeiten';
+
+  @override
+  String editNameFor(Object name) {
+    return 'Name bearbeiten für $name';
+  }
+
+  @override
+  String editHpFor(Object name) {
+    return 'HP bearbeiten für $name';
+  }
+
+  @override
+  String editAcFor(Object name) {
+    return 'AC bearbeiten für $name';
+  }
+
+  @override
+  String get armorClass => 'Rüstungsklasse';
+
+  @override
+  String sessionTitle(Object sessionName) {
+    return 'Sitzung: $sessionName';
+  }
+
+  @override
+  String get loading => 'Lädt...';
+
+  @override
+  String get quitSession => 'Sitzung verlassen';
+
+  @override
+  String get playersAndInitiative => 'Spieler & Initiative:';
+
+  @override
+  String get you => 'Du';
+
+  @override
+  String get monsterNpc => 'Monster/NPC';
+
+  @override
+  String get player => 'Spieler';
 }

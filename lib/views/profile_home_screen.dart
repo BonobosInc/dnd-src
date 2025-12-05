@@ -1,5 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:dnd/classes/session_manager.dart';
+import 'package:dnd/views/session/client_view.dart';
+import 'package:dnd/views/session/host.dart';
+import 'package:dnd/views/session/session_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -28,6 +32,7 @@ class ProfileHomeScreen extends StatefulWidget {
 class ProfileHomeScreenState extends State<ProfileHomeScreen> {
   ProfileManager profileManager = ProfileManager();
   bool _isImporting = false;
+  final SessionManager _sessionManager = SessionManager();
 
   @override
   void initState() {
@@ -55,8 +60,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
               title: Text(loc.newchar),
               content: TextField(
                 controller: controller,
-                decoration:
-                    InputDecoration(hintText: loc.entercharactername),
+                decoration: InputDecoration(hintText: loc.entercharactername),
               ),
               actions: <Widget>[
                 TextButton(
@@ -172,8 +176,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
           title: Text(loc.changeName),
           content: TextField(
             controller: controller,
-            decoration: InputDecoration(
-                hintText: loc.enternewname),
+            decoration: InputDecoration(hintText: loc.enternewname),
           ),
           actions: <Widget>[
             TextButton(
@@ -205,7 +208,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                         SnackBar(
                           content: Text(
                             AppLocalizations.of(context)!
-                                        .characterExists(newName),
+                                .characterExists(newName),
                             style: TextStyle(color: AppColors.textColorLight),
                           ),
                           backgroundColor: AppColors.warningColor,
@@ -325,14 +328,11 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                             if (success) {
                               Navigator.of(context).pop();
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text(loc.exportgood)),
+                                SnackBar(content: Text(loc.exportgood)),
                               );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content:
-                                        Text(loc.exportbad)),
+                                SnackBar(content: Text(loc.exportbad)),
                               );
                             }
                           }
@@ -422,6 +422,77 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                 );
               } else if (value == 'info') {
                 showAppStatusDialog(context);
+              } else if (value == 'session') {
+                if (_sessionManager.isHosting) {
+                  if (context.mounted) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => HostPage(
+                            server: _sessionManager.server!,
+                            sessionName: _sessionManager.server!.name,
+                            wikiParser: widget.wikiParser),
+                      ),
+                    );
+                  }
+                  return;
+                } else if (_sessionManager.isConnected) {
+                  if (context.mounted) {
+                    // Find and select the character profile based on player name
+                    final playerName = _sessionManager.client!.playerName;
+                    final matchingProfile = profileManager.profiles.firstWhere(
+                      (profile) => profile.name == playerName,
+                      orElse: () => profileManager.profiles.first,
+                    );
+
+                    await profileManager.selectProfile(matchingProfile);
+
+                    // Load character stats
+                    List<Map<String, dynamic>> stats =
+                        await profileManager.getStats();
+                    int? hp;
+                    int? maxHp;
+                    int? tempHp;
+                    int? ac;
+                    if (stats.isNotEmpty) {
+                      hp = stats.first['HP'] as int?;
+                      maxHp = stats.first['maxHP'] as int?;
+                      tempHp = stats.first['temphp'] as int?;
+                      ac = stats.first['AC'] as int?;
+                      print(
+                          '📊 Loaded stats from profile - HP: $hp/$maxHp (+${tempHp ?? 0}), AC: $ac');
+                    } else {
+                      print('⚠️ No stats found in profile');
+                    }
+
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ClientPage(
+                              client: _sessionManager.client!,
+                              playerName: _sessionManager.client!.playerName ??
+                                  'Unknown Player',
+                              isFromLobby: false,
+                              playerHP: hp,
+                              playerMaxHP: maxHp,
+                              playerTempHP: tempHp,
+                              playerAC: ac),
+                        ));
+                  }
+                  return;
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LobbyPage(
+                          server: _sessionManager.getOrCreateServer(),
+                          client: _sessionManager.getOrCreateClient(),
+                          profiles: profileManager.profiles,
+                          profileManager: profileManager,
+                          wikiParser: widget.wikiParser),
+                    ),
+                  );
+                }
               }
             },
             itemBuilder: (BuildContext context) {
@@ -446,6 +517,10 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                   value: 'info',
                   child: Text('BonoDND'),
                 ),
+                const PopupMenuItem<String>(
+                  value: 'session',
+                  child: Text('Session'),
+                ),
               ];
             },
           ),
@@ -469,7 +544,8 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                             child: Material(
                               elevation: 4,
                               borderRadius: BorderRadius.circular(12),
-                              shadowColor: Colors.black.withAlpha((0.5 * 255).toInt()),
+                              shadowColor:
+                                  Colors.black.withAlpha((0.5 * 255).toInt()),
                               child: Container(
                                 padding: const EdgeInsets.all(8.0),
                                 decoration: BoxDecoration(
@@ -492,6 +568,8 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                             profileManager: profileManager,
                                             wikiParser: widget.wikiParser,
                                             profile: profile,
+                                            server: _sessionManager.server,
+                                            client: _sessionManager.client,
                                           ),
                                         ),
                                       );
@@ -506,7 +584,8 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                             return AlertDialog(
                                               title: Text(loc.deletechar),
                                               content: Text(
-                                                  loc.deletecharconfirm(profile.name)),
+                                                  loc.deletecharconfirm(
+                                                      profile.name)),
                                               actions: <Widget>[
                                                 TextButton(
                                                   child: Text(loc.no),
@@ -539,7 +618,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                     },
                                     itemBuilder: (BuildContext context) {
                                       return [
-                                          PopupMenuItem<String>(
+                                        PopupMenuItem<String>(
                                           value: 'dump',
                                           child: Text(loc.export),
                                         ),

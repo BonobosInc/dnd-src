@@ -974,4 +974,161 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get skillSurvivalDescription =>
       'Track creatures, hunt for food, find shelter, and navigate harsh natural environments.';
+
+  @override
+  String get session => 'Session';
+
+  @override
+  String get hostSession => 'Host Session';
+
+  @override
+  String get joinedSession => 'Joined Session';
+
+  @override
+  String get sessionSettings => 'Session Settings';
+
+  @override
+  String get showPlayerHP => 'Show Player HP to Clients';
+
+  @override
+  String get showPlayerAC => 'Show Player AC to Clients';
+
+  @override
+  String get unnamedSession => 'Unnamed Session';
+
+  @override
+  String hostingSessionMessage(Object sessionName) {
+    return 'Hosting \"$sessionName\"';
+  }
+
+  @override
+  String get chooseCharacter => 'Choose Character';
+
+  @override
+  String get noCharactersFound =>
+      'No characters found. Please create one first.';
+
+  @override
+  String get selectYourCharacter => 'Select your character';
+
+  @override
+  String get pleaseSelectCharacter => 'Please select a character!';
+
+  @override
+  String get join => 'Join';
+
+  @override
+  String get enterSessionNameHint => 'Enter session name...';
+
+  @override
+  String get serverRunning => 'Server Running...';
+
+  @override
+  String get startHosting => 'Start Hosting';
+
+  @override
+  String get searchingForSessions => 'Searching for sessions...';
+
+  @override
+  String get unknownSession => 'Unknown Session';
+
+  @override
+  String get hostGame => 'Host Game';
+
+  @override
+  String get joinGame => 'Join Game';
+
+  @override
+  String get sessionLobby => 'D&D Session Lobby';
+
+  @override
+  String get confirmStopHosting => 'Confirm Stop Hosting';
+
+  @override
+  String get stopHostingWarning =>
+      'Are you sure you want to stop hosting this session? All players will be disconnected.';
+
+  @override
+  String get stopHosting => 'Stop Hosting';
+
+  @override
+  String setInitiativeFor(Object playerName) {
+    return 'Set Initiative for $playerName';
+  }
+
+  @override
+  String hostingSessionTitle(Object sessionName) {
+    return 'Hosting: $sessionName';
+  }
+
+  @override
+  String get sessionInfo => 'Session Info';
+
+  @override
+  String get connectedPlayers => 'Connected Players:';
+
+  @override
+  String get nextTurn => 'Next Turn';
+
+  @override
+  String get noPlayersConnected => 'No players connected yet.';
+
+  @override
+  String get initiativeLabel => 'Initiative: ';
+
+  @override
+  String get addMonsterNpc => 'Add Monster/NPC';
+
+  @override
+  String get viewFullDetails => 'View Full Details';
+
+  @override
+  String get editName => 'Edit Name';
+
+  @override
+  String get editHp => 'Edit HP';
+
+  @override
+  String get editAc => 'Edit AC';
+
+  @override
+  String editNameFor(Object name) {
+    return 'Edit Name for $name';
+  }
+
+  @override
+  String editHpFor(Object name) {
+    return 'Edit HP for $name';
+  }
+
+  @override
+  String editAcFor(Object name) {
+    return 'Edit AC for $name';
+  }
+
+  @override
+  String get armorClass => 'Armor Class';
+
+  @override
+  String sessionTitle(Object sessionName) {
+    return 'Session: $sessionName';
+  }
+
+  @override
+  String get loading => 'Loading...';
+
+  @override
+  String get quitSession => 'Quit Session';
+
+  @override
+  String get playersAndInitiative => 'Players & Initiative:';
+
+  @override
+  String get you => 'You';
+
+  @override
+  String get monsterNpc => 'Monster/NPC';
+
+  @override
+  String get player => 'Player';
 }

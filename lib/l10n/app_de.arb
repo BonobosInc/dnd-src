@@ -347,5 +347,87 @@
     "skillReligionDescription": "Besitze Wissen über Götter, heilige Rituale, religiöse Bräuche und spirituelle Überlieferungen.",
     "skillSleightOfHandDescription": "Führe schnelle, präzise oder verdeckte manuelle Tricks aus, wie Taschendiebstahl oder Zauberkunststücke.",
     "skillStealthDescription": "Bewege dich lautlos und bleibe ungesehen, um einer Entdeckung zu entgehen.",
-    "skillSurvivalDescription": "Spüre Kreaturen auf, jage nach Nahrung, finde Unterschlupf und navigiere in rauer Natur."
+    "skillSurvivalDescription": "Spüre Kreaturen auf, jage nach Nahrung, finde Unterschlupf und navigiere in rauer Natur.",
+    "session": "Sitzung",
+    "hostSession": "Sitzung hosten",
+    "joinedSession": "Beigetretene Sitzung",
+    "sessionSettings": "Sitzungseinstellungen",
+    "showPlayerHP": "Spieler HP für Clients anzeigen",
+    "showPlayerAC": "Spieler AC für Clients anzeigen",
+    "unnamedSession": "Unbenannte Sitzung",
+    "hostingSessionMessage": "Hoste \"{sessionName}\"",
+    "@hostingSessionMessage": {
+        "placeholders": {
+            "sessionName": {}
+        }
+    },
+    "chooseCharacter": "Charakter wählen",
+    "noCharactersFound": "Keine Charaktere gefunden. Bitte erstelle zuerst einen.",
+    "selectYourCharacter": "Wähle deinen Charakter",
+    "pleaseSelectCharacter": "Bitte wähle einen Charakter!",
+    "join": "Beitreten",
+    "enterSessionNameHint": "Sitzungsname eingeben...",
+    "serverRunning": "Server läuft...",
+    "startHosting": "Hosting starten",
+    "searchingForSessions": "Suche nach Sitzungen...",
+    "unknownSession": "Unbekannte Sitzung",
+    "hostGame": "Spiel hosten",
+    "joinGame": "Spiel beitreten",
+    "sessionLobby": "D&D Sitzungslobby",
+    "confirmStopHosting": "Hosting beenden bestätigen",
+    "stopHostingWarning": "Möchtest du das Hosting dieser Sitzung wirklich beenden? Alle Spieler werden getrennt.",
+    "stopHosting": "Hosting beenden",
+    "setInitiativeFor": "Initiative festlegen für {playerName}",
+    "@setInitiativeFor": {
+        "placeholders": {
+            "playerName": {}
+        }
+    },
+    "hostingSessionTitle": "Hosting: {sessionName}",
+    "@hostingSessionTitle": {
+        "placeholders": {
+            "sessionName": {}
+        }
+    },
+    "sessionInfo": "Sitzungsinformationen",
+    "connectedPlayers": "Verbundene Spieler:",
+    "nextTurn": "Nächster Zug",
+    "noPlayersConnected": "Noch keine Spieler verbunden.",
+    "initiativeLabel": "Initiative: ",
+    "addMonsterNpc": "Monster/NPC hinzufügen",
+    "viewFullDetails": "Alle Details anzeigen",
+    "editName": "Name bearbeiten",
+    "editHp": "HP bearbeiten",
+    "editAc": "AC bearbeiten",
+    "editNameFor": "Name bearbeiten für {name}",
+    "@editNameFor": {
+        "placeholders": {
+            "name": {}
+        }
+    },
+    "editHpFor": "HP bearbeiten für {name}",
+    "@editHpFor": {
+        "placeholders": {
+            "name": {}
+        }
+    },
+    "editAcFor": "AC bearbeiten für {name}",
+    "@editAcFor": {
+        "placeholders": {
+            "name": {}
+        }
+    },
+    "armorClass": "Rüstungsklasse",
+    "sessionTitle": "Sitzung: {sessionName}",
+    "@sessionTitle": {
+        "placeholders": {
+            "sessionName": {}
+        }
+    },
+    "loading": "Lädt...",
+    "quitSession": "Sitzung verlassen",
+    "playersAndInitiative": "Spieler & Initiative:",
+    "you": "Du",
+    "monsterNpc": "Monster/NPC",
+    "player": "Spieler"
 }
