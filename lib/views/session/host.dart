@@ -4,6 +4,7 @@ import 'package:dnd/classes/server.dart';
 import 'package:dnd/classes/wiki_parser.dart';
 import 'package:dnd/classes/wiki_classes.dart';
 import 'package:dnd/views/wiki/creatures_view.dart';
+import 'package:dnd/l10n/app_localizations.dart';
 
 class HostPage extends StatefulWidget {
   final DnDMulticastServer server;
@@ -37,21 +38,21 @@ class _HostPageState extends State<HostPage> {
   }
 
   Future<bool?> _showStopConfirmationDialog() {
+    final loc = AppLocalizations.of(context)!;
     return showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Confirm Stop Hosting'),
-          content: const Text(
-              'Are you sure you want to stop hosting this session? All players will be disconnected.'),
+          title: Text(loc.confirmStopHosting),
+          content: Text(loc.stopHostingWarning),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(loc.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Stop Hosting'),
+              child: Text(loc.stopHosting),
             ),
           ],
         );
@@ -60,6 +61,7 @@ class _HostPageState extends State<HostPage> {
   }
 
   void _showInitiativeDialog(String playerName, int currentInitiative) {
+    final loc = AppLocalizations.of(context)!;
     final TextEditingController controller = TextEditingController(
       text: currentInitiative.toString(),
     );
@@ -68,12 +70,12 @@ class _HostPageState extends State<HostPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Set Initiative for $playerName'),
+          title: Text(loc.setInitiativeFor(playerName)),
           content: TextField(
             controller: controller,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Initiative',
+            decoration: InputDecoration(
+              labelText: loc.initiative,
               border: OutlineInputBorder(),
             ),
             autofocus: true,
@@ -81,7 +83,7 @@ class _HostPageState extends State<HostPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text(loc.cancel),
             ),
             TextButton(
               onPressed: () {
@@ -90,7 +92,7 @@ class _HostPageState extends State<HostPage> {
                 widget.server.updateInitiative(playerName, value);
                 Navigator.of(context).pop();
               },
-              child: const Text('Save'),
+              child: Text(loc.save),
             ),
           ],
         );
@@ -100,12 +102,13 @@ class _HostPageState extends State<HostPage> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.primaryColor,
       appBar: AppBar(
         backgroundColor: AppColors.appBarColor,
         title: Text(
-          '🧙 Hosting: ${widget.sessionName}',
+          loc.hostingSessionTitle(widget.sessionName),
           style: TextStyle(color: AppColors.textColorLight),
         ),
         centerTitle: true,
@@ -120,19 +123,19 @@ class _HostPageState extends State<HostPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Session Info',
+            Text(loc.sessionInfo,
                 style: TextStyle(
                     color: AppColors.textColorLight,
                     fontSize: 18,
                     fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             Text(
-              'IP Address: ${widget.server.localIp ?? 'Unknown'}\n'
+              'IP Address: ${widget.server.localIp ?? loc.unknown}\n'
               'Port: ${widget.server.port}',
               style: TextStyle(color: AppColors.textColorDark),
             ),
             const Divider(height: 30, color: Colors.grey),
-            Text('Connected Players:',
+            Text(loc.connectedPlayers,
                 style: TextStyle(
                     color: AppColors.textColorLight,
                     fontSize: 16,
@@ -156,7 +159,7 @@ class _HostPageState extends State<HostPage> {
                             }
                           : null,
                       icon: const Icon(Icons.arrow_forward),
-                      label: const Text('Next Turn'),
+                      label: Text(loc.nextTurn),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.currentHealth,
                       ),
@@ -174,7 +177,7 @@ class _HostPageState extends State<HostPage> {
                   if (players.isEmpty) {
                     return Center(
                       child: Text(
-                        'No players connected yet.',
+                        loc.noPlayersConnected,
                         style: TextStyle(color: AppColors.textColorDark),
                       ),
                     );
@@ -259,7 +262,7 @@ class _HostPageState extends State<HostPage> {
                                       if (p['isMonster'] == true)
                                         const SizedBox(width: 8),
                                       Text(
-                                        'Initiative: ',
+                                        loc.initiativeLabel,
                                         style: TextStyle(
                                           color: AppColors.textColorDark,
                                           fontSize: 14,
@@ -333,7 +336,7 @@ class _HostPageState extends State<HostPage> {
       floatingActionButton: widget.wikiParser != null
           ? FloatingActionButton(
               onPressed: _addMonster,
-              tooltip: 'Add Monster/NPC',
+              tooltip: loc.addMonsterNpc,
               child: const Icon(Icons.add),
             )
           : null,
@@ -432,6 +435,7 @@ class _HostPageState extends State<HostPage> {
     );
 
     // Show custom dialog with edit options
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) {
@@ -454,7 +458,7 @@ class _HostPageState extends State<HostPage> {
             children: [
               ListTile(
                 leading: const Icon(Icons.visibility),
-                title: const Text('View Full Details'),
+                title: Text(loc.viewFullDetails),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
@@ -471,7 +475,7 @@ class _HostPageState extends State<HostPage> {
               ),
               ListTile(
                 leading: const Icon(Icons.edit),
-                title: Text('Edit Name (${monster['name']})'),
+                title: Text(loc.editName + ' (${monster['name']})'),
                 onTap: () {
                   Navigator.pop(context);
                   _editMonsterName(monster);
@@ -479,7 +483,7 @@ class _HostPageState extends State<HostPage> {
               ),
               ListTile(
                 leading: const Icon(Icons.favorite),
-                title: Text('Edit HP (${monster['hp']}/${monster['maxHp']})'),
+                title: Text(loc.editHp + ' (${monster['hp']}/${monster['maxHp']})'),
                 onTap: () {
                   Navigator.pop(context);
                   _editMonsterHP(monster);
@@ -487,7 +491,7 @@ class _HostPageState extends State<HostPage> {
               ),
               ListTile(
                 leading: const Icon(Icons.shield),
-                title: Text('Edit AC (${monster['ac']})'),
+                title: Text(loc.editAc + ' (${monster['ac']})'),
                 onTap: () {
                   Navigator.pop(context);
                   _editMonsterAC(monster);
@@ -498,7 +502,7 @@ class _HostPageState extends State<HostPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
+              child: Text(loc.close),
             ),
           ],
         );
@@ -507,6 +511,7 @@ class _HostPageState extends State<HostPage> {
   }
 
   void _editMonsterName(Map<String, dynamic> monster) {
+    final loc = AppLocalizations.of(context)!;
     final TextEditingController nameController = TextEditingController(
       text: monster['name'],
     );
@@ -515,11 +520,11 @@ class _HostPageState extends State<HostPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Edit Name for ${monster['name']}'),
+          title: Text(loc.editNameFor(monster['name'])),
           content: TextField(
             controller: nameController,
-            decoration: const InputDecoration(
-              labelText: 'Name',
+            decoration: InputDecoration(
+              labelText: loc.name,
               border: OutlineInputBorder(),
             ),
             autofocus: true,
@@ -527,7 +532,7 @@ class _HostPageState extends State<HostPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(loc.cancel),
             ),
             TextButton(
               onPressed: () {
@@ -540,7 +545,7 @@ class _HostPageState extends State<HostPage> {
                   Navigator.pop(context);
                 }
               },
-              child: const Text('Save'),
+              child: Text(loc.save),
             ),
           ],
         );
@@ -549,6 +554,7 @@ class _HostPageState extends State<HostPage> {
   }
 
   void _editMonsterHP(Map<String, dynamic> monster) {
+    final loc = AppLocalizations.of(context)!;
     final TextEditingController hpController = TextEditingController(
       text: monster['hp'].toString(),
     );
@@ -560,15 +566,15 @@ class _HostPageState extends State<HostPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Edit HP for ${monster['name']}'),
+          title: Text(loc.editHpFor(monster['name'])),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: hpController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Current HP',
+                decoration: InputDecoration(
+                  labelText: loc.currenthp,
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -576,8 +582,8 @@ class _HostPageState extends State<HostPage> {
               TextField(
                 controller: maxHpController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Max HP',
+                decoration: InputDecoration(
+                  labelText: loc.maxhp,
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -586,7 +592,7 @@ class _HostPageState extends State<HostPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(loc.cancel),
             ),
             TextButton(
               onPressed: () {
@@ -597,7 +603,7 @@ class _HostPageState extends State<HostPage> {
                 Navigator.pop(context);
                 setState(() {});
               },
-              child: const Text('Save'),
+              child: Text(loc.save),
             ),
           ],
         );
@@ -606,6 +612,7 @@ class _HostPageState extends State<HostPage> {
   }
 
   void _editMonsterAC(Map<String, dynamic> monster) {
+    final loc = AppLocalizations.of(context)!;
     final TextEditingController acController = TextEditingController(
       text: monster['ac'].toString(),
     );
@@ -614,12 +621,12 @@ class _HostPageState extends State<HostPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Edit AC for ${monster['name']}'),
+          title: Text(loc.editAcFor(monster['name'])),
           content: TextField(
             controller: acController,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Armor Class',
+            decoration: InputDecoration(
+              labelText: loc.armorClass,
               border: OutlineInputBorder(),
             ),
             autofocus: true,
@@ -627,7 +634,7 @@ class _HostPageState extends State<HostPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(loc.cancel),
             ),
             TextButton(
               onPressed: () {
@@ -637,7 +644,7 @@ class _HostPageState extends State<HostPage> {
                 Navigator.pop(context);
                 setState(() {});
               },
-              child: const Text('Save'),
+              child: Text(loc.save),
             ),
           ],
         );

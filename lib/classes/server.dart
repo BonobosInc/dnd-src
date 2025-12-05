@@ -70,24 +70,23 @@ class DnDMulticastServer {
         final body = await utf8.decoder.bind(req).join();
         final data = jsonDecode(body);
 
-        _players.add({
-          'name': data['name'],
-          'joinedAt': DateTime.now().toIso8601String(),
-          'initiative': 0,
-          'HP': null,
-          'maxHP': null,
-          'tempHP': null,
-          'AC': null,
-        });
-        _playerStreamController.add(List.from(_players));
+        // Check if player already exists (rejoining)
+        final existingPlayerIndex = _players.indexWhere((p) => p['name'] == data['name']);
+        if (existingPlayerIndex == -1) {
+          // New player
+          _players.add({
+            'name': data['name'],
+            'joinedAt': DateTime.now().toIso8601String(),
+            'initiative': 0,
+            'HP': null,
+            'maxHP': null,
+            'tempHP': null,
+            'AC': null,
+          });
+        }
+        // If player exists, don't add duplicate but still broadcast
 
-        _broadcastToClients({
-          'type': 'player_joined',
-          'players': _players,
-          'monsters': _monsters,
-          'currentTurnIndex': _currentTurnIndex,
-          'settings': _sessionSettings,
-        });
+        _broadcastCombatants();
 
         req.response
           ..statusCode = HttpStatus.ok
@@ -109,14 +108,7 @@ class DnDMulticastServer {
         final name = data['name'];
         if (name != null) {
           _players.removeWhere((p) => p['name'] == name);
-          _playerStreamController.add(List.from(_players));
-
-          _broadcastToClients({
-            'type': 'player_left',
-            'players': _players,
-            'monsters': _monsters,
-            'currentTurnIndex': _currentTurnIndex,
-          });
+          _broadcastCombatants();
 
           print('👋 Player left: $name');
         }
@@ -172,12 +164,7 @@ class DnDMulticastServer {
         final playerIndex = _players.indexWhere((p) => p['name'] == playerName);
         if (playerIndex != -1) {
           _players[playerIndex]['initiative'] = initiative;
-          _playerStreamController.add(List.from(_players));
-
-          _broadcastToClients({
-            'type': 'initiative_updated',
-            'players': _players,
-          });
+          _broadcastCombatants();
 
           req.response
             ..statusCode = HttpStatus.ok

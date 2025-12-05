@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:dnd/configs/colours.dart';
 import 'package:dnd/classes/client.dart';
+import 'package:dnd/l10n/app_localizations.dart';
 
 class ClientPage extends StatefulWidget {
   final DnDClient client;
@@ -148,6 +149,7 @@ class _ClientPageState extends State<ClientPage> {
   @override
   void dispose() {
     _messageSub.cancel();
+    widget.client.disconnect();
     super.dispose();
   }
 
@@ -161,12 +163,13 @@ class _ClientPageState extends State<ClientPage> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.primaryColor,
       appBar: AppBar(
         backgroundColor: AppColors.appBarColor,
         title: Text(
-          'Session: ${widget.client.sessionName ?? 'Loading...'}',
+          loc.sessionTitle(widget.client.sessionName ?? loc.loading),
           style: TextStyle(color: AppColors.textColorLight),
         ),
         centerTitle: true,
@@ -189,7 +192,7 @@ class _ClientPageState extends State<ClientPage> {
             itemBuilder: (context) => [
               PopupMenuItem(
                 value: 'quit',
-                child: Text('Quit Session',
+                child: Text(loc.quitSession,
                     style: TextStyle(color: AppColors.warningColor)),
               ),
             ],
@@ -205,7 +208,7 @@ class _ClientPageState extends State<ClientPage> {
               child: Column(
                 children: [
                   Text(
-                    '🧙 Session: ${widget.client.sessionName ?? 'Loading...'}',
+                    'Session: ${widget.client.sessionName ?? 'Loading...'}',
                     style: const TextStyle(fontSize: 20, color: Colors.white),
                   ),
                   const SizedBox(height: 20),
@@ -213,7 +216,7 @@ class _ClientPageState extends State<ClientPage> {
               ),
             ),
             Text(
-              'Players & Initiative:',
+              loc.playersAndInitiative,
               style: TextStyle(
                 color: AppColors.textColorLight,
                 fontSize: 18,
@@ -225,7 +228,7 @@ class _ClientPageState extends State<ClientPage> {
               child: _players.isEmpty
                   ? Center(
                       child: Text(
-                        'No players connected yet.',
+                        loc.noPlayersConnected,
                         style: TextStyle(color: AppColors.textColorDark),
                       ),
                     )
@@ -294,10 +297,10 @@ class _ClientPageState extends State<ClientPage> {
                               children: [
                                 Text(
                                   isCurrentPlayer
-                                      ? 'You'
+                                      ? loc.you
                                       : p['isMonster'] == true
-                                          ? 'Monster/NPC'
-                                          : 'Player',
+                                          ? loc.monsterNpc
+                                          : loc.player,
                                   style: TextStyle(
                                     color: AppColors.textColorDark,
                                     fontSize: 12,

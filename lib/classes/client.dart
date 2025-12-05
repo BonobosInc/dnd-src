@@ -127,7 +127,9 @@ class DnDClient {
         (message) {
           try {
             final data = jsonDecode(message);
-            _messageController.add(data);
+            if (!_messageController.isClosed) {
+              _messageController.add(data);
+            }
 
             switch (data['type']) {
               case 'welcome':
@@ -137,7 +139,9 @@ class DnDClient {
                     ..addAll(List<String>.from(
                       data['players'].map((p) => p['name']),
                     ));
-                  _playerListController.add(List.from(players));
+                  if (!_playerListController.isClosed) {
+                    _playerListController.add(List.from(players));
+                  }
 
                   playersData
                     ..clear()
@@ -164,7 +168,9 @@ class DnDClient {
                     ..addAll(List<String>.from(
                       data['players'].map((p) => p['name']),
                     ));
-                  _playerListController.add(List.from(players));
+                  if (!_playerListController.isClosed) {
+                    _playerListController.add(List.from(players));
+                  }
 
                   playersData
                     ..clear()
@@ -185,7 +191,9 @@ class DnDClient {
                     ..addAll(List<String>.from(
                       data['players'].map((p) => p['name']),
                     ));
-                  _playerListController.add(List.from(players));
+                  if (!_playerListController.isClosed) {
+                    _playerListController.add(List.from(players));
+                  }
 
                   playersData
                     ..clear()
@@ -202,6 +210,15 @@ class DnDClient {
               case 'initiative_updated':
               case 'combatants_updated':
                 if (data['players'] is List) {
+                  players
+                    ..clear()
+                    ..addAll(List<String>.from(
+                      data['players'].map((p) => p['name']),
+                    ));
+                  if (!_playerListController.isClosed) {
+                    _playerListController.add(List.from(players));
+                  }
+
                   playersData
                     ..clear()
                     ..addAll(List<Map<String, dynamic>>.from(data['players']));
@@ -327,22 +344,42 @@ class DnDClient {
   }
 
   Future<void> disconnect({bool restartListening = false}) async {
+    if (!isConnected) {
+      if (kDebugMode) print('⚠️ Already disconnected');
+      return;
+    }
+
     try {
-      // add a post call to /disconnect
-      final uri = Uri.parse('http://$connectedIp:$connectedPort/disconnect');
-      await http.post(uri, body: jsonEncode({'name': playerName}));
+      // Save connection info before clearing
+      final ip = connectedIp;
+      final port = connectedPort;
+      final name = playerName;
+
+      // Clear connection state first
       _socket?.close();
       _socket = null;
       connectedIp = null;
       connectedPort = null;
+      playerName = null;
+      sessionName = null;
       players.clear();
-      _playerListController.add(List.from(players));
+      playersData.clear();
+      monstersData.clear();
+      sessionSettings = null;
 
-      if (!_messageController.isClosed) {
-        _messageController.close();
-      }
+      // Notify listeners with empty data if controllers are still open
       if (!_playerListController.isClosed) {
-        _playerListController.close();
+        _playerListController.add(List.from(players));
+      }
+
+      // Send disconnect notification to server
+      if (ip != null && port != null && name != null) {
+        try {
+          final uri = Uri.parse('http://$ip:$port/disconnect');
+          await http.post(uri, body: jsonEncode({'name': name}));
+        } catch (e) {
+          if (kDebugMode) print('⚠️ Failed to notify server of disconnect: $e');
+        }
       }
 
       if (kDebugMode) print('🔕 Disconnected from session.');

@@ -836,11 +836,7 @@ class CharacterViewState extends State<CharacterView> {
                         ),
                         ListTile(
                           title: Text(
-                            _sessionManager.isHosting
-                                ? loc.hostSession
-                                : _sessionManager.isConnected
-                                    ? loc.joinedSession
-                                    : loc.session,
+                            loc.session,
                             style: TextStyle(color: AppColors.textColorLight),
                           ),
                           onTap: () {

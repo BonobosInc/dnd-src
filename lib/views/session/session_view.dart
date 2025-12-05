@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:dnd/configs/colours.dart';
 import 'package:dnd/classes/server.dart';
 import 'package:dnd/classes/client.dart';
+import 'package:dnd/l10n/app_localizations.dart';
 
 class LobbyPage extends StatefulWidget {
   DnDMulticastServer? _server;
@@ -61,8 +62,9 @@ class _LobbyPageState extends State<LobbyPage> {
   }
 
   Future<void> _startServer() async {
+    final loc = AppLocalizations.of(context)!;
     final name = _sessionNameController.text.trim().isEmpty
-        ? 'Unnamed Session'
+        ? loc.unnamedSession
         : _sessionNameController.text.trim();
 
     widget._server = DnDMulticastServer();
@@ -72,7 +74,7 @@ class _LobbyPageState extends State<LobbyPage> {
     setState(() => serverRunning = true);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('🧙 Hosting "$name"')),
+      SnackBar(content: Text(loc.hostingSessionMessage(name))),
     );
 
     if (mounted) {
@@ -127,15 +129,16 @@ class _LobbyPageState extends State<LobbyPage> {
     showDialog(
       context: context,
       builder: (context) {
+        final loc = AppLocalizations.of(context)!;
         return AlertDialog(
           backgroundColor: AppColors.cardColor,
           title: Text(
-            'Choose Character',
+            loc.chooseCharacter,
             style: TextStyle(color: AppColors.textColorLight),
           ),
           content: widget.profiles == null || widget.profiles!.isEmpty
               ? Text(
-                  'No characters found. Please create one first.',
+                  loc.noCharactersFound,
                   style: TextStyle(color: AppColors.textColorDark),
                 )
               : StatefulBuilder(
@@ -158,7 +161,7 @@ class _LobbyPageState extends State<LobbyPage> {
                       onChanged: (value) =>
                           setState(() => selectedCharacter = value),
                       decoration: InputDecoration(
-                        labelText: 'Select your character',
+                        labelText: loc.selectYourCharacter,
                         labelStyle: TextStyle(color: AppColors.textColorDark),
                         enabledBorder: UnderlineInputBorder(
                           borderSide: BorderSide(color: AppColors.borderColor),
@@ -170,7 +173,7 @@ class _LobbyPageState extends State<LobbyPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancel',
+              child: Text(loc.cancel,
                   style: TextStyle(color: AppColors.warningColor)),
             ),
             ElevatedButton(
@@ -178,9 +181,10 @@ class _LobbyPageState extends State<LobbyPage> {
                 backgroundColor: AppColors.currentHealth,
               ),
               onPressed: () async {
+                final loc = AppLocalizations.of(context)!;
                 if (selectedCharacter == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please select a character!')),
+                    SnackBar(content: Text(loc.pleaseSelectCharacter)),
                   );
                   return;
                 }
@@ -222,7 +226,7 @@ class _LobbyPageState extends State<LobbyPage> {
                   ),
                 );
               },
-              child: const Text('Join'),
+              child: Text(loc.join),
             ),
           ],
         );
@@ -231,13 +235,14 @@ class _LobbyPageState extends State<LobbyPage> {
   }
 
   Widget _buildHostView() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       children: [
         const SizedBox(height: 20),
         TextField(
           controller: _sessionNameController,
           decoration: InputDecoration(
-            hintText: 'Enter session name...',
+            hintText: loc.enterSessionNameHint,
             hintStyle: TextStyle(color: AppColors.textColorDark),
             filled: true,
             fillColor: AppColors.cardColor,
@@ -275,7 +280,7 @@ class _LobbyPageState extends State<LobbyPage> {
             }
           },
           child: Text(
-            serverRunning ? 'Server Running...' : 'Start Hosting',
+            serverRunning ? loc.serverRunning : loc.startHosting,
             style: TextStyle(
               color: AppColors.textColorLight,
               fontSize: 16,
@@ -287,6 +292,7 @@ class _LobbyPageState extends State<LobbyPage> {
   }
 
   Widget _buildPlayerView() {
+    final loc = AppLocalizations.of(context)!;
     if (widget._client == null) {
       widget._client = DnDClient();
     }
@@ -311,7 +317,7 @@ class _LobbyPageState extends State<LobbyPage> {
                       const CircularProgressIndicator(),
                       const SizedBox(height: 16),
                       Text(
-                        'Searching for sessions...',
+                        loc.searchingForSessions,
                         style: TextStyle(color: AppColors.textColorDark),
                       ),
                     ],
@@ -323,18 +329,48 @@ class _LobbyPageState extends State<LobbyPage> {
                     final s = sessions[index];
                     return Card(
                       color: AppColors.cardColor,
+                      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                      elevation: 4,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: AppColors.borderColor),
+                        side: BorderSide(color: AppColors.borderColor, width: 1.5),
                       ),
                       child: ListTile(
-                        title: Text(
-                          s['sessionName'] ?? 'Unknown Session',
-                          style: TextStyle(color: AppColors.textColorLight),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        leading: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.currentHealth.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            Icons.wifi,
+                            color: AppColors.currentHealth,
+                            size: 28,
+                          ),
                         ),
-                        subtitle: Text(
-                          'Players: ${s['players']}/${s['maxPlayers']} | ${s['ip']}:${s['port']}',
-                          style: TextStyle(color: AppColors.textColorDark),
+                        title: Text(
+                          s['sessionName'] ?? loc.unknownSession,
+                          style: TextStyle(
+                            color: AppColors.textColorLight,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Text(
+                            '${s['ip']}:${s['port']}',
+                            style: TextStyle(
+                              color: AppColors.textColorDark,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                        trailing: Icon(
+                          Icons.arrow_forward_ios,
+                          color: AppColors.textColorDark,
+                          size: 20,
                         ),
                         onTap: () => _promptJoinServer(s['ip'], s['port']),
                       ),
@@ -347,6 +383,7 @@ class _LobbyPageState extends State<LobbyPage> {
   }
 
   Widget _buildModeSelection() {
+    final loc = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -360,7 +397,7 @@ class _LobbyPageState extends State<LobbyPage> {
                   borderRadius: BorderRadius.circular(20)),
             ),
             icon: const Icon(Icons.shield, size: 28),
-            label: const Text('Host Game', style: TextStyle(fontSize: 18)),
+            label: Text(loc.hostGame, style: TextStyle(fontSize: 18)),
             onPressed: () => setState(() => isHosting = true),
           ),
           const SizedBox(height: 30),
@@ -372,7 +409,7 @@ class _LobbyPageState extends State<LobbyPage> {
                   borderRadius: BorderRadius.circular(20)),
             ),
             icon: const Icon(Icons.person_search, size: 28),
-            label: const Text('Join Game', style: TextStyle(fontSize: 18)),
+            label: Text(loc.joinGame, style: TextStyle(fontSize: 18)),
             onPressed: () => setState(() => isPlayer = true),
           ),
         ],
@@ -382,11 +419,12 @@ class _LobbyPageState extends State<LobbyPage> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.primaryColor,
       appBar: AppBar(
         backgroundColor: AppColors.appBarColor,
-        title: Text('D&D Session Lobby',
+        title: Text(loc.sessionLobby,
             style: TextStyle(color: AppColors.textColorLight)),
         centerTitle: true,
         leading: (isHosting || isPlayer)

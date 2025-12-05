@@ -353,5 +353,81 @@
     "joinedSession": "Joined Session",
     "sessionSettings": "Session Settings",
     "showPlayerHP": "Show Player HP to Clients",
-    "showPlayerAC": "Show Player AC to Clients"
+    "showPlayerAC": "Show Player AC to Clients",
+    "unnamedSession": "Unnamed Session",
+    "hostingSessionMessage": "Hosting \"{sessionName}\"",
+    "@hostingSessionMessage": {
+        "placeholders": {
+            "sessionName": {}
+        }
+    },
+    "chooseCharacter": "Choose Character",
+    "noCharactersFound": "No characters found. Please create one first.",
+    "selectYourCharacter": "Select your character",
+    "pleaseSelectCharacter": "Please select a character!",
+    "join": "Join",
+    "enterSessionNameHint": "Enter session name...",
+    "serverRunning": "Server Running...",
+    "startHosting": "Start Hosting",
+    "searchingForSessions": "Searching for sessions...",
+    "unknownSession": "Unknown Session",
+    "hostGame": "Host Game",
+    "joinGame": "Join Game",
+    "sessionLobby": "D&D Session Lobby",
+    "confirmStopHosting": "Confirm Stop Hosting",
+    "stopHostingWarning": "Are you sure you want to stop hosting this session? All players will be disconnected.",
+    "stopHosting": "Stop Hosting",
+    "setInitiativeFor": "Set Initiative for {playerName}",
+    "@setInitiativeFor": {
+        "placeholders": {
+            "playerName": {}
+        }
+    },
+    "hostingSessionTitle": "Hosting: {sessionName}",
+    "@hostingSessionTitle": {
+        "placeholders": {
+            "sessionName": {}
+        }
+    },
+    "sessionInfo": "Session Info",
+    "connectedPlayers": "Connected Players:",
+    "nextTurn": "Next Turn",
+    "noPlayersConnected": "No players connected yet.",
+    "initiativeLabel": "Initiative: ",
+    "addMonsterNpc": "Add Monster/NPC",
+    "viewFullDetails": "View Full Details",
+    "editName": "Edit Name",
+    "editHp": "Edit HP",
+    "editAc": "Edit AC",
+    "editNameFor": "Edit Name for {name}",
+    "@editNameFor": {
+        "placeholders": {
+            "name": {}
+        }
+    },
+    "editHpFor": "Edit HP for {name}",
+    "@editHpFor": {
+        "placeholders": {
+            "name": {}
+        }
+    },
+    "editAcFor": "Edit AC for {name}",
+    "@editAcFor": {
+        "placeholders": {
+            "name": {}
+        }
+    },
+    "armorClass": "Armor Class",
+    "sessionTitle": "Session: {sessionName}",
+    "@sessionTitle": {
+        "placeholders": {
+            "sessionName": {}
+        }
+    },
+    "loading": "Loading...",
+    "quitSession": "Quit Session",
+    "playersAndInitiative": "Players & Initiative:",
+    "you": "You",
+    "monsterNpc": "Monster/NPC",
+    "player": "Player"
 }
