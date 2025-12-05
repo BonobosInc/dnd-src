@@ -1263,7 +1263,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildStatCard(
-                        loc.initiative, initiative, Defines.statInitiativeBonus,
+                        loc.initiative, (initiative + initiative_bonus), Defines.statInitiativeBonus,
                         isCount: true),
                     _buildStatCard(
                         loc.movement, movement, Defines.statMovement),
