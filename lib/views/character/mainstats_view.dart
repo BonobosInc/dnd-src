@@ -1614,6 +1614,7 @@ class MainStatsPageState extends State<MainStatsPage> {
       child: isClickable
           ? GestureDetector(
               onTap: () {
+                if (statType == Defines.statInitiativeBonus) value = initiative_bonus;
                 _showEditStatDialog(name, statType, value, isCount: isCount);
               },
               child: cardContent,
