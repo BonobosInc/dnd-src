@@ -3,25 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:dnd/configs/colours.dart';
 import 'package:dnd/classes/client.dart';
 import 'package:dnd/l10n/app_localizations.dart';
+import 'package:dnd/classes/session_manager.dart';
+import 'package:dnd/classes/profile_manager.dart';
 
 class ClientPage extends StatefulWidget {
   final DnDClient client;
   final String playerName;
   final bool isFromLobby;
-  final int? playerHP;
-  final int? playerMaxHP;
-  final int? playerTempHP;
-  final int? playerAC;
+  final ProfileManager profileManager;
 
   const ClientPage({
     super.key,
     required this.client,
     required this.playerName,
     required this.isFromLobby,
-    this.playerHP,
-    this.playerMaxHP,
-    this.playerTempHP,
-    this.playerAC,
+    required this.profileManager,
   });
 
   @override
@@ -32,6 +28,10 @@ class _ClientPageState extends State<ClientPage> {
   late StreamSubscription _messageSub;
   List<Map<String, dynamic>> _players = [];
   int _currentTurnIndex = 0;
+  int? _playerHP;
+  int? _playerMaxHP;
+  int? _playerTempHP;
+  int? _playerAC;
 
   @override
   void initState() {
@@ -43,20 +43,8 @@ class _ClientPageState extends State<ClientPage> {
       ...widget.client.monstersData,
     ];
 
-    // Send player stats to server if available
-    if (widget.playerHP != null && widget.playerAC != null) {
-      print(
-          '🎯 ClientView: Sending initial stats - HP: ${widget.playerHP}/${widget.playerMaxHP}, TempHP: ${widget.playerTempHP}, AC: ${widget.playerAC}');
-      widget.client.sendStats({
-        'HP': widget.playerHP,
-        'maxHP': widget.playerMaxHP,
-        'tempHP': widget.playerTempHP ?? 0,
-        'AC': widget.playerAC,
-      });
-    } else {
-      print(
-          '⚠️ ClientView: Stats not available - HP: ${widget.playerHP}, AC: ${widget.playerAC}');
-    }
+    // Load and send player stats from database
+    _loadAndSendStats();
 
     _messageSub = widget.client.messages.listen((data) {
       if (!mounted) return;
@@ -146,10 +134,58 @@ class _ClientPageState extends State<ClientPage> {
     });
   }
 
+  Future<void> _loadAndSendStats() async {
+    try {
+      print('🔍 ClientView: Loading stats for player ${widget.playerName}');
+
+      // Ensure the correct profile is selected
+      final matchingProfile = widget.profileManager.profiles.firstWhere(
+        (profile) => profile.name == widget.playerName,
+        orElse: () => widget.profileManager.profiles.isNotEmpty
+            ? widget.profileManager.profiles.first
+            : null as Character,
+      );
+
+      await widget.profileManager.selectProfile(matchingProfile);
+      print('🔍 ClientView: Selected profile: ${matchingProfile.name}');
+
+      final stats = await widget.profileManager.getStats();
+      print('🔍 ClientView: Stats query returned ${stats.length} rows');
+      if (stats.isNotEmpty) {
+        print('🔍 ClientView: First stat row: ${stats.first}');
+        setState(() {
+          // Use lowercase column names from the database
+          _playerHP = stats.first['currenthp'] as int?;
+          _playerMaxHP = stats.first['maxhp'] as int?;
+          _playerTempHP = stats.first['temphp'] as int?;
+          _playerAC = stats.first['armor'] as int?;
+        });
+
+        print('🎯 ClientView: Parsed stats - HP: $_playerHP/$_playerMaxHP, TempHP: $_playerTempHP, AC: $_playerAC');
+
+        if (_playerHP != null && _playerAC != null) {
+          print('📤 ClientView: Sending stats to server');
+          await widget.client.sendStats({
+            'HP': _playerHP,
+            'maxHP': _playerMaxHP,
+            'tempHP': _playerTempHP ?? 0,
+            'AC': _playerAC,
+          });
+        } else {
+          print('⚠️ ClientView: HP or AC is null, not sending to server');
+        }
+      } else {
+        print('⚠️ ClientView: No stats found in database');
+      }
+    } catch (e) {
+      print('❌ ClientView: Error loading stats: $e');
+    }
+  }
+
   @override
   void dispose() {
     _messageSub.cancel();
-    widget.client.disconnect();
+    // Don't disconnect here - disconnection is handled at app level in main.dart
     super.dispose();
   }
 
@@ -176,7 +212,7 @@ class _ClientPageState extends State<ClientPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           color: AppColors.textColorLight,
-          onPressed: () => goBacktoHomescreen(),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
           PopupMenuButton<String>(
@@ -184,9 +220,9 @@ class _ClientPageState extends State<ClientPage> {
             color: AppColors.cardColor,
             onSelected: (value) async {
               if (value == 'quit') {
-                await widget.client.disconnect();
+                await SessionManager().stopClient();
                 if (!mounted) return;
-                Navigator.pop(context);
+                goBacktoHomescreen();
               }
             },
             itemBuilder: (context) => [
@@ -304,7 +340,7 @@ class _ClientPageState extends State<ClientPage> {
                                   p['isMonster'] == true
                                       ? 'HP: ${p['hp']}/${p['maxHp']} | AC: ${p['ac']}'
                                       : isCurrentPlayer
-                                          ? 'HP: ${p['HP'] ?? widget.playerHP ?? '?'}${p['maxHP'] != null || widget.playerMaxHP != null ? '/${p['maxHP'] ?? widget.playerMaxHP}' : ''}${(p['tempHP'] ?? widget.playerTempHP ?? 0) > 0 ? ' (+${p['tempHP'] ?? widget.playerTempHP})' : ''} | AC: ${p['AC'] ?? widget.playerAC ?? '?'}'
+                                          ? 'HP: ${p['HP'] ?? _playerHP ?? '?'}${p['maxHP'] != null || _playerMaxHP != null ? '/${p['maxHP'] ?? _playerMaxHP}' : ''}${(p['tempHP'] ?? _playerTempHP ?? 0) > 0 ? ' (+${p['tempHP'] ?? _playerTempHP})' : ''} | AC: ${p['AC'] ?? _playerAC ?? '?'}'
                                           : 'HP: ${p['HP'] ?? '?'}${p['maxHP'] != null ? '/${p['maxHP']}' : ''}${(p['tempHP'] ?? 0) > 0 ? ' (+${p['tempHP']})' : ''} | AC: ${p['AC'] ?? '?'}',
                                   style: TextStyle(
                                     color: AppColors.textColorDark,

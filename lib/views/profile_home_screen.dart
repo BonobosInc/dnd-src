@@ -447,24 +447,6 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
 
                     await profileManager.selectProfile(matchingProfile);
 
-                    // Load character stats
-                    List<Map<String, dynamic>> stats =
-                        await profileManager.getStats();
-                    int? hp;
-                    int? maxHp;
-                    int? tempHp;
-                    int? ac;
-                    if (stats.isNotEmpty) {
-                      hp = stats.first['HP'] as int?;
-                      maxHp = stats.first['maxHP'] as int?;
-                      tempHp = stats.first['temphp'] as int?;
-                      ac = stats.first['AC'] as int?;
-                      print(
-                          '📊 Loaded stats from profile - HP: $hp/$maxHp (+${tempHp ?? 0}), AC: $ac');
-                    } else {
-                      print('⚠️ No stats found in profile');
-                    }
-
                     Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -473,10 +455,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                               playerName: _sessionManager.client!.playerName ??
                                   'Unknown Player',
                               isFromLobby: false,
-                              playerHP: hp,
-                              playerMaxHP: maxHp,
-                              playerTempHP: tempHp,
-                              playerAC: ac),
+                              profileManager: profileManager),
                         ));
                   }
                   return;

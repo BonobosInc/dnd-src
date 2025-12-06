@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:dnd/classes/profile_manager.dart';
 import 'package:dnd/configs/defines.dart';
 import 'package:dnd/l10n/app_localizations.dart';
+import 'package:dnd/classes/session_manager.dart';
 
 class MainStatsPage extends StatefulWidget {
   final ProfileManager profileManager;
@@ -255,6 +256,36 @@ class MainStatsPageState extends State<MainStatsPage> {
 
   Future<void> _updateStat(String field, dynamic value) async {
     await widget.profileManager.updateStats(field: field, value: value);
+
+    // Send updated stats to server if connected to a session
+    await _sendStatsToServer();
+  }
+
+  Future<void> _sendStatsToServer() async {
+    final sessionManager = SessionManager();
+    if (sessionManager.isConnected) {
+      try {
+        final stats = await widget.profileManager.getStats();
+        if (stats.isNotEmpty) {
+          final hp = stats.first['currenthp'] as int?;
+          final maxHp = stats.first['maxhp'] as int?;
+          final tempHp = stats.first['temphp'] as int?;
+          final ac = stats.first['armor'] as int?;
+
+          if (hp != null && ac != null) {
+            await sessionManager.client!.sendStats({
+              'HP': hp,
+              'maxHP': maxHp,
+              'tempHP': tempHp ?? 0,
+              'AC': ac,
+            });
+            print('📤 Sent updated stats to server: HP=$hp/$maxHp, TempHP=$tempHp, AC=$ac');
+          }
+        }
+      } catch (e) {
+        print('❌ Error sending stats to server: $e');
+      }
+    }
   }
 
   Future<void> _showEditStatDialog(

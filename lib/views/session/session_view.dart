@@ -95,30 +95,14 @@ class _LobbyPageState extends State<LobbyPage> {
     if (widget._client?.isConnected == true &&
         widget._client?.connectedIp == ip &&
         widget._client?.connectedPort == port) {
-      // Load character stats for already connected player
-      List<Map<String, dynamic>> stats = await widget.profileManager.getStats();
-      int? hp;
-      int? maxHp;
-      int? tempHp;
-      int? ac;
-      if (stats.isNotEmpty) {
-        hp = stats.first['HP'] as int?;
-        maxHp = stats.first['maxHP'] as int?;
-        tempHp = stats.first['temphp'] as int?;
-        ac = stats.first['AC'] as int?;
-      }
-
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => ClientPage(
               client: widget._client!,
               playerName: widget._client!.playerName ?? 'Unknown Player',
-              isFromLobby: true,
-              playerHP: hp,
-              playerMaxHP: maxHp,
-              playerTempHP: tempHp,
-              playerAC: ac),
+              isFromLobby: false,
+              profileManager: widget.profileManager),
         ),
       );
       return;
@@ -191,38 +175,20 @@ class _LobbyPageState extends State<LobbyPage> {
 
                 // Load character stats
                 await widget.profileManager.selectProfile(selectedCharacter!);
-                List<Map<String, dynamic>> stats =
-                    await widget.profileManager.getStats();
-                int? hp;
-                int? maxHp;
-                int? tempHp;
-                int? ac;
-                if (stats.isNotEmpty) {
-                  hp = stats.first['HP'] as int?;
-                  maxHp = stats.first['maxHP'] as int?;
-                  tempHp = stats.first['temphp'] as int?;
-                  ac = stats.first['AC'] as int?;
-                  print(
-                      '📊 Loaded character stats - HP: $hp/$maxHp (+${tempHp ?? 0}), AC: $ac');
-                } else {
-                  print('⚠️ No stats found for character');
-                }
 
                 await widget._client!.joinSession(ip, port, selectedCharacter!);
 
                 if (!mounted) return;
-                Navigator.pop(context);
+                Navigator.pop(context); // Close the dialog
+                Navigator.pop(context); // Pop the lobby screen
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => ClientPage(
                         client: widget._client!,
                         playerName: selectedCharacter!.name,
-                        isFromLobby: true,
-                        playerHP: hp,
-                        playerMaxHP: maxHp,
-                        playerTempHP: tempHp,
-                        playerAC: ac),
+                        isFromLobby: false, // Changed to false since we're popping the lobby
+                        profileManager: widget.profileManager),
                   ),
                 );
               },

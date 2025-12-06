@@ -134,11 +134,14 @@ class DnDMulticastServer {
         final playerIndex = _players.indexWhere((p) => p['name'] == playerName);
 
         if (playerIndex != -1) {
-          // Update existing player stats
-          _players[playerIndex]['HP'] = data['HP'];
-          _players[playerIndex]['maxHP'] = data['maxHP'];
-          _players[playerIndex]['tempHP'] = data['tempHP'];
-          _players[playerIndex]['AC'] = data['AC'];
+          // Update existing player stats - create a new map to trigger stream updates
+          _players[playerIndex] = {
+            ..._players[playerIndex],
+            'HP': data['HP'],
+            'maxHP': data['maxHP'],
+            'tempHP': data['tempHP'],
+            'AC': data['AC'],
+          };
 
           // Broadcast update to all clients
           _broadcastCombatants();
@@ -190,12 +193,33 @@ class DnDMulticastServer {
     _connectedClients.add(socket);
     print('🔗 Client connected (${_connectedClients.length})');
 
+    String? playerName;
+
     socket.listen((message) {
       final data = jsonDecode(message);
       print('📩 From client: $data');
+
+      // Track which player this socket belongs to
+      if (data['type'] == 'join' && data['name'] != null) {
+        playerName = data['name'];
+      }
     }, onDone: () {
       _connectedClients.remove(socket);
       print('❌ Client disconnected');
+
+      // Remove the player from the session if we know their name
+      if (playerName != null) {
+        _players.removeWhere((p) => p['name'] == playerName);
+        print('👋 Player $playerName removed from session');
+        _broadcastCombatants();
+        _broadcastToClients({
+          'type': 'player_left',
+          'name': playerName,
+          'players': _players,
+          'monsters': _monsters,
+          'currentTurnIndex': _currentTurnIndex,
+        });
+      }
     });
 
     socket.add(jsonEncode({
@@ -268,9 +292,13 @@ class DnDMulticastServer {
   void updateMonsterStats(String monsterName, {int? hp, int? maxHp, int? ac}) {
     final monsterIndex = _monsters.indexWhere((m) => m['name'] == monsterName);
     if (monsterIndex != -1) {
-      if (hp != null) _monsters[monsterIndex]['hp'] = hp;
-      if (maxHp != null) _monsters[monsterIndex]['maxHp'] = maxHp;
-      if (ac != null) _monsters[monsterIndex]['ac'] = ac;
+      // Create a new map to trigger stream updates
+      _monsters[monsterIndex] = {
+        ..._monsters[monsterIndex],
+        if (hp != null) 'hp': hp,
+        if (maxHp != null) 'maxHp': maxHp,
+        if (ac != null) 'ac': ac,
+      };
       _broadcastCombatants();
       print('📊 Monster stats updated for: $monsterName (HP: ${_monsters[monsterIndex]['hp']}/${_monsters[monsterIndex]['maxHp']}, AC: ${_monsters[monsterIndex]['ac']})');
     }

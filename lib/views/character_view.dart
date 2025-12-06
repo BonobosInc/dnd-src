@@ -862,12 +862,7 @@ class CharacterViewState extends State<CharacterView> {
                                         _sessionManager.client!.playerName ??
                                             'Unknown Player',
                                     isFromLobby: false,
-                                    playerHP: mainStatsPageKey
-                                        .currentState?.currentHP,
-                                    playerMaxHP:
-                                        mainStatsPageKey.currentState?.maxHP,
-                                    playerAC:
-                                        mainStatsPageKey.currentState?.armor,
+                                    profileManager: widget.profileManager,
                                   ),
                                 ),
                               );
