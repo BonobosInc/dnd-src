@@ -5,6 +5,7 @@ import 'package:dnd/classes/wiki_parser.dart';
 import 'package:dnd/classes/wiki_classes.dart';
 import 'package:dnd/views/wiki/creatures_view.dart';
 import 'package:dnd/l10n/app_localizations.dart';
+import 'dart:async';
 
 class HostPage extends StatefulWidget {
   final DnDMulticastServer server;
@@ -25,6 +26,16 @@ class HostPage extends StatefulWidget {
 class _HostPageState extends State<HostPage> {
   bool _stopping = false;
   int _currentTurnIndex = 0;
+  Timer? _hpAdjustmentTimer;
+  String? _adjustingMonsterName;
+  int? _adjustingMonsterHP;
+  int _adjustmentAmount = 0;
+
+  @override
+  void dispose() {
+    _stopContinuousHPAdjustment();
+    super.dispose();
+  }
 
   Future<void> _stopHosting() async {
     if (_stopping) return;
@@ -312,13 +323,38 @@ class _HostPageState extends State<HostPage> {
                                   print(
                                       '🏥 Host displaying player ${p['name']}: HP=${p['HP']}, maxHP=${p['maxHP']}, tempHP=${p['tempHP']}, AC=${p['AC']}');
                                 }
-                                return Text(
-                                  p['isMonster'] == true
-                                      ? 'HP: ${p['hp']}/${p['maxHp']} | AC: ${p['ac']}'
-                                      : 'HP: ${p['HP'] ?? '?'}${p['maxHP'] != null ? '/${p['maxHP']}' : ''}${(p['tempHP'] ?? 0) > 0 ? ' (+${p['tempHP']})' : ''} | AC: ${p['AC'] ?? '?'}',
-                                  style: TextStyle(
-                                      color: AppColors.textColorDark,
-                                      fontSize: 12),
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      p['isMonster'] == true
+                                          ? 'HP: ${p['hp']}/${p['maxHp']} | AC: ${p['ac']}'
+                                          : 'HP: ${p['HP'] ?? '?'}${p['maxHP'] != null ? '/${p['maxHP']}' : ''}${(p['tempHP'] ?? 0) > 0 ? ' (+${p['tempHP']})' : ''} | AC: ${p['AC'] ?? '?'}',
+                                      style: TextStyle(
+                                          color: AppColors.textColorDark,
+                                          fontSize: 12),
+                                    ),
+                                    if (p['isMonster'] == true) ...[
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          _buildHPButton(
+                                            icon: Icons.remove,
+                                            onPressed: () => _adjustMonsterHP(p['name'], p['hp'], p['maxHp'], -1),
+                                            onLongPressStart: (_) => _startContinuousHPAdjustment(p['name'], p['hp'], p['maxHp'], -1),
+                                            onLongPressEnd: (_) => _stopContinuousHPAdjustment(),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          _buildHPButton(
+                                            icon: Icons.add,
+                                            onPressed: () => _adjustMonsterHP(p['name'], p['hp'], p['maxHp'], 1),
+                                            onLongPressStart: (_) => _startContinuousHPAdjustment(p['name'], p['hp'], p['maxHp'], 1),
+                                            onLongPressEnd: (_) => _stopContinuousHPAdjustment(),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ],
                                 );
                               }),
                             ],
@@ -600,8 +636,6 @@ class _HostPageState extends State<HostPage> {
                 final maxHp = int.tryParse(maxHpController.text) ?? monster['maxHp'];
                 widget.server.updateMonsterStats(monster['name'], hp: hp, maxHp: maxHp);
                 Navigator.pop(context);
-                Navigator.pop(context);
-                setState(() {});
               },
               child: Text(loc.save),
             ),
@@ -641,8 +675,6 @@ class _HostPageState extends State<HostPage> {
                 final ac = int.tryParse(acController.text) ?? monster['ac'];
                 widget.server.updateMonsterStats(monster['name'], ac: ac);
                 Navigator.pop(context);
-                Navigator.pop(context);
-                setState(() {});
               },
               child: Text(loc.save),
             ),
@@ -651,4 +683,61 @@ class _HostPageState extends State<HostPage> {
       },
     );
   }
+
+  Widget _buildHPButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+    required void Function(LongPressStartDetails) onLongPressStart,
+    required void Function(LongPressEndDetails) onLongPressEnd,
+  }) {
+    return GestureDetector(
+      onTap: onPressed,
+      onLongPressStart: onLongPressStart,
+      onLongPressEnd: onLongPressEnd,
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: AppColors.appBarColor,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Icon(
+          icon,
+          color: AppColors.textColorLight,
+          size: 18,
+        ),
+      ),
+    );
+  }
+
+  void _adjustMonsterHP(String monsterName, int currentHP, int maxHP, int adjustment) {
+    final newHP = (currentHP + adjustment).clamp(0, maxHP);
+    widget.server.updateMonsterStats(monsterName, hp: newHP);
+  }
+
+  void _startContinuousHPAdjustment(String monsterName, int currentHP, int maxHP, int adjustment) {
+    _adjustingMonsterName = monsterName;
+    _adjustingMonsterHP = currentHP;
+    _adjustmentAmount = adjustment;
+
+    // Initial adjustment
+    _adjustMonsterHP(monsterName, currentHP, maxHP, adjustment);
+
+    // Start continuous adjustment after a delay
+    _hpAdjustmentTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      if (_adjustingMonsterHP != null) {
+        _adjustingMonsterHP = _adjustingMonsterHP! + _adjustmentAmount;
+        _adjustMonsterHP(_adjustingMonsterName!, _adjustingMonsterHP!, maxHP, 0);
+      }
+    });
+  }
+
+  void _stopContinuousHPAdjustment() {
+    _hpAdjustmentTimer?.cancel();
+    _hpAdjustmentTimer = null;
+    _adjustingMonsterName = null;
+    _adjustingMonsterHP = null;
+    _adjustmentAmount = 0;
+  }
 }
+

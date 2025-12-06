@@ -103,7 +103,7 @@ class DnDClient {
 
     connectedIp = ip;
     connectedPort = port;
-    this.playerName = player.name;
+    playerName = player.name;
     sessionName =
         discoveredSessions['$ip:$port']?['sessionName'] ?? 'Unknown Session';
 

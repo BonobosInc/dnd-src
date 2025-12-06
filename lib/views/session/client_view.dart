@@ -143,7 +143,7 @@ class _ClientPageState extends State<ClientPage> {
         (profile) => profile.name == widget.playerName,
         orElse: () => widget.profileManager.profiles.isNotEmpty
             ? widget.profileManager.profiles.first
-            : null as Character,
+            : throw Exception('No profiles available'),
       );
 
       await widget.profileManager.selectProfile(matchingProfile);
@@ -270,9 +270,9 @@ class _ClientPageState extends State<ClientPage> {
                         final isCurrentTurn = index == _currentTurnIndex;
                         return Card(
                           color: isCurrentTurn
-                              ? AppColors.currentHealth.withOpacity(0.3)
+                              ? AppColors.currentHealth.withValues(alpha: 0.3)
                               : isCurrentPlayer
-                                  ? AppColors.cardColor.withOpacity(0.8)
+                                  ? AppColors.cardColor.withValues(alpha: 0.8)
                                   : AppColors.cardColor,
                           margin: const EdgeInsets.symmetric(vertical: 6),
                           shape: isCurrentTurn
@@ -337,11 +337,9 @@ class _ClientPageState extends State<ClientPage> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  p['isMonster'] == true
-                                      ? 'HP: ${p['hp']}/${p['maxHp']} | AC: ${p['ac']}'
-                                      : isCurrentPlayer
-                                          ? 'HP: ${p['HP'] ?? _playerHP ?? '?'}${p['maxHP'] != null || _playerMaxHP != null ? '/${p['maxHP'] ?? _playerMaxHP}' : ''}${(p['tempHP'] ?? _playerTempHP ?? 0) > 0 ? ' (+${p['tempHP'] ?? _playerTempHP})' : ''} | AC: ${p['AC'] ?? _playerAC ?? '?'}'
-                                          : 'HP: ${p['HP'] ?? '?'}${p['maxHP'] != null ? '/${p['maxHP']}' : ''}${(p['tempHP'] ?? 0) > 0 ? ' (+${p['tempHP']})' : ''} | AC: ${p['AC'] ?? '?'}',
+                                  isCurrentPlayer
+                                      ? 'HP: ${p['HP'] ?? _playerHP ?? '?'}${p['maxHP'] != null || _playerMaxHP != null ? '/${p['maxHP'] ?? _playerMaxHP}' : ''}${(p['tempHP'] ?? _playerTempHP ?? 0) > 0 ? ' (+${p['tempHP'] ?? _playerTempHP})' : ''} | AC: ${p['AC'] ?? _playerAC ?? '?'}'
+                                      : '', // Hide HP/AC for other players and monsters
                                   style: TextStyle(
                                     color: AppColors.textColorDark,
                                     fontSize: 11,
