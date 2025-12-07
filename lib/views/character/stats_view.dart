@@ -1009,7 +1009,7 @@ class StatsPageState extends State<StatsPage> {
           _buildStatsLabelRow(),
           _buildStatRow(loc.strength, strength, Defines.statSTR),
           _buildStatRow(loc.dexterity, dexterity, Defines.statDEX),
-          _buildStatRow(loc.dexterity, constitution, Defines.statCON),
+          _buildStatRow(loc.constitution, constitution, Defines.statCON),
           _buildStatRow(loc.intelligence, intelligence, Defines.statINT),
           _buildStatRow(loc.wisdom, wisdom, Defines.statWIS),
           _buildStatRow(loc.charisma, charisma, Defines.statCHA),

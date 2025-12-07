@@ -8,13 +8,15 @@ import 'package:flutter/material.dart';
 import 'package:dnd/classes/profile_manager.dart';
 import 'package:dnd/configs/defines.dart';
 import 'package:dnd/l10n/app_localizations.dart';
+import 'package:dnd/classes/session_manager.dart';
 
 class MainStatsPage extends StatefulWidget {
   final ProfileManager profileManager;
   final WikiParser wikiParser;
+  final VoidCallback? onStatsChanged;
 
   const MainStatsPage(
-      {super.key, required this.profileManager, required this.wikiParser});
+      {super.key, required this.profileManager, required this.wikiParser, this.onStatsChanged});
 
   @override
   MainStatsPageState createState() => MainStatsPageState();
@@ -33,6 +35,7 @@ class MainStatsPageState extends State<MainStatsPage> {
   int inspiration = 0;
   int proficiencyBonus = 0;
   int initiative = 0;
+  int initiative_bonus = 0;
   String movement = '0m';
 
   Timer? _timer;
@@ -93,6 +96,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                     10) /
                 2)
             .floor();
+        initiative_bonus = characterData[Defines.statInitiativeBonus] ?? 0;
         movement = characterData[Defines.statMovement].toString();
         currentHitDice = characterData[Defines.statCurrentHitDice];
         maxHitDice = characterData[Defines.statMaxHitDice];
@@ -196,6 +200,7 @@ class MainStatsPageState extends State<MainStatsPage> {
         }
       }
     });
+    widget.onStatsChanged?.call();
   }
 
   void _decrementHP() {
@@ -208,6 +213,7 @@ class MainStatsPageState extends State<MainStatsPage> {
         _updateStat(Defines.statCurrentHP, currentHP);
       }
     });
+    widget.onStatsChanged?.call();
   }
 
   void _startIncrementingC(int index) {
@@ -250,6 +256,36 @@ class MainStatsPageState extends State<MainStatsPage> {
 
   Future<void> _updateStat(String field, dynamic value) async {
     await widget.profileManager.updateStats(field: field, value: value);
+
+    // Send updated stats to server if connected to a session
+    await _sendStatsToServer();
+  }
+
+  Future<void> _sendStatsToServer() async {
+    final sessionManager = SessionManager();
+    if (sessionManager.isConnected) {
+      try {
+        final stats = await widget.profileManager.getStats();
+        if (stats.isNotEmpty) {
+          final hp = stats.first['currenthp'] as int?;
+          final maxHp = stats.first['maxhp'] as int?;
+          final tempHp = stats.first['temphp'] as int?;
+          final ac = stats.first['armor'] as int?;
+
+          if (hp != null && ac != null) {
+            await sessionManager.client!.sendStats({
+              'HP': hp,
+              'maxHP': maxHp,
+              'tempHP': tempHp ?? 0,
+              'AC': ac,
+            });
+            print('📤 Sent updated stats to server: HP=$hp/$maxHp, TempHP=$tempHp, AC=$ac');
+          }
+        }
+      } catch (e) {
+        print('❌ Error sending stats to server: $e');
+      }
+    }
   }
 
   Future<void> _showEditStatDialog(
@@ -275,7 +311,9 @@ class MainStatsPageState extends State<MainStatsPage> {
                       ? Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('${loc.value}:'),
+                            Text(field == Defines.statInitiativeBonus
+                                ? '${loc.bonus}:'
+                                : '${loc.value}:'),
                             Row(
                               children: [
                                 IconButton(
@@ -330,8 +368,8 @@ class MainStatsPageState extends State<MainStatsPage> {
                       if (field == Defines.statProficiencyBonus) {
                         proficiencyBonus = int.tryParse(newValue.toString())!;
                       }
-                      if (field == Defines.statInitiative) {
-                        initiative = int.tryParse(newValue.toString())!;
+                      if (field == Defines.statInitiativeBonus) {
+                        initiative_bonus = int.tryParse(newValue.toString())!;
                       }
                       if (field == Defines.statMovement) {
                         movement = newValue;
@@ -479,6 +517,8 @@ class MainStatsPageState extends State<MainStatsPage> {
                   tempHP = newTempHP;
                 });
 
+                widget.onStatsChanged?.call();
+
                 if (context.mounted) Navigator.of(context).pop();
               },
               child: Text(loc.save),
@@ -515,7 +555,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: newTrackerType,
+                    initialValue: newTrackerType,
                     items: [
                       DropdownMenuItem(value: 'never', child: Text(loc.never)),
                       DropdownMenuItem(
@@ -656,7 +696,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: editedTrackerType,
+                    initialValue: editedTrackerType,
                     items: [
                       DropdownMenuItem(value: 'never', child: Text(loc.never)),
                       DropdownMenuItem(value: 'long', child: Text(loc.longrest)),
@@ -773,7 +813,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButtonFormField<String>(
-                    value: selectedCondition,
+                    initialValue: selectedCondition,
                     items: getConditionOptions(context).map((condition) {
                       return DropdownMenuItem<String>(
                         value: condition,
@@ -843,7 +883,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButtonFormField<String>(
-                    value: selectedCondition,
+                    initialValue: selectedCondition,
                     items: getConditionOptions(context).map((condition) {
                       return DropdownMenuItem<String>(
                         value: condition,
@@ -1259,8 +1299,8 @@ class MainStatsPageState extends State<MainStatsPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildStatCard(
-                        loc.initiative, initiative, Defines.statInitiative,
-                        isCount: true, isClickable: false),
+                        loc.initiative, (initiative + initiative_bonus), Defines.statInitiativeBonus,
+                        isCount: true),
                     _buildStatCard(
                         loc.movement, movement, Defines.statMovement),
                     _buildEditHitDiceCard(),
@@ -1610,6 +1650,7 @@ class MainStatsPageState extends State<MainStatsPage> {
       child: isClickable
           ? GestureDetector(
               onTap: () {
+                if (statType == Defines.statInitiativeBonus) value = initiative_bonus;
                 _showEditStatDialog(name, statType, value, isCount: isCount);
               },
               child: cardContent,

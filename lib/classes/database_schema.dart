@@ -42,6 +42,7 @@ class DatabaseSchema {
       Defines.statInspiration: 'INTEGER',
       Defines.statProficiencyBonus: 'INTEGER',
       Defines.statInitiative: 'INTEGER',
+      Defines.statInitiativeBonus: 'INTEGER',
       Defines.statMovement: 'TEXT',
       Defines.statMaxHP: 'INTEGER',
       Defines.statCurrentHP: 'INTEGER',

@@ -62,7 +62,8 @@ import 'app_localizations_en.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale)
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -70,7 +71,8 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -82,7 +84,8 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
     delegate,
     GlobalMaterialLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,
@@ -2134,9 +2137,291 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Charaktererstellung beenden'**
   String get exitCharacterCreator;
+  /// No description provided for @session.
+  ///
+  /// In de, this message translates to:
+  /// **'Sitzung'**
+  String get session;
+
+  /// No description provided for @hostSession.
+  ///
+  /// In de, this message translates to:
+  /// **'Sitzung hosten'**
+  String get hostSession;
+
+  /// No description provided for @joinedSession.
+  ///
+  /// In de, this message translates to:
+  /// **'Beigetretene Sitzung'**
+  String get joinedSession;
+
+  /// No description provided for @sessionSettings.
+  ///
+  /// In de, this message translates to:
+  /// **'Sitzungseinstellungen'**
+  String get sessionSettings;
+
+  /// No description provided for @showPlayerHP.
+  ///
+  /// In de, this message translates to:
+  /// **'Spieler HP für Clients anzeigen'**
+  String get showPlayerHP;
+
+  /// No description provided for @showPlayerAC.
+  ///
+  /// In de, this message translates to:
+  /// **'Spieler AC für Clients anzeigen'**
+  String get showPlayerAC;
+
+  /// No description provided for @unnamedSession.
+  ///
+  /// In de, this message translates to:
+  /// **'Unbenannte Sitzung'**
+  String get unnamedSession;
+
+  /// No description provided for @hostingSessionMessage.
+  ///
+  /// In de, this message translates to:
+  /// **'Hoste \"{sessionName}\"'**
+  String hostingSessionMessage(Object sessionName);
+
+  /// No description provided for @chooseCharacter.
+  ///
+  /// In de, this message translates to:
+  /// **'Charakter wählen'**
+  String get chooseCharacter;
+
+  /// No description provided for @noCharactersFound.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine Charaktere gefunden. Bitte erstelle zuerst einen.'**
+  String get noCharactersFound;
+
+  /// No description provided for @selectYourCharacter.
+  ///
+  /// In de, this message translates to:
+  /// **'Wähle deinen Charakter'**
+  String get selectYourCharacter;
+
+  /// No description provided for @pleaseSelectCharacter.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte wähle einen Charakter!'**
+  String get pleaseSelectCharacter;
+
+  /// No description provided for @join.
+  ///
+  /// In de, this message translates to:
+  /// **'Beitreten'**
+  String get join;
+
+  /// No description provided for @enterSessionNameHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Sitzungsname eingeben...'**
+  String get enterSessionNameHint;
+
+  /// No description provided for @serverRunning.
+  ///
+  /// In de, this message translates to:
+  /// **'Server läuft...'**
+  String get serverRunning;
+
+  /// No description provided for @startHosting.
+  ///
+  /// In de, this message translates to:
+  /// **'Hosting starten'**
+  String get startHosting;
+
+  /// No description provided for @searchingForSessions.
+  ///
+  /// In de, this message translates to:
+  /// **'Suche nach Sitzungen...'**
+  String get searchingForSessions;
+
+  /// No description provided for @unknownSession.
+  ///
+  /// In de, this message translates to:
+  /// **'Unbekannte Sitzung'**
+  String get unknownSession;
+
+  /// No description provided for @hostGame.
+  ///
+  /// In de, this message translates to:
+  /// **'Spiel hosten'**
+  String get hostGame;
+
+  /// No description provided for @joinGame.
+  ///
+  /// In de, this message translates to:
+  /// **'Spiel beitreten'**
+  String get joinGame;
+
+  /// No description provided for @sessionLobby.
+  ///
+  /// In de, this message translates to:
+  /// **'D&D Sitzungslobby'**
+  String get sessionLobby;
+
+  /// No description provided for @confirmStopHosting.
+  ///
+  /// In de, this message translates to:
+  /// **'Hosting beenden bestätigen'**
+  String get confirmStopHosting;
+
+  /// No description provided for @stopHostingWarning.
+  ///
+  /// In de, this message translates to:
+  /// **'Möchtest du das Hosting dieser Sitzung wirklich beenden? Alle Spieler werden getrennt.'**
+  String get stopHostingWarning;
+
+  /// No description provided for @stopHosting.
+  ///
+  /// In de, this message translates to:
+  /// **'Hosting beenden'**
+  String get stopHosting;
+
+  /// No description provided for @setInitiativeFor.
+  ///
+  /// In de, this message translates to:
+  /// **'Initiative festlegen für {playerName}'**
+  String setInitiativeFor(Object playerName);
+
+  /// No description provided for @hostingSessionTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Hosting: {sessionName}'**
+  String hostingSessionTitle(Object sessionName);
+
+  /// No description provided for @sessionInfo.
+  ///
+  /// In de, this message translates to:
+  /// **'Sitzungsinformationen'**
+  String get sessionInfo;
+
+  /// No description provided for @connectedPlayers.
+  ///
+  /// In de, this message translates to:
+  /// **'Verbundene Spieler:'**
+  String get connectedPlayers;
+
+  /// No description provided for @nextTurn.
+  ///
+  /// In de, this message translates to:
+  /// **'Nächster Zug'**
+  String get nextTurn;
+
+  /// No description provided for @noPlayersConnected.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Spieler verbunden.'**
+  String get noPlayersConnected;
+
+  /// No description provided for @initiativeLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Initiative: '**
+  String get initiativeLabel;
+
+  /// No description provided for @addMonsterNpc.
+  ///
+  /// In de, this message translates to:
+  /// **'Monster/NPC hinzufügen'**
+  String get addMonsterNpc;
+
+  /// No description provided for @viewFullDetails.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Details anzeigen'**
+  String get viewFullDetails;
+
+  /// No description provided for @editName.
+  ///
+  /// In de, this message translates to:
+  /// **'Name bearbeiten'**
+  String get editName;
+
+  /// No description provided for @editHp.
+  ///
+  /// In de, this message translates to:
+  /// **'HP bearbeiten'**
+  String get editHp;
+
+  /// No description provided for @editAc.
+  ///
+  /// In de, this message translates to:
+  /// **'AC bearbeiten'**
+  String get editAc;
+
+  /// No description provided for @editNameFor.
+  ///
+  /// In de, this message translates to:
+  /// **'Name bearbeiten für {name}'**
+  String editNameFor(Object name);
+
+  /// No description provided for @editHpFor.
+  ///
+  /// In de, this message translates to:
+  /// **'HP bearbeiten für {name}'**
+  String editHpFor(Object name);
+
+  /// No description provided for @editAcFor.
+  ///
+  /// In de, this message translates to:
+  /// **'AC bearbeiten für {name}'**
+  String editAcFor(Object name);
+
+  /// No description provided for @armorClass.
+  ///
+  /// In de, this message translates to:
+  /// **'Rüstungsklasse'**
+  String get armorClass;
+
+  /// No description provided for @sessionTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Sitzung: {sessionName}'**
+  String sessionTitle(Object sessionName);
+
+  /// No description provided for @loading.
+  ///
+  /// In de, this message translates to:
+  /// **'Lädt...'**
+  String get loading;
+
+  /// No description provided for @quitSession.
+  ///
+  /// In de, this message translates to:
+  /// **'Sitzung verlassen'**
+  String get quitSession;
+
+  /// No description provided for @playersAndInitiative.
+  ///
+  /// In de, this message translates to:
+  /// **'Spieler & Initiative:'**
+  String get playersAndInitiative;
+
+  /// No description provided for @you.
+  ///
+  /// In de, this message translates to:
+  /// **'Du'**
+  String get you;
+
+  /// No description provided for @monsterNpc.
+  ///
+  /// In de, this message translates to:
+  /// **'Monster/NPC'**
+  String get monsterNpc;
+
+  /// No description provided for @player.
+  ///
+  /// In de, this message translates to:
+  /// **'Spieler'**
+  String get player;
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -2145,25 +2430,25 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['de', 'en'].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      <String>['de', 'en'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
-
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'de': return AppLocalizationsDe();
-    case 'en': return AppLocalizationsEn();
+    case 'de':
+      return AppLocalizationsDe();
+    case 'en':
+      return AppLocalizationsEn();
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.'
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }

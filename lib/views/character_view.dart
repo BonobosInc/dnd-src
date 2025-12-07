@@ -3,6 +3,12 @@ import 'package:dnd/views/character/mainstats_view.dart';
 import 'package:dnd/views/character/stats_view.dart';
 import 'package:dnd/views/appstatus.dart';
 import 'package:dnd/views/settings_view.dart';
+import 'package:dnd/views/session/client_view.dart';
+import 'package:dnd/views/session/host.dart';
+import 'package:dnd/views/session/session_view.dart';
+import 'package:dnd/classes/server.dart';
+import 'package:dnd/classes/client.dart';
+import 'package:dnd/classes/session_manager.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:dnd/classes/profile_manager.dart';
@@ -22,12 +28,16 @@ class CharacterView extends StatefulWidget {
   final ProfileManager profileManager;
   final WikiParser wikiParser;
   final Character profile;
+  final DnDMulticastServer? server;
+  final DnDClient? client;
 
   const CharacterView({
     super.key,
     required this.profileManager,
     required this.wikiParser,
     required this.profile,
+    this.server,
+    this.client,
   });
 
   @override
@@ -38,6 +48,7 @@ class CharacterViewState extends State<CharacterView> {
   String name = "Charakter";
   int level = 0;
   int xp = 0;
+  final SessionManager _sessionManager = SessionManager();
 
   dynamic _profileImagePath = AssetImage('assets/images/default.png');
 
@@ -97,6 +108,26 @@ class CharacterViewState extends State<CharacterView> {
         level = characterData[Defines.statLevel]!;
         xp = characterData[Defines.statXP]!;
       });
+    }
+  }
+
+  // Send stats to server if connected to a session
+  Future<void> sendStatsToServer() async {
+    if (_sessionManager.isConnected && _sessionManager.client != null) {
+      final hp = mainStatsPageKey.currentState?.currentHP;
+      final maxHp = mainStatsPageKey.currentState?.maxHP;
+      final tempHp = mainStatsPageKey.currentState?.tempHP;
+      final ac = mainStatsPageKey.currentState?.armor;
+      print(
+          '📤 sendStatsToServer: HP=$hp, maxHP=$maxHp, tempHP=$tempHp, AC=$ac');
+      if (hp != null && ac != null) {
+        await _sessionManager.client!.sendStats({
+          'HP': hp,
+          'maxHP': maxHp,
+          'tempHP': tempHp ?? 0,
+          'AC': ac,
+        });
+      }
     }
   }
 
@@ -262,8 +293,8 @@ class CharacterViewState extends State<CharacterView> {
 
   Future<void> _longRest() async {
     final loc = AppLocalizations.of(context)!;
-    final shouldProceed = await _showConfirmationDialog(
-        loc.longrest, loc.longrestconfirm);
+    final shouldProceed =
+        await _showConfirmationDialog(loc.longrest, loc.longrestconfirm);
 
     if (!shouldProceed) return;
 
@@ -312,8 +343,8 @@ class CharacterViewState extends State<CharacterView> {
 
   Future<void> _shortRest() async {
     final loc = AppLocalizations.of(context)!;
-    final shouldProceed = await _showConfirmationDialog(
-        loc.shortrest, loc.shortrestconfirm);
+    final shouldProceed =
+        await _showConfirmationDialog(loc.shortrest, loc.shortrestconfirm);
 
     if (!shouldProceed) return;
 
@@ -445,8 +476,7 @@ class CharacterViewState extends State<CharacterView> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(loc.deleteimage),
-          content:
-              Text(loc.deleteimageconfirm),
+          content: Text(loc.deleteimageconfirm),
           actions: [
             TextButton(
               child: Text(loc.abort),
@@ -601,6 +631,7 @@ class CharacterViewState extends State<CharacterView> {
                         key: mainStatsPageKey,
                         profileManager: widget.profileManager,
                         wikiParser: widget.wikiParser,
+                        onStatsChanged: sendStatsToServer,
                       ),
                     ),
                     Expanded(
@@ -617,6 +648,7 @@ class CharacterViewState extends State<CharacterView> {
                       key: mainStatsPageKey,
                       profileManager: widget.profileManager,
                       wikiParser: widget.wikiParser,
+                      onStatsChanged: sendStatsToServer,
                     ),
                     StatsPage(
                       profileManager: widget.profileManager,
@@ -800,6 +832,54 @@ class CharacterViewState extends State<CharacterView> {
                                 ),
                               ),
                             );
+                          },
+                        ),
+                        ListTile(
+                          title: Text(
+                            loc.session,
+                            style: TextStyle(color: AppColors.textColorLight),
+                          ),
+                          onTap: () {
+                            Navigator.pop(context);
+                            if (_sessionManager.isHosting) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => HostPage(
+                                    server: _sessionManager.server!,
+                                    sessionName: _sessionManager.server!.name,
+                                    wikiParser: widget.wikiParser,
+                                  ),
+                                ),
+                              );
+                            } else if (_sessionManager.isConnected) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ClientPage(
+                                    client: _sessionManager.client!,
+                                    playerName:
+                                        _sessionManager.client!.playerName ??
+                                            'Unknown Player',
+                                    isFromLobby: false,
+                                    profileManager: widget.profileManager,
+                                  ),
+                                ),
+                              );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => LobbyPage(
+                                    server: _sessionManager.getOrCreateServer(),
+                                    client: _sessionManager.getOrCreateClient(),
+                                    profiles: widget.profileManager.profiles,
+                                    profileManager: widget.profileManager,
+                                    wikiParser: widget.wikiParser,
+                                  ),
+                                ),
+                              );
+                            }
                           },
                         ),
                       ],

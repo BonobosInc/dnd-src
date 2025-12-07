@@ -303,7 +303,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cleardatabase => 'Clear Database';
 
   @override
-  String get cleardatabaseconfirm => 'Are you sure you want to clear the database? This action cannot be undone.';
+  String get cleardatabaseconfirm =>
+      'Are you sure you want to clear the database? This action cannot be undone.';
 
   @override
   String get exportgood => 'Export successful';
@@ -867,13 +868,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get downloadingTitle => 'Downloading...';
 
   @override
-  String get downloadingContent => 'Please wait while the new version is being downloaded.';
+  String get downloadingContent =>
+      'Please wait while the new version is being downloaded.';
 
   @override
   String get installPermissionTitle => 'Installation Not Allowed';
 
   @override
-  String get installPermissionContent => 'Please allow this app to install unknown sources in system settings.';
+  String get installPermissionContent =>
+      'Please allow this app to install unknown sources in system settings.';
 
   @override
   String get openSettings => 'Open Settings';
@@ -885,7 +888,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get updateFailedTitle => 'Update Failed';
 
   @override
-  String get updateFailedContent => 'The update could not be downloaded or installed. Please try again later.';
+  String get updateFailedContent =>
+      'The update could not be downloaded or installed. Please try again later.';
 
   @override
   String get ok => 'OK';
@@ -900,55 +904,72 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attunementlimitReached => 'Attunement limit reached.';
 
   @override
-  String get skillAcrobaticsDescription => 'Execute agile stunts and maneuvers while maintaining balance and coordination.';
+  String get skillAcrobaticsDescription =>
+      'Execute agile stunts and maneuvers while maintaining balance and coordination.';
 
   @override
-  String get skillAnimalHandlingDescription => 'Calm, control, or intuitively understand animal behavior to guide or influence creatures.';
+  String get skillAnimalHandlingDescription =>
+      'Calm, control, or intuitively understand animal behavior to guide or influence creatures.';
 
   @override
-  String get skillArcanaDescription => 'Recall and apply knowledge about magic, mystical traditions, and ancient lore.';
+  String get skillArcanaDescription =>
+      'Recall and apply knowledge about magic, mystical traditions, and ancient lore.';
 
   @override
-  String get skillAthleticsDescription => 'Perform physical feats such as climbing, swimming, jumping, and other exertions of strength and endurance.';
+  String get skillAthleticsDescription =>
+      'Perform physical feats such as climbing, swimming, jumping, and other exertions of strength and endurance.';
 
   @override
-  String get skillDeceptionDescription => 'Convincingly lie, mislead, or manipulate others through falsehoods or trickery.';
+  String get skillDeceptionDescription =>
+      'Convincingly lie, mislead, or manipulate others through falsehoods or trickery.';
 
   @override
-  String get skillHistoryDescription => 'Remember and interpret significant historical events, cultures, and legends.';
+  String get skillHistoryDescription =>
+      'Remember and interpret significant historical events, cultures, and legends.';
 
   @override
-  String get skillInsightDescription => 'Discern others’ true intentions, emotions, or motives by reading their body language and speech.';
+  String get skillInsightDescription =>
+      'Discern others’ true intentions, emotions, or motives by reading their body language and speech.';
 
   @override
-  String get skillIntimidationDescription => 'Use threats, force, or a commanding presence to influence or coerce others.';
+  String get skillIntimidationDescription =>
+      'Use threats, force, or a commanding presence to influence or coerce others.';
 
   @override
-  String get skillInvestigationDescription => 'Search for, analyze, and piece together clues to solve mysteries or puzzles.';
+  String get skillInvestigationDescription =>
+      'Search for, analyze, and piece together clues to solve mysteries or puzzles.';
 
   @override
-  String get skillMedicineDescription => 'Diagnose illnesses, treat wounds, and provide basic medical care to stabilize the injured.';
+  String get skillMedicineDescription =>
+      'Diagnose illnesses, treat wounds, and provide basic medical care to stabilize the injured.';
 
   @override
-  String get skillNatureDescription => 'Understand flora, fauna, natural cycles, and survival tactics within the wilderness.';
+  String get skillNatureDescription =>
+      'Understand flora, fauna, natural cycles, and survival tactics within the wilderness.';
 
   @override
-  String get skillPerceptionDescription => 'Detect hidden details, subtle sounds, or movements others might miss.';
+  String get skillPerceptionDescription =>
+      'Detect hidden details, subtle sounds, or movements others might miss.';
 
   @override
-  String get skillPerformanceDescription => 'Entertain or captivate an audience through music, dance, acting, or other expressive arts.';
+  String get skillPerformanceDescription =>
+      'Entertain or captivate an audience through music, dance, acting, or other expressive arts.';
 
   @override
-  String get skillPersuasionDescription => 'Convince or influence others through reason, charm, or heartfelt appeals.';
+  String get skillPersuasionDescription =>
+      'Convince or influence others through reason, charm, or heartfelt appeals.';
 
   @override
-  String get skillReligionDescription => 'Possess knowledge of deities, sacred rites, religious customs, and spiritual lore.';
+  String get skillReligionDescription =>
+      'Possess knowledge of deities, sacred rites, religious customs, and spiritual lore.';
 
   @override
-  String get skillSleightOfHandDescription => 'Perform quick, precise, or concealed manual tricks, such as picking pockets or performing magic.';
+  String get skillSleightOfHandDescription =>
+      'Perform quick, precise, or concealed manual tricks, such as picking pockets or performing magic.';
 
   @override
-  String get skillStealthDescription => 'Move silently and remain unseen to avoid detection.';
+  String get skillStealthDescription =>
+      'Move silently and remain unseen to avoid detection.';
 
   @override
   String get skillSurvivalDescription => 'Track creatures, hunt for food, find shelter, and navigate harsh natural environments.';
@@ -1047,4 +1068,161 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exitCharacterCreator => 'Exit Character Creator';
+
+  @override
+  String get session => 'Session';
+
+  @override
+  String get hostSession => 'Host Session';
+
+  @override
+  String get joinedSession => 'Joined Session';
+
+  @override
+  String get sessionSettings => 'Session Settings';
+
+  @override
+  String get showPlayerHP => 'Show Player HP to Clients';
+
+  @override
+  String get showPlayerAC => 'Show Player AC to Clients';
+
+  @override
+  String get unnamedSession => 'Unnamed Session';
+
+  @override
+  String hostingSessionMessage(Object sessionName) {
+    return 'Hosting \"$sessionName\"';
+  }
+
+  @override
+  String get chooseCharacter => 'Choose Character';
+
+  @override
+  String get noCharactersFound =>
+      'No characters found. Please create one first.';
+
+  @override
+  String get selectYourCharacter => 'Select your character';
+
+  @override
+  String get pleaseSelectCharacter => 'Please select a character!';
+
+  @override
+  String get join => 'Join';
+
+  @override
+  String get enterSessionNameHint => 'Enter session name...';
+
+  @override
+  String get serverRunning => 'Server Running...';
+
+  @override
+  String get startHosting => 'Start Hosting';
+
+  @override
+  String get searchingForSessions => 'Searching for sessions...';
+
+  @override
+  String get unknownSession => 'Unknown Session';
+
+  @override
+  String get hostGame => 'Host Game';
+
+  @override
+  String get joinGame => 'Join Game';
+
+  @override
+  String get sessionLobby => 'D&D Session Lobby';
+
+  @override
+  String get confirmStopHosting => 'Confirm Stop Hosting';
+
+  @override
+  String get stopHostingWarning =>
+      'Are you sure you want to stop hosting this session? All players will be disconnected.';
+
+  @override
+  String get stopHosting => 'Stop Hosting';
+
+  @override
+  String setInitiativeFor(Object playerName) {
+    return 'Set Initiative for $playerName';
+  }
+
+  @override
+  String hostingSessionTitle(Object sessionName) {
+    return 'Hosting: $sessionName';
+  }
+
+  @override
+  String get sessionInfo => 'Session Info';
+
+  @override
+  String get connectedPlayers => 'Connected Players:';
+
+  @override
+  String get nextTurn => 'Next Turn';
+
+  @override
+  String get noPlayersConnected => 'No players connected yet.';
+
+  @override
+  String get initiativeLabel => 'Initiative: ';
+
+  @override
+  String get addMonsterNpc => 'Add Monster/NPC';
+
+  @override
+  String get viewFullDetails => 'View Full Details';
+
+  @override
+  String get editName => 'Edit Name';
+
+  @override
+  String get editHp => 'Edit HP';
+
+  @override
+  String get editAc => 'Edit AC';
+
+  @override
+  String editNameFor(Object name) {
+    return 'Edit Name for $name';
+  }
+
+  @override
+  String editHpFor(Object name) {
+    return 'Edit HP for $name';
+  }
+
+  @override
+  String editAcFor(Object name) {
+    return 'Edit AC for $name';
+  }
+
+  @override
+  String get armorClass => 'Armor Class';
+
+  @override
+  String sessionTitle(Object sessionName) {
+    return 'Session: $sessionName';
+  }
+
+  @override
+  String get loading => 'Loading...';
+
+  @override
+  String get quitSession => 'Quit Session';
+
+  @override
+  String get playersAndInitiative => 'Players & Initiative:';
+
+  @override
+  String get you => 'You';
+
+  @override
+  String get monsterNpc => 'Monster/NPC';
+
+  @override
+  String get player => 'Player';
 }

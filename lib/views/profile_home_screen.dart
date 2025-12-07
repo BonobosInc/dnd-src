@@ -1,6 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:dnd/views/character_creator/character_creator.dart';
+import 'package:dnd/classes/session_manager.dart';
+import 'package:dnd/views/session/client_view.dart';
+import 'package:dnd/views/session/host.dart';
+import 'package:dnd/views/session/session_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -29,6 +33,7 @@ class ProfileHomeScreen extends StatefulWidget {
 class ProfileHomeScreenState extends State<ProfileHomeScreen> {
   ProfileManager profileManager = ProfileManager();
   bool _isImporting = false;
+  final SessionManager _sessionManager = SessionManager();
 
   @override
   void initState() {
@@ -464,6 +469,56 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                 );
               } else if (value == 'info') {
                 showAppStatusDialog(context);
+              } else if (value == 'session') {
+                if (_sessionManager.isHosting) {
+                  if (context.mounted) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => HostPage(
+                            server: _sessionManager.server!,
+                            sessionName: _sessionManager.server!.name,
+                            wikiParser: widget.wikiParser),
+                      ),
+                    );
+                  }
+                  return;
+                } else if (_sessionManager.isConnected) {
+                  if (context.mounted) {
+                    // Find and select the character profile based on player name
+                    final playerName = _sessionManager.client!.playerName;
+                    final matchingProfile = profileManager.profiles.firstWhere(
+                      (profile) => profile.name == playerName,
+                      orElse: () => profileManager.profiles.first,
+                    );
+
+                    await profileManager.selectProfile(matchingProfile);
+
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ClientPage(
+                              client: _sessionManager.client!,
+                              playerName: _sessionManager.client!.playerName ??
+                                  'Unknown Player',
+                              isFromLobby: false,
+                              profileManager: profileManager),
+                        ));
+                  }
+                  return;
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LobbyPage(
+                          server: _sessionManager.getOrCreateServer(),
+                          client: _sessionManager.getOrCreateClient(),
+                          profiles: profileManager.profiles,
+                          profileManager: profileManager,
+                          wikiParser: widget.wikiParser),
+                    ),
+                  );
+                }
               }
             },
             itemBuilder: (BuildContext context) {
@@ -483,6 +538,10 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                 const PopupMenuItem<String>(
                   value: 'info',
                   child: Text('BonoDND'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'session',
+                  child: Text('Session'),
                 ),
               ];
             },
@@ -531,6 +590,8 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                             profileManager: profileManager,
                                             wikiParser: widget.wikiParser,
                                             profile: profile,
+                                            server: _sessionManager.server,
+                                            client: _sessionManager.client,
                                           ),
                                         ),
                                       );

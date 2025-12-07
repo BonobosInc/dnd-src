@@ -23,15 +23,15 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          version: '3.29.3'
+          version: '3.38.3'
           channel: 'stable'
           cache: false
-      - name: 'Checkout Flutter 3.29.3'
+      - name: 'Checkout Flutter 3.38.3'
         shell: bash
         run: |
           cd $FLUTTER_ROOT
           git fetch --tags
-          git checkout 3.29.3
+          git checkout 3.38.3
           flutter --version
           cd -
       - run: flutter --version
@@ -65,7 +65,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          version: '3.29.3'
+          version: '3.38.3'
           channel: 'stable'
 
       - name: Install Flutter dependencies
@@ -123,7 +123,18 @@ jobs:
       - name: Rename Windows ZIP
         run: mv bonodnd-windows.zip BonoDND-${{ env.version }}-windows.zip
 
-      - name: Push APK and Windows ZIP to Release
+      - name: Push APK and Windows ZIP to Release Repo
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: |
+            BonoDND-${{ env.version }}.apk
+            BonoDND-${{ env.version }}-windows.zip
+          token: ${{ secrets.RELEASE_PAT }}
+          owner: BonobosInc
+          repo: dnd
+          tag: ${{ env.version }}
+
+      - name: Push APK and Windows ZIP to SRC Repo
         uses: ncipollo/release-action@v1
         with:
           artifacts: |
