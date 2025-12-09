@@ -121,7 +121,7 @@ class BagPageState extends State<BagPage> {
         backgroundColor: AppColors.appBarColor,
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: Icon(Icons.add, color: AppColors.accentYellow),
             onPressed: _showAddItemDialog,
             tooltip: loc.additem,
           ),

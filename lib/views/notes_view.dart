@@ -206,7 +206,7 @@ class NotesPageState extends State<NotesPage> {
           backgroundColor: AppColors.appBarColor,
           actions: [
             PopupMenuButton<String>(
-              icon: const Icon(Icons.add),
+              icon: Icon(Icons.add, color: AppColors.accentCyan),
               onSelected: (String value) {
                 if (value == 'addFeat') {
                   _showAddFeatDialog();
@@ -662,7 +662,7 @@ class NotesPageState extends State<NotesPage> {
                       height: 35,
                       child: IconButton(
                         icon: Icon(Icons.close,
-                            color: AppColors.textColorDark),
+                            color: AppColors.warningColor),
                         iconSize: 20.0,
                         padding: EdgeInsets.zero,
                         onPressed: () {
