@@ -977,10 +977,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Bewege dich lautlos und bleibe ungesehen, um einer Entdeckung zu entgehen.';
 
   @override
-  String get skillSurvivalDescription => 'Spüre Kreaturen auf, jage nach Nahrung, finde Unterschlupf und navigiere in rauer Natur.';
+  String get skillSurvivalDescription =>
+      'Spüre Kreaturen auf, jage nach Nahrung, finde Unterschlupf und navigiere in rauer Natur.';
 
   @override
-  String get chooseCreationMethod => 'Wähle, wie du deinen Charakter erstellen möchtest:';
+  String get chooseCreationMethod =>
+      'Wähle, wie du deinen Charakter erstellen möchtest:';
 
   @override
   String get blankCharacter => 'Leerer Charakterbogen';
@@ -1027,7 +1029,8 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get pleaseAssignAll => 'Bitte weisen Sie alle sechs Fähigkeitswerte zu.';
+  String get pleaseAssignAll =>
+      'Bitte weisen Sie alle sechs Fähigkeitswerte zu.';
 
   @override
   String rolledValuesLabel(Object values) {
@@ -1047,7 +1050,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get choosebackground => 'Hintergrund auswählen';
 
   @override
-  String get completeallsteps => 'Bitte schließe alle Schritte ab, bevor du den Charakter erstellst.';
+  String get completeallsteps =>
+      'Bitte schließe alle Schritte ab, bevor du den Charakter erstellst.';
 
   @override
   String get choosefeat => 'Wähle eine Fertigkeit';
@@ -1069,7 +1073,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get notrolledyet => 'Noch nicht gewürfelt';
 
   @override
-  String get exitConfirmationMessage => 'Bist du sicher, dass du abbrechen möchtest? Dein Fortschritt geht verloren.';
+  String get exitConfirmationMessage =>
+      'Bist du sicher, dass du abbrechen möchtest? Dein Fortschritt geht verloren.';
 
   @override
   String get exitCharacterCreator => 'Charaktererstellung beenden';

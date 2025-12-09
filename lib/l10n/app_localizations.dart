@@ -2137,6 +2137,7 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Charaktererstellung beenden'**
   String get exitCharacterCreator;
+
   /// No description provided for @session.
   ///
   /// In de, this message translates to:

@@ -972,7 +972,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Move silently and remain unseen to avoid detection.';
 
   @override
-  String get skillSurvivalDescription => 'Track creatures, hunt for food, find shelter, and navigate harsh natural environments.';
+  String get skillSurvivalDescription =>
+      'Track creatures, hunt for food, find shelter, and navigate harsh natural environments.';
 
   @override
   String get chooseCreationMethod => 'Choose how to create your character:';
@@ -1042,7 +1043,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get choosebackground => 'Choose Background';
 
   @override
-  String get completeallsteps => 'Please complete all steps before creating the character.';
+  String get completeallsteps =>
+      'Please complete all steps before creating the character.';
 
   @override
   String get choosefeat => 'Choose Feat';
@@ -1064,7 +1066,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notrolledyet => 'Not rolled yet';
 
   @override
-  String get exitConfirmationMessage => 'Are you sure you want to leave? Your progress will be lost.';
+  String get exitConfirmationMessage =>
+      'Are you sure you want to leave? Your progress will be lost.';
 
   @override
   String get exitCharacterCreator => 'Exit Character Creator';
