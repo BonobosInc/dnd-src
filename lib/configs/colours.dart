@@ -16,19 +16,19 @@ class AppColors {
 
   // Anthracite dark mode with vibrant accent colors
   static Color get primaryColor =>
-      isDarkMode ? const Color(0xFF1C1C1C) : const Color(0xFFF2F2F2);  // Deep anthracite
+      isDarkMode ? const Color(0xFF0F1722) : const Color(0xFFF2F2F2);  // Deep anthracite with cool tint
   static Color get appBarColor =>
-      isDarkMode ? const Color(0xFF2B2B2B) : const Color(0xFFE0E0E0);  // Lighter anthracite
+      isDarkMode ? const Color(0xFF17202A) : const Color(0xFFE0E0E0);  // Slight blue-teal tint
   static Color get cardColor =>
-      isDarkMode ? const Color(0xFF353535) : const Color(0xFFF5F5F5);  // Medium anthracite
+      isDarkMode ? const Color(0xFF1E2732) : const Color(0xFFF5F5F5);  // Muted slate for surfaces
   static Color get borderColor =>
-      isDarkMode ? const Color(0xFF4A4A4A) : const Color(0xFFBDBDBD);  // Lighter gray border
+      isDarkMode ? const Color(0xFF32424E) : const Color(0xFFBDBDBD);  // Subtle desaturated teal border
   static Color get dividerColor =>
-      isDarkMode ? const Color(0xFF5A5A5A) : const Color(0xFFB0B0B0);  // Subtle divider
+      isDarkMode ? const Color(0xFF2B3A44) : const Color(0xFFB0B0B0);  // Cool-toned divider
   static Color get textColorLight =>
       isDarkMode ? const Color(0xFFEEEEEE) : const Color(0xFF212121);  // Crisp white
   static Color get textColorDark =>
-      isDarkMode ? const Color(0xFFB0B0B0) : const Color(0xFF424242);  // Soft gray
+      isDarkMode ? const Color(0xFFB7C0C7) : const Color(0xFF424242);  // Cooler soft gray
   static Color get warningColor =>
       isDarkMode ? const Color(0xFFFF5252) : const Color(0xFFB71C1C);  // Bright red accent
   static Color get missingHealth => isDarkMode
@@ -38,6 +38,16 @@ class AppColors {
       isDarkMode ? const Color(0xFF00C853) : const Color(0xFF2E8B57);  // Bright green for health
   static Color get tempHealth =>
       isDarkMode ? const Color(0xFF2196F3) : const Color(0xFF1976D2);  // Bright blue for temp HP
+
+  // Dialog / modal colors (keep accents unchanged)
+  static Color get dialogBackground =>
+      isDarkMode ? const Color(0xFF142531) : const Color(0xFFFFFFFF); // Cool-tinted dark dialog bg
+  static Color get dialogTitleText =>
+      isDarkMode ? const Color(0xFFEDF6FB) : const Color(0xFF212121); // Slightly bluish white
+  static Color get dialogContentText =>
+      isDarkMode ? const Color(0xFFB7C0C7) : const Color(0xFF424242); // Cooler soft gray
+  static Color get dialogButtonText =>
+      isDarkMode ? accentCyan : const Color(0xFF1976D2); // Use existing cyan accent in dark mode
 
   // Additional accent colors for UI elements
   static Color get accentPurple =>
