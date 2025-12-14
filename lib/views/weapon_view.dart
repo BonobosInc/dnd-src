@@ -314,7 +314,7 @@ class WeaponPageState extends State<WeaponPage> {
         backgroundColor: AppColors.appBarColor,
         actions: [
           IconButton(
-            icon: Icon(Icons.add, color: AppColors.textColorLight),
+            icon: Icon(Icons.add, color: AppColors.accentOrange),
             onPressed: _showAddWeaponDialog,
           ),
         ],

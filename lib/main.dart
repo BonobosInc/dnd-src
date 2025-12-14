@@ -91,7 +91,7 @@ class DNDApp extends StatelessWidget {
                 primaryColor: AppColors.primaryColor,
                 scaffoldBackgroundColor: AppColors.primaryColor,
                 appBarTheme: AppBarTheme(
-                  color: AppColors.appBarColor,
+                  backgroundColor: AppColors.appBarColor,
                 ),
                 splashColor: Colors.transparent,
                 cardColor: AppColors.cardColor,
@@ -100,7 +100,26 @@ class DNDApp extends StatelessWidget {
                   bodyLarge: TextStyle(color: AppColors.textColorLight),
                   bodyMedium: TextStyle(color: AppColors.textColorDark),
                   displayLarge:
-                      TextStyle(color: AppColors.textColorLight, fontSize: 20),
+                    TextStyle(color: AppColors.textColorLight, fontSize: 20),
+                  titleLarge:
+                    TextStyle(color: AppColors.dialogTitleText, fontSize: 18, fontWeight: FontWeight.w600),
+                ),
+                dialogTheme: DialogThemeData(
+                  backgroundColor: AppColors.dialogBackground,
+                  titleTextStyle: TextStyle(
+                      color: AppColors.dialogTitleText,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600),
+                  contentTextStyle:
+                      TextStyle(color: AppColors.dialogContentText),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                ),
+                textButtonTheme: TextButtonThemeData(
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.dialogButtonText,
+                  ),
                 ),
               ),
               home: ProfileHomeScreen(wikiParser: wikiParser),

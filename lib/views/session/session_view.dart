@@ -357,7 +357,8 @@ class _LobbyPageState extends State<LobbyPage> {
         children: [
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.currentHealth,
+              backgroundColor: AppColors.sessionHost,
+              foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 20),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20)),
@@ -369,7 +370,8 @@ class _LobbyPageState extends State<LobbyPage> {
           const SizedBox(height: 30),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.tempHealth,
+              backgroundColor: AppColors.sessionJoin,
+              foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 20),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20)),

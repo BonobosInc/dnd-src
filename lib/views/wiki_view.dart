@@ -14,6 +14,7 @@ import 'package:dnd/classes/wiki_classes.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dnd/l10n/app_localizations.dart';
+import 'package:dnd/configs/colours.dart';
 
 class WikiPage extends StatefulWidget {
   final WikiParser wikiParser;
@@ -197,7 +198,7 @@ class WikiPageState extends State<WikiPage> {
         actions: widget.importFeat == false
             ? [
                 IconButton(
-                  icon: const Icon(Icons.search),
+                  icon: Icon(Icons.search, color: AppColors.accentTeal),
                   onPressed: () {
                     setState(() {
                       isSearchVisible = !isSearchVisible;
@@ -212,7 +213,7 @@ class WikiPageState extends State<WikiPage> {
                   },
                 ),
                 PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert),
+                  icon: Icon(Icons.more_vert, color: AppColors.accentPurple),
                   onSelected: (value) {
                     if (value == 'import') {
                       importXml();
