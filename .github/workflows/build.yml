@@ -1,4 +1,4 @@
-name: "Build & Release"
+name: "Build"
 on:
   pull_request:
     branches:
@@ -10,12 +10,12 @@ on:
       - development
 
 concurrency:
-  group: build-release-${{ github.ref }}
+  group: build-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build
+  build-android:
+    name: Build Android
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
@@ -90,55 +90,37 @@ jobs:
           name: release-windows
           path: bonodnd-windows.zip
 
-
-  release:
-    name: Release
+  build-linux:
+    name: Build Linux
     runs-on: ubuntu-latest
-    needs: [build, build-windows]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
 
-      - name: Download Build Artifact
-        uses: actions/download-artifact@v4
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
-          name: release-apk
+          version: '3.38.3'
+          channel: 'stable'
 
-      - name: Extract version from version.dart
-        id: get_version
+      - name: Install Linux dependencies
         run: |
-          VERSION=$(grep 'const String appVersion' lib/configs/version.dart | sed -E 's/.*"([0-9]+\.[0-9]+\.[0-9]+)";/\1/')
-          echo "VERSION=$VERSION"
-          echo "version=$VERSION" >> $GITHUB_ENV
+          sudo apt-get update -y
+          sudo apt-get install -y ninja-build libgtk-3-dev
 
-      - name: Rename APK
-        run: mv app-release.apk BonoDND-${{ env.version }}.apk
+      - name: Install Flutter dependencies
+        run: flutter pub get
 
-      - name: Download Windows Build Artifact
-        uses: actions/download-artifact@v4
+      - name: Build Linux
+        run: flutter build linux
+
+      - name: Zip Linux Build
+        run: |
+          cd build/linux/x64/release/bundle
+          zip -r ../../../../../bonodnd-linux.zip .
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: release-windows
-
-      - name: Rename Windows ZIP
-        run: mv bonodnd-windows.zip BonoDND-${{ env.version }}-windows.zip
-
-      - name: Push APK and Windows ZIP to Release Repo
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: |
-            BonoDND-${{ env.version }}.apk
-            BonoDND-${{ env.version }}-windows.zip
-          token: ${{ secrets.RELEASE_PAT }}
-          owner: BonobosInc
-          repo: dnd
-          tag: ${{ env.version }}
-
-      - name: Push APK and Windows ZIP to SRC Repo
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: |
-            BonoDND-${{ env.version }}.apk
-            BonoDND-${{ env.version }}-windows.zip
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ env.version }}
+          name: release-linux
+          path: bonodnd-linux.zip
