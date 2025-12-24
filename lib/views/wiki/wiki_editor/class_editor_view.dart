@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+import 'package:dnd/classes/wiki_classes.dart';
+>>>>>>> 31b1db7b19c2173dacb5692f5645304edae5dc1d
 import 'package:dnd/configs/colours.dart';
 import 'package:flutter/material.dart';
 import 'package:dnd/classes/wiki_classes.dart';
@@ -75,6 +79,7 @@ class AddClassPageState extends State<AddClassPage> {
   Widget _buildLevels() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+<<<<<<< HEAD
       children: List.generate(20, (index) {
         final level = index + 1;
         return Card(
@@ -86,6 +91,62 @@ class AddClassPageState extends State<AddClassPage> {
               'Level $level',
               style: TextStyle(
                 color: AppColors.textColorLight,
+=======
+      children: [
+        Row(
+          children: [
+            const Text(
+              'Autolevels',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const Spacer(),
+            IconButton(
+              onPressed: _addAutolevel,
+              icon: const Icon(Icons.add),
+              tooltip: 'Add Autolevel',
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        for (var autolevel in _autolevels) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Card(
+              color: AppColors.cardColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+              elevation: 3,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Level: ${autolevel.level}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (autolevel.slots != null)
+                            Text('Slots: ${autolevel.slots!.slots.join(', ')}'),
+                          for (var feature in autolevel.features)
+                            Text('- ${feature.name}'),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => _deleteAutolevel(autolevel),
+                      icon: const Icon(Icons.delete),
+                      tooltip: 'Delete Autolevel',
+                    ),
+                  ],
+                ),
+>>>>>>> 31b1db7b19c2173dacb5692f5645304edae5dc1d
               ),
             ),
             subtitle: Column(

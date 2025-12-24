@@ -1,5 +1,7 @@
+import 'package:dnd/configs/colours.dart';
 import 'package:flutter/material.dart';
 import 'package:dnd/classes/wiki_classes.dart';
+import 'package:dnd/l10n/app_localizations.dart';
 
 class AllCreaturesPage extends StatefulWidget {
   final List<Creature> creatures;
@@ -24,7 +26,7 @@ class AllCreaturesPageState extends State<AllCreaturesPage> {
   late List<String> _uniqueCRs;
 
   bool isSearchVisible = false;
-  String _activeFilter = 'Sortieren nach CR';
+  late String _activeFilter;
   FocusNode searchFocusNode = FocusNode();
   TextEditingController searchController = TextEditingController();
 
@@ -33,6 +35,14 @@ class AllCreaturesPageState extends State<AllCreaturesPage> {
     super.initState();
     _filteredCreaturesCache = _computeFilteredCreatures();
     _uniqueCRs = _getUniqueCRs();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final loc = AppLocalizations.of(context)!;
+
+      setState(() {
+        _activeFilter = loc.sortbycr;
+      });
+    });
   }
 
   @override
@@ -120,14 +130,15 @@ class AllCreaturesPageState extends State<AllCreaturesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: isSearchVisible
             ? TextField(
                 controller: searchController,
                 focusNode: searchFocusNode,
-                decoration: const InputDecoration(
-                  hintText: 'Suchen...',
+                decoration: InputDecoration(
+                  hintText: '${loc.search}...',
                   border: InputBorder.none,
                   hintStyle: TextStyle(color: Colors.white54),
                 ),
@@ -139,7 +150,7 @@ class AllCreaturesPageState extends State<AllCreaturesPage> {
                   });
                 },
               )
-            : const Text('Alle Monster'),
+            : Text(loc.allmonster),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -159,14 +170,14 @@ class AllCreaturesPageState extends State<AllCreaturesPage> {
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.filter_list),
-            tooltip: 'Filter und Sortieren',
+            tooltip: loc.filterandsort,
             onSelected: (value) {
               setState(() {
                 _activeFilter = value;
-                if (_activeFilter == 'Sortieren nach CR') {
+                if (_activeFilter == loc.sortbycr) {
                   _sortByCr = true;
                   _selectedCr = null;
-                } else if (_activeFilter == 'Sortieren nach Name') {
+                } else if (_activeFilter == loc.sortbyname) {
                   _sortByCr = false;
                   _selectedCr = null;
                 } else {
@@ -178,22 +189,22 @@ class AllCreaturesPageState extends State<AllCreaturesPage> {
             },
             itemBuilder: (BuildContext context) => [
               PopupMenuItem(
-                value: 'Sortieren nach CR',
+                value: loc.sortbycr,
                 child: Row(
                   children: [
-                    if (_activeFilter == 'Sortieren nach CR')
+                    if (_activeFilter == loc.sortbycr)
                       const Icon(Icons.check, size: 18, color: Colors.blue),
-                    const Text('Sortieren nach CR'),
+                    Text(loc.sortbycr),
                   ],
                 ),
               ),
               PopupMenuItem(
-                value: 'Sortieren nach Name',
+                value: loc.sortbyname,
                 child: Row(
                   children: [
-                    if (_activeFilter == 'Sortieren nach Name')
+                    if (_activeFilter == loc.sortbyname)
                       const Icon(Icons.check, size: 18, color: Colors.blue),
-                    const Text('Sortieren nach Name'),
+                    Text(loc.sortbyname),
                   ],
                 ),
               ),
@@ -213,7 +224,7 @@ class AllCreaturesPageState extends State<AllCreaturesPage> {
           ),
           if (widget.importCreature)
             IconButton(
-              tooltip: "Ausgewählte Begleiter importieren",
+              tooltip: loc.importselectedcompanion,
               icon: const Icon(Icons.check),
               onPressed: () {
                 Navigator.of(context).pop(_selectedCreatures.toList());
@@ -255,7 +266,7 @@ class AllCreaturesPageState extends State<AllCreaturesPage> {
       ),
       floatingActionButton: widget.importCreature
           ? FloatingActionButton(
-              tooltip: 'Neuen Begleiter erstellen',
+              tooltip: loc.createnewcompanion,
               onPressed: () async {
                 final newCreature = await _showAddCreatureDialog(context);
                 if (newCreature != null && context.mounted) {
@@ -351,9 +362,10 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Begleiter bearbeiten'),
+        title: Text(loc.editcompanion),
         actions: [
           IconButton(
             icon: const Icon(Icons.check),
@@ -407,14 +419,14 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _nameController,
-                      decoration: const InputDecoration(labelText: 'Name'),
+                      decoration: InputDecoration(labelText: loc.name),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: TextField(
                       controller: _sizeController,
-                      decoration: const InputDecoration(labelText: 'Größe'),
+                      decoration: InputDecoration(labelText: loc.size),
                     ),
                   ),
                 ],
@@ -425,14 +437,14 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _typeController,
-                      decoration: const InputDecoration(labelText: 'Typ'),
+                      decoration: InputDecoration(labelText: loc.type),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: TextField(
                       controller: _alignmentController,
-                      decoration: const InputDecoration(labelText: 'Gesinnung'),
+                      decoration: InputDecoration(labelText: loc.alignment),
                     ),
                   ),
                 ],
@@ -443,8 +455,8 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _acController,
-                      decoration: const InputDecoration(
-                          labelText: 'Rüstungsklasse (AC)'),
+                      decoration: InputDecoration(
+                          labelText: loc.ac),
                       keyboardType: TextInputType.number,
                     ),
                   ),
@@ -453,7 +465,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                     child: TextField(
                       controller: _hpController,
                       decoration:
-                          const InputDecoration(labelText: 'Lebenspunkte (HP)'),
+                          InputDecoration(labelText: loc.hp),
                       keyboardType: TextInputType.number,
                     ),
                   ),
@@ -466,15 +478,15 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                     child: TextField(
                       controller: _speedController,
                       decoration:
-                          const InputDecoration(labelText: 'Bewegungsrate'),
+                          InputDecoration(labelText: loc.movement),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: TextField(
                       controller: _crController,
-                      decoration: const InputDecoration(
-                          labelText: 'Herausforderungsgrad'),
+                      decoration: InputDecoration(
+                          labelText: loc.cr),
                     ),
                   ),
                 ],
@@ -485,7 +497,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _strController,
-                      decoration: const InputDecoration(labelText: 'Stärke'),
+                      decoration: InputDecoration(labelText: loc.strength),
                       keyboardType: TextInputType.number,
                     ),
                   ),
@@ -493,8 +505,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _dexController,
-                      decoration:
-                          const InputDecoration(labelText: 'Geschicklichkeit'),
+                      decoration: InputDecoration(labelText: loc.dexterity),
                       keyboardType: TextInputType.number,
                     ),
                   ),
@@ -506,8 +517,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _conController,
-                      decoration:
-                          const InputDecoration(labelText: 'Konstitution'),
+                      decoration: InputDecoration(labelText: loc.constitution),
                       keyboardType: TextInputType.number,
                     ),
                   ),
@@ -515,8 +525,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _intController,
-                      decoration:
-                          const InputDecoration(labelText: 'Intelligenz'),
+                      decoration: InputDecoration(labelText: loc.intelligence),
                       keyboardType: TextInputType.number,
                     ),
                   ),
@@ -528,7 +537,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _wisController,
-                      decoration: const InputDecoration(labelText: 'Weisheit'),
+                      decoration: InputDecoration(labelText: loc.wisdom),
                       keyboardType: TextInputType.number,
                     ),
                   ),
@@ -536,7 +545,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _chaController,
-                      decoration: const InputDecoration(labelText: 'Charisma'),
+                      decoration: InputDecoration(labelText: loc.charisma),
                       keyboardType: TextInputType.number,
                     ),
                   ),
@@ -548,16 +557,14 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _savesController,
-                      decoration:
-                          const InputDecoration(labelText: 'Rettungswürfe'),
+                      decoration: InputDecoration(labelText: loc.savingThrows),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: TextField(
                       controller: _skillsController,
-                      decoration:
-                          const InputDecoration(labelText: 'Fertigkeiten'),
+                      decoration: InputDecoration(labelText: loc.skills),
                     ),
                   ),
                 ],
@@ -568,16 +575,14 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _resistancesController,
-                      decoration:
-                          const InputDecoration(labelText: 'Resistenzen'),
+                      decoration: InputDecoration(labelText: loc.resistances),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: TextField(
                       controller: _vulnerabilitiesController,
-                      decoration:
-                          const InputDecoration(labelText: 'Verwundbarkeiten'),
+                      decoration: InputDecoration(labelText: loc.vulnerabilities),
                     ),
                   ),
                 ],
@@ -588,16 +593,15 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _immunitiesController,
-                      decoration:
-                          const InputDecoration(labelText: 'Immunitäten'),
+                      decoration: InputDecoration(labelText: loc.immunities),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: TextField(
                       controller: _conditionImmunitiesController,
-                      decoration: const InputDecoration(
-                          labelText: 'Zustandsimmunitäten'),
+                      decoration: InputDecoration(
+                          labelText: loc.conditionImmunities),
                     ),
                   ),
                 ],
@@ -608,15 +612,15 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _sensesController,
-                      decoration: const InputDecoration(labelText: 'Sinne'),
+                      decoration: InputDecoration(labelText: loc.senses),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: TextField(
                       controller: _passivePerceptionController,
-                      decoration: const InputDecoration(
-                          labelText: 'Passive Wahrnehmung'),
+                      decoration: InputDecoration(
+                          labelText: loc.passivePerception),
                       keyboardType: TextInputType.number,
                     ),
                   ),
@@ -628,7 +632,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _languagesController,
-                      decoration: const InputDecoration(labelText: 'Sprachen'),
+                      decoration: InputDecoration(labelText: loc.languages),
                     ),
                   ),
                 ],
@@ -650,13 +654,14 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
   }
 
   Widget _buildTraitSection() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Text(
-              'Merkmale',
+            Text(
+              loc.feats,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const Spacer(),
@@ -665,7 +670,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                 _showTraitDialog(context);
               },
               icon: const Icon(Icons.add),
-              tooltip: 'Merkmal hinzufügen',
+              tooltip: loc.addtraits,
             ),
           ],
         ),
@@ -678,6 +683,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                 _showEditDialog(context, trait, 'trait');
               },
               child: Card(
+                color: AppColors.cardColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
                 ),
@@ -705,7 +711,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                           _showDeleteConfirmationDialog(trait, 'trait');
                         },
                         icon: const Icon(Icons.delete),
-                        tooltip: 'Lösche ${trait.name}',
+                        tooltip: loc.delete,
                       ),
                     ],
                   ),
@@ -719,13 +725,14 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
   }
 
   Widget _buildCActionSection() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Text(
-              'Aktion',
+            Text(
+              loc.action,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const Spacer(),
@@ -734,7 +741,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                 _showCActionDialog(context);
               },
               icon: const Icon(Icons.add),
-              tooltip: 'Aktion hinzufügen',
+              tooltip: loc.addaction,
             ),
           ],
         ),
@@ -747,6 +754,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                 _showEditDialog(context, action, 'action');
               },
               child: Card(
+                color: AppColors.cardColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
                 ),
@@ -774,7 +782,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                           _showDeleteConfirmationDialog(action, 'action');
                         },
                         icon: const Icon(Icons.delete),
-                        tooltip: 'Lösche ${action.name}',
+                        tooltip: loc.delete,
                       ),
                     ],
                   ),
@@ -788,13 +796,14 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
   }
 
   Widget _buildLegendaryActionSection() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Text(
-              'Legendäre Aktionen',
+            Text(
+              loc.legendaryaction,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const Spacer(),
@@ -803,7 +812,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                 _showLegendaryActionDialog(context);
               },
               icon: const Icon(Icons.add),
-              tooltip: 'Legendäre Aktion hinzufügen',
+              tooltip: loc.addlegendaryaction,
             ),
           ],
         ),
@@ -816,6 +825,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                 _showEditDialog(context, legendary, 'legendary');
               },
               child: Card(
+                color: AppColors.cardColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
                 ),
@@ -843,7 +853,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                           _showDeleteConfirmationDialog(legendary, 'legendary');
                         },
                         icon: const Icon(Icons.delete),
-                        tooltip: 'Lösche ${legendary.name}',
+                        tooltip: loc.delete,
                       ),
                     ],
                   ),
@@ -872,17 +882,19 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
   }
 
   Widget _buildDescriptionTextField(TextEditingController controller) {
+    final loc = AppLocalizations.of(context)!;
     return TextField(
       controller: controller,
       maxLines: 5,
-      decoration: const InputDecoration(
-        labelText: 'Beschreibung',
-        border: OutlineInputBorder(),
+      decoration: InputDecoration(
+        labelText: loc.description,
+        border: const OutlineInputBorder(),
       ),
     );
   }
 
   Future<void> _showTraitDialog(BuildContext context) async {
+    final loc = AppLocalizations.of(context)!;
     final traitNameController = TextEditingController();
     final traitDescriptionController = TextEditingController();
 
@@ -890,13 +902,13 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Merkmale bearbeiten'),
+          title: Text(loc.editFeat),
           content: SingleChildScrollView(
             child: Column(
               children: [
                 const SizedBox(height: 16),
                 _buildTextField(
-                  label: 'Merkmal',
+                  label: loc.feat,
                   controller: traitNameController,
                   onChanged: (value) {},
                 ),
@@ -910,7 +922,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Abbrechen'),
+              child: Text(loc.delete),
             ),
             TextButton(
               onPressed: () {
@@ -925,7 +937,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Navigator.of(context).pop();
                 }
               },
-              child: const Text('Speichern'),
+              child: Text(loc.save),
             ),
           ],
         );
@@ -934,6 +946,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
   }
 
   Future<void> _showCActionDialog(BuildContext context) async {
+    final loc = AppLocalizations.of(context)!;
     final cActionNameController = TextEditingController();
     final cActionDescriptionController = TextEditingController();
     final cActionAttackController = TextEditingController();
@@ -942,13 +955,13 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Angriff bearbeiten'),
+          title: Text(loc.editattack),
           content: SingleChildScrollView(
             child: Column(
               children: [
                 const SizedBox(height: 16),
                 _buildTextField(
-                  label: 'Angriff',
+                  label: loc.attack,
                   controller: cActionNameController,
                   onChanged: (value) {},
                 ),
@@ -956,7 +969,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                 _buildDescriptionTextField(cActionDescriptionController),
                 const SizedBox(height: 16),
                 _buildTextField(
-                  label: 'Angriffswert',
+                  label: loc.attackvalue,
                   controller: cActionAttackController,
                   onChanged: (value) {},
                 ),
@@ -968,7 +981,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Abbrechen'),
+              child: Text(loc.abort),
             ),
             TextButton(
               onPressed: () {
@@ -986,7 +999,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Navigator.of(context).pop();
                 }
               },
-              child: const Text('Speichern'),
+              child: Text(loc.save),
             ),
           ],
         );
@@ -995,6 +1008,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
   }
 
   Future<void> _showLegendaryActionDialog(BuildContext context) async {
+    final loc = AppLocalizations.of(context)!;
     final legendaryActionNameController = TextEditingController();
     final legendaryActionDescriptionController = TextEditingController();
 
@@ -1002,13 +1016,13 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Legendäre Aktion bearbeiten'),
+          title: Text(loc.editlegendaryaction),
           content: SingleChildScrollView(
             child: Column(
               children: [
                 const SizedBox(height: 16),
                 _buildTextField(
-                  label: 'Legendäre Aktion',
+                  label: loc.legendaryaction,
                   controller: legendaryActionNameController,
                   onChanged: (value) {},
                 ),
@@ -1023,7 +1037,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Abbrechen'),
+              child: Text(loc.abort),
             ),
             TextButton(
               onPressed: () {
@@ -1038,7 +1052,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Navigator.of(context).pop();
                 }
               },
-              child: const Text('Speichern'),
+              child: Text(loc.save),
             ),
           ],
         );
@@ -1047,6 +1061,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
   }
 
   Future<void> _showDeleteConfirmationDialog(dynamic item, String type) async {
+    final loc = AppLocalizations.of(context)!;
     final String itemName = item is Trait
         ? item.name
         : item is CAction
@@ -1056,14 +1071,14 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Lösche $type'),
-          content: Text('Bist du sicher, dass du $itemName löschen möchtest?'),
+          title: Text('${loc.delete} $type'),
+          content: Text(loc.confirmItemDelete(itemName)),
           actions: <Widget>[
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Abbrechen'),
+              child: Text(loc.abort),
             ),
             TextButton(
               onPressed: () {
@@ -1078,7 +1093,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                 });
                 Navigator.of(context).pop();
               },
-              child: const Text('Löschen'),
+              child: Text(loc.delete),
             ),
           ],
         );
@@ -1088,11 +1103,11 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
 
   Future<void> _showEditDialog(
       BuildContext context, dynamic item, String type) async {
+    final loc = AppLocalizations.of(context)!;
     final TextEditingController nameController = TextEditingController();
     final TextEditingController descriptionController = TextEditingController();
     String attackControllerText = '';
 
-    // Initialize controllers with the current item's values
     if (item is Trait) {
       nameController.text = item.name;
       descriptionController.text = item.description;
@@ -1110,15 +1125,15 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
     String attackLabel = '';
 
     if (type == 'trait') {
-      dialogTitle = 'Bearbeite Merkmal';
-      nameLabel = 'Merkmal';
+      dialogTitle = loc.editFeat;
+      nameLabel = loc.feat;
     } else if (type == 'action') {
-      dialogTitle = 'Bearbeite Angriff';
-      nameLabel = 'Angriff';
-      attackLabel = 'Angriffswert';
+      dialogTitle = loc.editattack;
+      nameLabel = loc.attack;
+      attackLabel = loc.attackvalue;
     } else if (type == 'legendary') {
-      dialogTitle = 'Bearbeite Legendäre Aktion';
-      nameLabel = 'Legendäre Aktion';
+      dialogTitle = loc.editlegendaryaction;
+      nameLabel = loc.legendaryaction;
     }
 
     await showDialog<void>(
@@ -1155,7 +1170,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Abbrechen'),
+              child: Text(loc.abort),
             ),
             TextButton(
               onPressed: () {
@@ -1179,7 +1194,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Navigator.of(context).pop();
                 }
               },
-              child: const Text('Speichern'),
+              child: Text(loc.save),
             ),
           ],
         );
@@ -1202,6 +1217,7 @@ class CreatureDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Text(creature.name),
@@ -1244,50 +1260,50 @@ class CreatureDetailPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSizeAlignmentSection(),
+            _buildSizeAlignmentSection(loc),
             const Divider(),
-            _buildArmorHitpointsSpeedSection(),
+            _buildArmorHitpointsSpeedSection(loc),
             const Divider(),
-            _buildStatsSection(),
+            _buildStatsSection(loc),
             const Divider(),
-            _buildSavingThrowsSection(),
+            _buildSavingThrowsSection(loc),
             const Divider(),
-            _buildSensesLanguagesCrSection(),
+            _buildSensesLanguagesCrSection(loc),
             const Divider(),
-            _buildTraitsSection(),
+            _buildTraitsSection(loc),
             const Divider(),
-            _buildActionsSection(),
+            _buildActionsSection(loc),
             const Divider(),
-            _buildLegendaryActionsSection(),
+            _buildLegendaryActionsSection(loc),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSizeAlignmentSection() {
+  Widget _buildSizeAlignmentSection(AppLocalizations loc) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Größe: ${creature.size}'),
-        Text('Typ: ${creature.type}'),
-        Text('Gesinnung: ${creature.alignment}'),
+        Text('${loc.size}: ${creature.size}'),
+        Text('${loc.type}: ${creature.type}'),
+        Text('${loc.alignment}: ${creature.alignment}'),
       ],
     );
   }
 
-  Widget _buildArmorHitpointsSpeedSection() {
+  Widget _buildArmorHitpointsSpeedSection(AppLocalizations loc) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Rüstungsklasse: ${creature.ac}'),
-        Text('Lebenspunkte: ${creature.maxHP}'),
-        Text('Bewegungsrate: ${creature.speed}'),
+        Text('${loc.ac}: ${creature.ac}'),
+        Text('${loc.hp}: ${creature.maxHP}'),
+        Text('${loc.movement}: ${creature.speed}'),
       ],
     );
   }
 
-  Widget _buildStatsSection() {
+  Widget _buildStatsSection(AppLocalizations loc) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1311,30 +1327,30 @@ class CreatureDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSavingThrowsSection() {
+  Widget _buildSavingThrowsSection(AppLocalizations loc) {
     return Text(
-        'Rettungswürfe: ${creature.saves.isNotEmpty ? creature.saves : 'None'}');
+        '${loc.savingThrows}: ${creature.saves.isNotEmpty ? creature.saves : 'None'}');
   }
 
-  Widget _buildSensesLanguagesCrSection() {
+  Widget _buildSensesLanguagesCrSection(AppLocalizations loc) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Sinne: ${creature.senses.isNotEmpty ? creature.senses : 'None'}'),
+        Text('${loc.senses}: ${creature.senses.isNotEmpty ? creature.senses : 'None'}'),
         Text(
-            'Sprachen: ${creature.languages.isNotEmpty ? creature.languages : 'None'}'),
+            '${loc.languages}: ${creature.languages.isNotEmpty ? creature.languages : 'None'}'),
         Text(
-            'Herausforderungsgrad: ${creature.cr.isNotEmpty ? creature.cr : 'N/A'}'),
+            '${loc.cr}: ${creature.cr.isNotEmpty ? creature.cr : 'N/A'}'),
       ],
     );
   }
 
-  Widget _buildTraitsSection() {
+  Widget _buildTraitsSection(AppLocalizations loc) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Merkmale',
+        Text(
+          loc.feats,
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         if (creature.traits.isEmpty) const Text('None'),
@@ -1356,12 +1372,12 @@ class CreatureDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildActionsSection() {
+  Widget _buildActionsSection(AppLocalizations loc) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Aktionen',
+        Text(
+          '${loc.actions}:',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         if (creature.actions.isEmpty) const Text('None'),
@@ -1388,13 +1404,13 @@ class CreatureDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildLegendaryActionsSection() {
+  Widget _buildLegendaryActionsSection(AppLocalizations loc) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Legendäre Aktion',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        Text(
+          loc.legendaryaction,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         if (creature.legendaryActions.isEmpty) const Text('None'),
         ...creature.legendaryActions
@@ -1419,24 +1435,25 @@ class CreatureDetailPage extends StatelessWidget {
 
   Future<Creature?> _showAddCreatureDialog(
       BuildContext context, Creature creature) async {
+    final loc = AppLocalizations.of(context)!;
     return showDialog<Creature?>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Begeleiter hinzufügen'),
-          content: Text('Möchtest du ${creature.name} hinzufügen?'),
+          title: Text(loc.addcompanion),
+          content: Text(loc.addcompanionConfirmation(creature.name)),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Nein'),
+              child: Text(loc.no),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(creature);
               },
-              child: const Text('Ja'),
+              child: Text(loc.yes),
             ),
           ],
         );

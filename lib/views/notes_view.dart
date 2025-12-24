@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:dnd/classes/profile_manager.dart';
 import 'package:dnd/configs/defines.dart';
 import 'package:dnd/configs/colours.dart';
+import 'package:dnd/l10n/app_localizations.dart';
 
 class Feat {
   String name;
@@ -141,6 +142,10 @@ class NotesPageState extends State<NotesPage> {
         hairColourController.text = characterData[Defines.infoHairColour] ?? '';
         skinColourController.text = characterData[Defines.infoSkinColour] ?? '';
         appearanceController.text = characterData[Defines.infoAppearance] ?? '';
+        backStoryController.text =
+            characterData[Defines.infoBackstory] ?? '';
+        otherNotesController.text = characterData[Defines.infoNotes] ?? '';
+        sizeController.text = characterData[Defines.infoSize] ?? '';
       });
     } else {
       selectedSize = sizeOptions[0];
@@ -194,13 +199,14 @@ class NotesPageState extends State<NotesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Notizen'),
+          title: Text(loc.notes),
           backgroundColor: AppColors.appBarColor,
           actions: [
             PopupMenuButton<String>(
-              icon: const Icon(Icons.add),
+              icon: Icon(Icons.add, color: AppColors.accentCyan),
               onSelected: (String value) {
                 if (value == 'addFeat') {
                   _showAddFeatDialog();
@@ -211,19 +217,19 @@ class NotesPageState extends State<NotesPage> {
               itemBuilder: (BuildContext context) {
                 return featsData.isEmpty
                     ? [
-                        const PopupMenuItem<String>(
+                        PopupMenuItem<String>(
                           value: 'addFeat',
-                          child: Text('Neues Feature'),
+                          child: Text(loc.newFeat),
                         )
                       ]
                     : [
-                        const PopupMenuItem<String>(
+                        PopupMenuItem<String>(
                           value: 'addFeat',
-                          child: Text('Neues Feature'),
+                          child: Text(loc.newFeat),
                         ),
-                        const PopupMenuItem<String>(
+                        PopupMenuItem<String>(
                           value: 'navigateToWiki',
-                          child: Text('Feature aus Wiki importieren'),
+                          child: Text(loc.importfeatfromwiki),
                         ),
                       ];
               },
@@ -238,8 +244,8 @@ class NotesPageState extends State<NotesPage> {
               const Divider(),
               ExpansionTile(
                 shape: const Border(),
-                title: const Text(
-                  'Notizen',
+                title: Text(
+                  loc.notes,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 children: [
@@ -307,6 +313,7 @@ class NotesPageState extends State<NotesPage> {
   }
 
   void _showFeatDialog(Feat feat, bool newFeat) {
+    final loc = AppLocalizations.of(context)!;
     TextEditingController descriptionController =
         TextEditingController(text: feat.description);
 
@@ -316,7 +323,7 @@ class NotesPageState extends State<NotesPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Feat bearbeiten'),
+          title: Text(loc.editFeat),
           content: SingleChildScrollView(
             child: Column(
               children: [
@@ -325,18 +332,18 @@ class NotesPageState extends State<NotesPage> {
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: selectedType,
-                  items: const [
-                    DropdownMenuItem(value: 'Klasse', child: Text('Klasse')),
-                    DropdownMenuItem(value: 'Rasse', child: Text('Rasse')),
+                  items: [
+                    DropdownMenuItem(value: 'Klasse', child: Text(loc.classKey)),
+                    DropdownMenuItem(value: 'Rasse', child: Text(loc.race)),
                     DropdownMenuItem(
-                        value: 'Hintergrund', child: Text('Hintergrund')),
+                        value: 'Hintergrund', child: Text(loc.background)),
                     DropdownMenuItem(
-                        value: 'Fähigkeiten', child: Text('Fähigkeiten')),
+                        value: 'Fähigkeiten', child: Text(loc.abilities)),
                     DropdownMenuItem(
-                        value: 'Sonstige', child: Text('Sonstige')),
+                        value: 'Sonstige', child: Text(loc.other)),
                   ],
-                  decoration: const InputDecoration(
-                    labelText: 'Typ',
+                  decoration: InputDecoration(
+                    labelText: loc.type,
                     border: OutlineInputBorder(),
                   ),
                   onChanged: (value) {
@@ -354,7 +361,7 @@ class NotesPageState extends State<NotesPage> {
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: const Text('Abbrechen'),
+                child: Text(loc.abort),
               ),
             ),
             SizedBox(
@@ -368,7 +375,7 @@ class NotesPageState extends State<NotesPage> {
                   }
                   Navigator.of(context).pop(true);
                 },
-                child: const Text('Speichern'),
+                child: Text(loc.save),
               ),
             ),
           ],
@@ -378,8 +385,9 @@ class NotesPageState extends State<NotesPage> {
   }
 
   void _updateFeat(Feat feat, String description) {
+    final loc = AppLocalizations.of(context)!;
     final finalDescription =
-        description.isEmpty ? "Keine Beschreibung vorhanden" : description;
+        description.isEmpty ? loc.nodescription : description;
 
     widget.profileManager
         .updateFeat(
@@ -394,8 +402,9 @@ class NotesPageState extends State<NotesPage> {
   }
 
   void _addFeat(Feat feat, String description) {
+    final loc = AppLocalizations.of(context)!;
     final finalDescription =
-        description.isEmpty ? "Keine Beschreibung vorhanden" : description;
+        description.isEmpty ? loc.nodescription : description;
 
     widget.profileManager
         .addFeat(
@@ -412,11 +421,12 @@ class NotesPageState extends State<NotesPage> {
 
   Widget _buildFeatDetailForm(
       Feat feat, TextEditingController descriptionController) {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildFeatTextField(
-          label: 'Name',
+          label: loc.name,
           controller: TextEditingController(text: feat.name),
           onChanged: (value) => feat.name = value,
         ),
@@ -442,26 +452,28 @@ class NotesPageState extends State<NotesPage> {
   }
 
   Widget _buildDescriptionTextField(TextEditingController controller) {
+    final loc = AppLocalizations.of(context)!;
     return TextField(
       controller: controller,
       maxLines: 15,
-      decoration: const InputDecoration(
-        labelText: 'Beschreibung',
+      decoration: InputDecoration(
+        labelText: loc.description,
         border: OutlineInputBorder(),
       ),
     );
   }
 
   List<Widget> _buildNotesFields() {
+    final loc = AppLocalizations.of(context)!;
     return [
       Row(
         children: [
           Expanded(
-              child: _buildTextField('Volk', raceController, Defines.infoRace)),
+              child: _buildTextField(loc.folk, raceController, Defines.infoRace)),
           const SizedBox(width: 16),
           Expanded(
               child: _buildTextField(
-                  'Herkunft', originController, Defines.infoOrigin)),
+                  loc.origin, originController, Defines.infoOrigin)),
         ],
       ),
       const SizedBox(height: 16),
@@ -469,34 +481,22 @@ class NotesPageState extends State<NotesPage> {
         children: [
           Expanded(
               child: _buildTextField(
-                  'Klasse', classController, Defines.infoClass)),
+                  loc.classKey, classController, Defines.infoClass)),
           const SizedBox(width: 16),
           Expanded(
               child: _buildTextField(
-                  'Hintergrund', backgroundController, Defines.infoBackground)),
+                  loc.background, backgroundController, Defines.infoBackground)),
         ],
       ),
       const SizedBox(height: 16),
       Row(
         children: [
           Expanded(
-              child: _buildTextField('Alter', ageController, Defines.infoAge)),
+              child: _buildTextField(loc.age, ageController, Defines.infoAge)),
           const SizedBox(width: 16),
           Expanded(
               child: _buildTextField(
-                  'Geschlecht', sexController, Defines.infoSex)),
-        ],
-      ),
-      const SizedBox(height: 16),
-      Row(
-        children: [
-          Expanded(
-              child: _buildTextField(
-                  'Größe', heightController, Defines.infoHeight)),
-          const SizedBox(width: 16),
-          Expanded(
-              child: _buildTextField(
-                  'Gewicht', weightController, Defines.infoWeight)),
+                  loc.sex, sexController, Defines.infoSex)),
         ],
       ),
       const SizedBox(height: 16),
@@ -504,11 +504,11 @@ class NotesPageState extends State<NotesPage> {
         children: [
           Expanded(
               child: _buildTextField(
-                  'Augenfarbe', eyeColourController, Defines.infoEyeColour)),
+                  loc.height, heightController, Defines.infoHeight)),
           const SizedBox(width: 16),
           Expanded(
               child: _buildTextField(
-                  'Haarfarbe', hairColourController, Defines.infoHairColour)),
+                  loc.weight, weightController, Defines.infoWeight)),
         ],
       ),
       const SizedBox(height: 16),
@@ -516,11 +516,11 @@ class NotesPageState extends State<NotesPage> {
         children: [
           Expanded(
               child: _buildTextField(
-                  'Hautfarbe', skinColourController, Defines.infoSkinColour)),
+                  loc.eyecolor, eyeColourController, Defines.infoEyeColour)),
           const SizedBox(width: 16),
           Expanded(
               child: _buildTextField(
-                  'Glaube/Gottheit', godController, Defines.infoGod)),
+                  loc.haircolor, hairColourController, Defines.infoHairColour)),
         ],
       ),
       const SizedBox(height: 16),
@@ -528,63 +528,76 @@ class NotesPageState extends State<NotesPage> {
         children: [
           Expanded(
               child: _buildTextField(
-                  'Größenkategorie', sizeController, Defines.infoSize)),
+                  loc.skincolor, skinColourController, Defines.infoSkinColour)),
           const SizedBox(width: 16),
           Expanded(
               child: _buildTextField(
-                  'Gesinnung', alignmentController, Defines.infoAlignment)),
+                  loc.faith, godController, Defines.infoGod)),
+        ],
+      ),
+      const SizedBox(height: 16),
+      Row(
+        children: [
+          Expanded(
+              child: _buildTextField(
+                  loc.sizecat, sizeController, Defines.infoSize)),
+          const SizedBox(width: 16),
+          Expanded(
+              child: _buildTextField(
+                  loc.alignment, alignmentController, Defines.infoAlignment)),
         ],
       ),
       const SizedBox(height: 16),
       _buildLargeTextField(
-          'Aussehen', appearanceController, Defines.infoAppearance, 3),
+          loc.look, appearanceController, Defines.infoAppearance, 3),
       const SizedBox(height: 16),
-      _buildLargeTextField('Persönlichkeitsmerkmale',
+      _buildLargeTextField(loc.personalitytraits,
           personalityTraitsController, Defines.infoPersonalityTraits, 3),
       const SizedBox(height: 16),
-      _buildLargeTextField('Ideale', idealsController, Defines.infoIdeals, 3),
+      _buildLargeTextField(loc.ideals, idealsController, Defines.infoIdeals, 3),
       const SizedBox(height: 16),
-      _buildLargeTextField('Bindungen', bondsController, Defines.infoBonds, 3),
+      _buildLargeTextField(loc.bonds, bondsController, Defines.infoBonds, 3),
       const SizedBox(height: 16),
-      _buildLargeTextField('Makel', flawsController, Defines.infoFlaws, 3),
+      _buildLargeTextField(loc.flaws, flawsController, Defines.infoFlaws, 3),
       const SizedBox(height: 16),
-      _buildLargeTextField('Hintergrundgeschichte', backStoryController,
+      _buildLargeTextField(loc.backstory, backStoryController,
           Defines.infoBackstory, 15),
       const SizedBox(height: 16),
       _buildLargeTextField(
-          'Sonstige Notizen', otherNotesController, Defines.infoNotes, 15),
+          loc.otherNotes, otherNotesController, Defines.infoNotes, 15),
       const SizedBox(height: 16),
       _buildLargeTextFieldProfs(
-          'Rüstungen', armorProfController, Defines.profArmor, 3),
+          loc.armors, armorProfController, Defines.profArmor, 3),
       const SizedBox(height: 16),
       _buildLargeTextFieldProfs(
-          'Waffen', weaponProfController, Defines.profWeaponList, 3),
+          loc.weapons, weaponProfController, Defines.profWeaponList, 3),
       const SizedBox(height: 16),
       _buildLargeTextFieldProfs(
-          'Werkzeuge', toolsProfController, Defines.profTools, 3),
+          loc.tools, toolsProfController, Defines.profTools, 3),
       const SizedBox(height: 16),
       _buildLargeTextFieldProfs(
-          'Sprachen', languageProfController, Defines.profLanguages, 3),
+          loc.languages, languageProfController, Defines.profLanguages, 3),
     ];
   }
 
   Widget _buildFeatsExpansionTiles() {
+    final loc = AppLocalizations.of(context)!;
     feats.sort((a, b) => a.uuid!.compareTo(b.uuid!));
 
     String className =
-        classController.text.isEmpty ? "Klasse" : classController.text;
+        classController.text.isEmpty ? loc.classKey : classController.text;
     String raceName =
-        raceController.text.isEmpty ? "Rasse" : raceController.text;
+        raceController.text.isEmpty ? loc.folk : raceController.text;
     String backgroundName = backgroundController.text.isEmpty
-        ? "Hintergrund"
+        ? loc.background
         : backgroundController.text;
 
     Map<String, List<Feat>> groupedFeats = {
       className: [],
       raceName: [],
       backgroundName: [],
-      'Fähigkeiten': [],
-      'Sonstige': []
+      loc.abilities: [],
+      loc.other: []
     };
 
     for (var feat in feats) {
@@ -600,10 +613,10 @@ class NotesPageState extends State<NotesPage> {
           groupKey = backgroundName;
           break;
         case 'Fähigkeiten':
-          groupKey = "Fähigkeiten";
+          groupKey = loc.abilities;
           break;
         default:
-          groupKey = 'Sonstige';
+          groupKey = loc.other;
           break;
       }
 
@@ -612,8 +625,8 @@ class NotesPageState extends State<NotesPage> {
 
     return ExpansionTile(
       shape: const Border(),
-      title: const Text(
-        'Feats',
+      title: Text(
+        loc.feats,
         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
       children: groupedFeats.entries.map((entry) {
@@ -649,7 +662,7 @@ class NotesPageState extends State<NotesPage> {
                       height: 35,
                       child: IconButton(
                         icon: Icon(Icons.close,
-                            color: AppColors.textColorDark),
+                            color: AppColors.warningColor),
                         iconSize: 20.0,
                         padding: EdgeInsets.zero,
                         onPressed: () {
@@ -672,26 +685,26 @@ class NotesPageState extends State<NotesPage> {
   }
 
   void _showDeleteConfirmationDialog(Feat feat) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Löschen bestätigen'),
-          content:
-              Text('Bist du sicher, dass du "${feat.name}" löschen möchtest?'),
+          title: Text(loc.confirmdelete),
+          content: Text(loc.confirmItemDelete(feat.name)),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Abbrechen'),
+              child: Text(loc.abort),
             ),
             TextButton(
               onPressed: () {
                 _deleteFeat(feat.uuid!);
                 Navigator.of(context).pop(true);
               },
-              child: const Text('Löschen'),
+              child: Text(loc.delete),
             ),
           ],
         );

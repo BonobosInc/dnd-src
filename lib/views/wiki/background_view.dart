@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dnd/classes/wiki_classes.dart';
+import 'package:dnd/l10n/app_localizations.dart';
 
 class BackgroundDetailPage extends StatefulWidget {
   final BackgroundData backgroundData;
@@ -46,6 +47,7 @@ class BackgroundDetailPageState extends State<BackgroundDetailPage> {
   }
 
   Widget _buildBackgroundInfo() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -54,7 +56,7 @@ class BackgroundDetailPageState extends State<BackgroundDetailPage> {
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
-        Text('Fähigkeiten: ${widget.backgroundData.proficiency}'),
+        Text('${loc.abilities}: ${widget.backgroundData.proficiency}'),
         const SizedBox(height: 10),
       ],
     );
@@ -96,9 +98,10 @@ class BackgroundDetailPageState extends State<BackgroundDetailPage> {
   }
 
   void onFeatureSelected(FeatureData feat, bool isSelected) {
+    final loc = AppLocalizations.of(context)!;
     setState(() {
       if (isSelected) {
-        feat.type = "Hintergrund";
+        feat.type = loc.background;
         selectedFeatures.add(feat);
       } else {
         selectedFeatures.remove(feat);
@@ -119,6 +122,7 @@ class FeatureDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Text(featureData.name),
@@ -133,8 +137,8 @@ class FeatureDetailPage extends StatelessWidget {
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            const Text(
-              'Beschreibung:',
+            Text(
+              '${loc.description}:',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 5),
@@ -148,7 +152,7 @@ class FeatureDetailPage extends StatelessWidget {
                 final newFeature =
                     await _showAddFeatureDialog(context, featureData);
                 if (newFeature != null && context.mounted) {
-                  newFeature.type = "Hintergrund";
+                  newFeature.type = loc.background;
                   Navigator.of(context).pop();
                   Navigator.of(context).pop();
                   Navigator.of(context).pop(newFeature);

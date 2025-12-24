@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dnd/classes/wiki_classes.dart';
+import 'package:dnd/l10n/app_localizations.dart';
 
 class RaceDetailPage extends StatefulWidget {
   final RaceData raceData;
@@ -42,6 +43,7 @@ class RaceDetailPageState extends State<RaceDetailPage> {
   }
 
   Widget _buildRaceInfo() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -50,11 +52,11 @@ class RaceDetailPageState extends State<RaceDetailPage> {
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
-        Text('Größe: ${widget.raceData.size}'),
-        Text('Bewegung: ${widget.raceData.speed} ft'),
-        Text('Fähigkeitspunkte-Verbesserung: ${widget.raceData.ability}'),
-        Text('Proficiencies: ${widget.raceData.proficiency}'),
-        Text('Zauberfähigkeit: ${widget.raceData.spellAbility}'),
+        Text('${loc.size}: ${widget.raceData.size}'),
+        Text('${loc.movement}: ${widget.raceData.speed} ft'),
+        Text('${loc.abilityscoreincrease}: ${widget.raceData.ability}'),
+        Text('${loc.skills}: ${widget.raceData.proficiency}'),
+        Text('${loc.spellcastingability}: ${widget.raceData.spellAbility}'),
         const SizedBox(height: 10),
       ],
     );
@@ -94,9 +96,10 @@ class RaceDetailPageState extends State<RaceDetailPage> {
   }
 
   void onTraitSelected(FeatureData trait, bool isSelected) {
+    final loc = AppLocalizations.of(context)!;
     setState(() {
       if (isSelected) {
-        trait.type = "Rasse";
+        trait.type = loc.race;
         selectedTraits.add(trait);
       } else {
         selectedTraits.remove(trait);
@@ -117,6 +120,7 @@ class TraitDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Text(traitData.name),
@@ -131,8 +135,8 @@ class TraitDetailPage extends StatelessWidget {
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            const Text('Beschreibung:',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            Text('${loc.description}:',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 5),
             Text(traitData.description),
           ],
@@ -143,7 +147,7 @@ class TraitDetailPage extends StatelessWidget {
               onPressed: () async {
                 final newTrait = await _showAddTraitDialog(context, traitData);
                 if (newTrait != null && context.mounted) {
-                  newTrait.type = "Rasse";
+                  newTrait.type = loc.race;
                   Navigator.of(context).pop();
                   Navigator.of(context).pop();
                   Navigator.of(context).pop(newTrait);
@@ -157,12 +161,13 @@ class TraitDetailPage extends StatelessWidget {
 
   Future<FeatureData?> _showAddTraitDialog(
       BuildContext context, FeatureData traitData) async {
+    final loc = AppLocalizations.of(context)!;
     return showDialog<FeatureData?>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Merkmal hinzufügen'),
-          content: Text('Merkmal ${traitData.name} erfolgreich hinzugefügt!'),
+          title: Text('${loc.addtraits}:'),
+          content: Text(loc.addTraitDialog(traitData.name)),
           actions: [
             TextButton(
               onPressed: () {

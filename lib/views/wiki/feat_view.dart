@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dnd/classes/wiki_classes.dart';
+import 'package:dnd/l10n/app_localizations.dart';
 
 class FeatDetailPage extends StatelessWidget {
   final FeatData featData;
@@ -7,16 +8,17 @@ class FeatDetailPage extends StatelessWidget {
 
   const FeatDetailPage({super.key, required this.featData, this.importFeat = false});
 
-  FeatureData _convertToFeatureData(FeatData feat) {
+  FeatureData _convertToFeatureData(FeatData feat, loc) {
     return FeatureData(
       name: feat.name,
       description: feat.text,
-      type: "Fähigkeiten",
+      type: loc.abilities,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Text(featData.name),
@@ -26,7 +28,7 @@ class FeatDetailPage extends StatelessWidget {
                   icon: const Icon(Icons.check),
                   onPressed: () {
                     Navigator.of(context).pop();
-                    Navigator.of(context).pop(_convertToFeatureData(featData));
+                    Navigator.of(context).pop(_convertToFeatureData(featData, loc));
                   },
                 ),
               ]
@@ -43,16 +45,16 @@ class FeatDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             if (featData.prerequisite != null && featData.prerequisite!.isNotEmpty)
-              Text('Voraussetzung: ${featData.prerequisite}'),
+              Text('${loc.requirement}: ${featData.prerequisite}'),
             const SizedBox(height: 10),
-            const Text(
-              'Beschreibung:',
+            Text(
+              loc.description,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             Text(featData.text),
             const SizedBox(height: 10),
             if (featData.modifier != null && featData.modifier!.isNotEmpty)
-              Text('Modifikator: ${featData.modifier}'),
+              Text('${loc.modifier}: ${featData.modifier}'),
           ],
         ),
       ),

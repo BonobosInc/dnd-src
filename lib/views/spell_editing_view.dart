@@ -5,6 +5,7 @@ import 'package:dnd/views/wiki/spellwiki_view.dart';
 import 'package:flutter/material.dart';
 import 'package:dnd/configs/defines.dart';
 import 'package:dnd/configs/colours.dart';
+import 'package:dnd/l10n/app_localizations.dart';
 
 class SpellEditingPage extends StatefulWidget {
   final ProfileManager profileManager;
@@ -24,21 +25,33 @@ class SpellEditingPageState extends State<SpellEditingPage> {
   final List<Spell> spells = [];
   List<SpellData> spellsData = [];
 
-  static const Map<String, String> statusMapping = {
-    Defines.spellPrep: 'vorbereiteter Zauber',
-    Defines.spellKnown: 'bekannter Zauber',
-  };
+  late Map<String, String> statusMapping;
 
   @override
   void initState() {
     super.initState();
-    _fetchSpells();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final loc = AppLocalizations.of(context)!;
+
+      setState(() {
+        statusMapping = {
+          Defines.spellPrep: loc.preparedSpell,
+          Defines.spellKnown: loc.knownSpell,
+        };
+      });
+
+      _fetchSpells();
+    });
+
     spellsData = widget.wikiParser.spells;
   }
 
   Future<void> _fetchSpells() async {
     List<Map<String, dynamic>> fetchedSpells =
         await widget.profileManager.getAllSpells();
+    if (!mounted) return;
+    final loc = AppLocalizations.of(context)!;
 
     setState(() {
       spells.clear();
@@ -46,7 +59,7 @@ class SpellEditingPageState extends State<SpellEditingPage> {
         spells.add(Spell(
           name: spell['spellname'],
           description: spell['description'] ?? '',
-          status: spell['status'] ?? 'nicht bekannt',
+          status: spell['status'] ?? loc.unknown,
           level: spell['level'] is int ? spell['level'] : 0,
           reach: spell['reach'] ?? '',
           duration: spell['duration'] ?? '',
@@ -59,9 +72,10 @@ class SpellEditingPageState extends State<SpellEditingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bearbeite Zauber'),
+        title: Text(loc.editspells),
         backgroundColor: AppColors.appBarColor,
         actions: [
           IconButton(
@@ -75,6 +89,7 @@ class SpellEditingPageState extends State<SpellEditingPage> {
   }
 
   Widget _buildSpellList() {
+    final loc = AppLocalizations.of(context)!;
     Map<int, List<Spell>> groupedSpells = {};
     for (var spell in spells) {
       groupedSpells.putIfAbsent(spell.level, () => []).add(spell);
@@ -84,7 +99,7 @@ class SpellEditingPageState extends State<SpellEditingPage> {
 
     return ListView(
       children: sortedLevels.map((level) {
-        String titleText = level == 0 ? 'Zaubertrick' : 'Level $level';
+        String titleText = level == 0 ? loc.cantrip : '${loc.level} $level';
 
         return ExpansionTile(
           title: Text(
@@ -205,18 +220,22 @@ class SpellEditingPageState extends State<SpellEditingPage> {
   }
 
   void _showSpellDialog(Spell spell, bool newSpell) {
+    final loc = AppLocalizations.of(context)!;
     TextEditingController descriptionController =
         TextEditingController(text: spell.description);
-    TextEditingController reachController = TextEditingController(text: spell.reach);
-    TextEditingController durationController = TextEditingController(text: spell.duration);
+    TextEditingController reachController =
+        TextEditingController(text: spell.reach);
+    TextEditingController durationController =
+        TextEditingController(text: spell.duration);
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Zauber bearbeiten'),
+          title: Text(loc.editSpell),
           content: SingleChildScrollView(
-            child: _buildSpellDetailForm(spell, descriptionController, reachController, durationController),
+            child: _buildSpellDetailForm(spell, descriptionController,
+                reachController, durationController),
           ),
           actions: [
             SizedBox(
@@ -225,7 +244,7 @@ class SpellEditingPageState extends State<SpellEditingPage> {
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: const Text('Abbrechen'),
+                child: Text(loc.abort),
               ),
             ),
             SizedBox(
@@ -233,13 +252,15 @@ class SpellEditingPageState extends State<SpellEditingPage> {
               child: TextButton(
                 onPressed: () {
                   if (newSpell) {
-                    _addSpell(spell, descriptionController.text, reachController.text, durationController.text);
+                    _addSpell(spell, descriptionController.text,
+                        reachController.text, durationController.text);
                   } else {
-                    _updateSpell(spell, descriptionController.text, reachController.text, durationController.text);
+                    _updateSpell(spell, descriptionController.text,
+                        reachController.text, durationController.text);
                   }
                   Navigator.of(context).pop(true);
                 },
-                child: const Text('Speichern'),
+                child: Text(loc.save),
               ),
             ),
           ],
@@ -249,26 +270,28 @@ class SpellEditingPageState extends State<SpellEditingPage> {
   }
 
   void _showDeleteConfirmationDialog(Spell spell) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Bestätigen Sie die Löschung'),
+          title: Text(loc.confirmdelete),
           content: Text(
-              'Sind Sie sicher, dass Sie "${spell.name}" löschen möchten?'),
+            loc.confirmItemDelete(spell.name),
+          ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Abbrechen'),
+              child: Text(loc.abort),
             ),
             TextButton(
               onPressed: () {
                 _deleteSpell(spell.uuid!);
                 Navigator.of(context).pop(true);
               },
-              child: const Text('Löschen'),
+              child: Text(loc.delete),
             ),
           ],
         );
@@ -277,21 +300,25 @@ class SpellEditingPageState extends State<SpellEditingPage> {
   }
 
   Widget _buildSpellDetailForm(
-      Spell spell, TextEditingController descriptionController, TextEditingController reach, TextEditingController duration) {
+      Spell spell,
+      TextEditingController descriptionController,
+      TextEditingController reach,
+      TextEditingController duration) {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildTextField(
-          label: 'Zaubername',
+          label: loc.spellname,
           controller: TextEditingController(text: spell.name),
           onChanged: (value) => spell.name = value,
         ),
         const SizedBox(height: 16),
-        _buildDescriptionTextField(descriptionController, 'Beschreibung', 4),
+        _buildDescriptionTextField(descriptionController, loc.description, 4),
         const SizedBox(height: 16),
-        _buildDescriptionTextField(reach, 'Reichweite', 1),
+        _buildDescriptionTextField(reach, loc.reach, 1),
         const SizedBox(height: 16),
-        _buildDescriptionTextField(duration, 'Dauer', 1),
+        _buildDescriptionTextField(duration, loc.duration, 1),
         const SizedBox(height: 16),
         _buildLevelDropdown(spell),
         const SizedBox(height: 16),
@@ -300,7 +327,8 @@ class SpellEditingPageState extends State<SpellEditingPage> {
     );
   }
 
-  Widget _buildDescriptionTextField(TextEditingController controller, String label, int maxLines) {
+  Widget _buildDescriptionTextField(
+      TextEditingController controller, String label, int maxLines) {
     return TextField(
       controller: controller,
       maxLines: maxLines,
@@ -327,16 +355,17 @@ class SpellEditingPageState extends State<SpellEditingPage> {
   }
 
   Widget _buildLevelDropdown(Spell spell) {
+    final loc = AppLocalizations.of(context)!;
     return DropdownButtonFormField<int>(
       value: spell.level,
-      decoration: const InputDecoration(
-        labelText: 'Level',
-        border: OutlineInputBorder(),
+      decoration: InputDecoration(
+        labelText: loc.level,
+        border: const OutlineInputBorder(),
       ),
       items: List.generate(10, (index) => index).map((int level) {
         return DropdownMenuItem<int>(
           value: level,
-          child: Text(level == 0 ? 'Zaubertrick' : 'Level $level'),
+          child: Text(level == 0 ? loc.cantrip : '${loc.level} $level'),
         );
       }).toList(),
       onChanged: (value) {
@@ -350,12 +379,13 @@ class SpellEditingPageState extends State<SpellEditingPage> {
   }
 
   Widget _buildStatusDropdown(Spell spell) {
+    final loc = AppLocalizations.of(context)!;
     const List<String> statuses = [Defines.spellPrep, Defines.spellKnown];
 
     return DropdownButtonFormField<String>(
       value: spell.status,
-      decoration: const InputDecoration(
-        labelText: 'Status',
+      decoration: InputDecoration(
+        labelText: loc.status,
         border: OutlineInputBorder(),
       ),
       items: statuses.map((String status) {
@@ -374,9 +404,11 @@ class SpellEditingPageState extends State<SpellEditingPage> {
     );
   }
 
-  void _updateSpell(Spell spell, String description, String? reach, String? duration) {
+  void _updateSpell(
+      Spell spell, String description, String? reach, String? duration) {
+    final loc = AppLocalizations.of(context)!;
     final finalDescription =
-        description.isEmpty ? "Keine Beschreibung vorhanden" : description;
+        description.isEmpty ? loc.nodescription : description;
 
     final finalReach = reach ?? "";
     final finalDuration = duration ?? "";
@@ -396,9 +428,11 @@ class SpellEditingPageState extends State<SpellEditingPage> {
     });
   }
 
-  void _addSpell(Spell spell, String description, String? reach, String? duration) {
+  void _addSpell(
+      Spell spell, String description, String? reach, String? duration) {
+    final loc = AppLocalizations.of(context)!;
     final finalDescription =
-        description.isEmpty ? "Keine Beschreibung vorhanden" : description;
+        description.isEmpty ? loc.nodescription : description;
 
     final finalReach = spell.reach ?? "";
     final finalDuration = spell.duration ?? "";

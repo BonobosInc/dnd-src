@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:dnd/configs/colours.dart';
 import 'package:dnd/classes/profile_manager.dart';
 import 'spell_editing_view.dart';
+import 'package:dnd/l10n/app_localizations.dart';
 
 class SpellManagementPage extends StatefulWidget {
   final ProfileManager profileManager;
@@ -97,12 +98,13 @@ class SpellManagementPageState extends State<SpellManagementPage> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Zauber'),
+        title: Text(loc.spell),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: Icon(Icons.settings, color: AppColors.accentPurple),
             onPressed: () async {
               await Navigator.push(
                 context,
@@ -130,6 +132,7 @@ class SpellManagementPageState extends State<SpellManagementPage> {
   }
 
   Widget _buildSpellcastingFields() {
+    final loc = AppLocalizations.of(context)!;
     return SizedBox(
       width: 300,
       height: 200,
@@ -141,7 +144,7 @@ class SpellManagementPageState extends State<SpellManagementPage> {
         children: [
           _buildTextField(
             controller: _spellAttackController,
-            label: 'Zauber Angriff',
+            label: loc.spellattack,
             hint: '',
             onChanged: (value) =>
                 _updateField(Defines.statSpellAttackBonus, value),
@@ -149,21 +152,21 @@ class SpellManagementPageState extends State<SpellManagementPage> {
           ),
           _buildTextField(
             controller: _spellDcController,
-            label: 'Zauberrettungswurf-SG',
+            label: loc.spelldc,
             hint: '',
             onChanged: (value) => _updateField(Defines.statSpellSaveDC, value),
             isIntegerField: true,
           ),
           _buildTextField(
             controller: _spellcastingClassController,
-            label: 'Zauberwirkende Klasse',
+            label: loc.spellclass,
             hint: '',
             onChanged: (value) =>
                 _updateField(Defines.infoSpellcastingClass, value),
           ),
           _buildTextField(
             controller: _spellcastingAbilityController,
-            label: 'Zauberattribut',
+            label: loc.spellcastingability,
             hint: '',
             onChanged: (value) =>
                 _updateField(Defines.infoSpellcastingAbility, value),
@@ -244,51 +247,75 @@ class SpellManagementPageState extends State<SpellManagementPage> {
   }
 
   Widget _buildSpellLevelFields() {
+    final loc = AppLocalizations.of(context)!;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Determine columns based on screen width
+    int crossAxisCount;
+    if (screenWidth > 1200) {
+      crossAxisCount = 3; // Large tablets/desktop - 3 columns
+    } else if (screenWidth > 600) {
+      crossAxisCount = 2; // Tablets/foldables - 2 columns
+    } else {
+      crossAxisCount = 1; // Phones - 1 column
+    }
+
     return SingleChildScrollView(
-      child: Column(
-        children: [
-          for (int levelIndex = 0;
-              levelIndex < spellLevels.length;
-              levelIndex++)
-            Center(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      if (levelIndex > 0) {
-                        _editSpellSlots(levelIndex);
-                      }
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (levelIndex > 0) ...[
-                          _buildDecrementButton(levelIndex),
-                        ],
-                        Text(
-                          levelIndex == 0
-                              ? 'Zaubertrick'
-                              : 'Level $levelIndex ',
-                          style: TextStyle(
-                            color: AppColors.textColorLight,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Wrap(
+            spacing: 16.0,
+            runSpacing: 16.0,
+            alignment: WrapAlignment.center,
+            children: [
+              for (int levelIndex = 0;
+                  levelIndex < spellLevels.length;
+                  levelIndex++)
+                SizedBox(
+                  width: (constraints.maxWidth / crossAxisCount) - (16.0 * (crossAxisCount - 1) / crossAxisCount),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          if (levelIndex > 0) {
+                            _editSpellSlots(levelIndex);
+                          }
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (levelIndex > 0) ...[
+                              _buildDecrementButton(levelIndex),
+                            ],
+                            Flexible(
+                              child: Text(
+                                levelIndex == 0
+                                    ? loc.cantrip
+                                    : '${loc.level} $levelIndex ',
+                                style: TextStyle(
+                                  color: AppColors.textColorLight,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (levelIndex > 0) ...[
+                              _buildSpellSlotControls(levelIndex),
+                            ],
+                          ],
                         ),
-                        if (levelIndex > 0) ...[
-                          _buildSpellSlotControls(levelIndex),
-                        ],
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 14),
+                      ..._buildSpellNames(levelIndex),
+                      const SizedBox(height: 8),
+                    ],
                   ),
-                  const SizedBox(height: 14),
-                  ..._buildSpellNames(levelIndex),
-                  const SizedBox(height: 8),
-                ],
-              ),
-            ),
-        ],
+                ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -311,7 +338,7 @@ class SpellManagementPageState extends State<SpellManagementPage> {
         }
 
         return IconButton(
-          icon: const Icon(Icons.remove),
+          icon: Icon(Icons.remove, color: AppColors.warningColor),
           onPressed: () {
             if (currentSlots > 0) {
               setState(() {
@@ -353,7 +380,7 @@ class SpellManagementPageState extends State<SpellManagementPage> {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.add),
+              icon: Icon(Icons.add, color: AppColors.currentHealth),
               onPressed: () {
                 if (currentSlots < totalSlots) {
                   setState(() {
@@ -404,10 +431,24 @@ class SpellManagementPageState extends State<SpellManagementPage> {
               decoration: BoxDecoration(
                 color: AppColors.cardColor,
                 borderRadius: BorderRadius.circular(10.0),
-                border: Border.all(color: AppColors.borderColor, width: 1.0),
+                border: Border.all(
+                  color: [
+                    AppColors.textColorDark,
+                    AppColors.accentPurple,
+                    AppColors.accentOrange,
+                    AppColors.accentTeal,
+                    AppColors.accentPink,
+                    AppColors.accentCyan,
+                    AppColors.accentYellow,
+                    AppColors.currentHealth,
+                    AppColors.tempHealth,
+                    AppColors.warningColor,
+                  ][levelIndex % 10],
+                  width: 2.0,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withAlpha((0.2 * 255).toInt()),
                     offset: const Offset(2, 2),
                     blurRadius: 4.0,
                     spreadRadius: 1.0,
@@ -434,21 +475,17 @@ class SpellManagementPageState extends State<SpellManagementPage> {
     }
 
     return [
-      Center(
-        child: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.7,
-          child: Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 8.0,
-            runSpacing: 8.0,
-            children: fields,
-          ),
-        ),
+      Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 8.0,
+        runSpacing: 8.0,
+        children: fields,
       ),
     ];
   }
 
   void _showSpellDescription(String spellName, Map<String, dynamic> spellData) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -458,24 +495,24 @@ class SpellManagementPageState extends State<SpellManagementPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Reichweite: ",
+                Text("${loc.reach}: ",
                     style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(spellData['reach'] ?? 'Nicht angegeben'),
+                Text(spellData['reach'] ?? loc.unknown),
                 SizedBox(height: 8.0),
-                Text("Dauer: ", style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(spellData['duration'] ?? 'Nicht angegeben'),
+                Text("${loc.duration}: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(spellData['duration'] ?? loc.unknown),
                 SizedBox(height: 8.0),
-                Text("Beschreibung: ",
+                Text("${loc.description}: ",
                     style: TextStyle(fontWeight: FontWeight.bold)),
                 Text(
-                    spellData['description'] ?? 'Keine Beschreibung gefunden.'),
+                    spellData['description'] ?? loc.nodescription),
               ],
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Schließen'),
+              child: Text(loc.close),
             ),
           ],
         );
@@ -484,6 +521,7 @@ class SpellManagementPageState extends State<SpellManagementPage> {
   }
 
   void _editSpellSlots(int levelIndex) async {
+    final loc = AppLocalizations.of(context)!;
     int totalSlots = 0;
     int currentSlots = 0;
 
@@ -510,7 +548,7 @@ class SpellManagementPageState extends State<SpellManagementPage> {
           builder: (context, setState) {
             return AlertDialog(
               title: Text(
-                'Zauberplätze für Level ${levelIndex == 0 ? "Zaubertricks" : levelIndex}',
+                '${loc.spellslotsforlevel} ${levelIndex == 0 ? loc.cantrip : levelIndex}',
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -518,7 +556,7 @@ class SpellManagementPageState extends State<SpellManagementPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Gesamt:'),
+                      Text('${loc.total}:'),
                       Row(
                         children: [
                           IconButton(
@@ -545,7 +583,7 @@ class SpellManagementPageState extends State<SpellManagementPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Aktuell:'),
+                      Text('${loc.current}:'),
                       Row(
                         children: [
                           IconButton(
@@ -574,7 +612,7 @@ class SpellManagementPageState extends State<SpellManagementPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Abbrechen'),
+                  child: Text(loc.abort),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -591,7 +629,7 @@ class SpellManagementPageState extends State<SpellManagementPage> {
                     }
                     if (context.mounted) Navigator.of(context).pop();
                   },
-                  child: const Text('Speichern'),
+                  child: Text(loc.save),
                 ),
               ],
             );

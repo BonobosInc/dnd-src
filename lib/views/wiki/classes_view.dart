@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dnd/classes/wiki_classes.dart';
+import 'package:dnd/l10n/app_localizations.dart';
 
 class ClassDetailPage extends StatefulWidget {
   final ClassData classData;
@@ -94,6 +95,7 @@ class ClassDetailPageState extends State<ClassDetailPage> {
   }
 
   Widget _buildClassInfo() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -102,19 +104,20 @@ class ClassDetailPageState extends State<ClassDetailPage> {
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
-        Text('Trefferwürfel: ${widget.classData.hd}'),
-        Text('Fähigkeiten: ${widget.classData.proficiency}'),
-        Text('Anzahl Skills: ${widget.classData.numSkills}'),
+        Text('${loc.hitdice}: ${widget.classData.hd}'),
+        Text('${loc.abilities}: ${widget.classData.proficiency}'),
+        Text('${loc.numskills}: ${widget.classData.numSkills}'),
         const SizedBox(height: 10),
       ],
     );
   }
 
   Widget _buildSpellSlotsTable() {
+    final loc = AppLocalizations.of(context)!;
     return ExpansionTile(
       shape: const Border(),
       key: _firstExpansionTileKey,
-      title: const Text('Zauberplätze'),
+      title: Text(loc.spellslots),
       children: [
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -231,6 +234,7 @@ class ClassDetailPageState extends State<ClassDetailPage> {
     Set<FeatureData> selectedFeatures,
     void Function(FeatureData feature, bool isSelected) onFeatureSelected,
   ) {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -239,7 +243,7 @@ class ClassDetailPageState extends State<ClassDetailPage> {
           title: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Text(
-              'Level $level',
+              '${loc.level} $level',
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ),
@@ -288,9 +292,10 @@ class ClassDetailPageState extends State<ClassDetailPage> {
   }
 
   Future<void> onFeatureSelected(FeatureData feat, bool isSelected) async {
+    final loc = AppLocalizations.of(context)!;
     setState(() {
       if (isSelected) {
-        feat.type = "Klasse";
+        feat.type = loc.classKey;
         selectedFeatures.add(feat);
       } else {
         selectedFeatures.remove(feat);
@@ -311,6 +316,7 @@ class FeatureDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Text(featureData.name),
@@ -325,9 +331,9 @@ class FeatureDetailPage extends StatelessWidget {
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            const Text(
-              'Beschreibung:',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Text(
+              '${loc.description}:',
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 5),
             Text(featureData.description),
@@ -340,7 +346,7 @@ class FeatureDetailPage extends StatelessWidget {
                 final newFeature =
                     await _showAddFeatureDialog(context, featureData);
                 if (newFeature != null && context.mounted) {
-                  newFeature.type = "Klasse";
+                  newFeature.type = loc.classKey;
                   Navigator.of(context).pop();
                   Navigator.of(context).pop();
                   Navigator.of(context).pop(newFeature);

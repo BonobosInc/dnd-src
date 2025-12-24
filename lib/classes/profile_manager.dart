@@ -767,6 +767,7 @@ class ProfileManager {
     String? damage,
     String? damagetype,
     String? description,
+    int? attunement,
   }) async {
     if (currentDb == null) return;
 
@@ -785,6 +786,7 @@ class ProfileManager {
       'damage': damage,
       'damagetype': damagetype,
       'description': description,
+      'attunement': attunement ?? 0,
     };
 
     if (existingWeaponList.isNotEmpty) {
@@ -817,6 +819,7 @@ class ProfileManager {
     String? damage,
     String? damagetype,
     String? description,
+    int? attunement,
   }) async {
     if (currentDb == null) return;
 
@@ -829,6 +832,7 @@ class ProfileManager {
       'damage': damage,
       'damagetype': damagetype,
       'description': description,
+      'attunement': attunement ?? 0,
     };
 
     try {
@@ -1030,6 +1034,7 @@ class ProfileManager {
     String? description,
     String? type,
     int? amount,
+    int? attunement,
   }) async {
     if (currentDb == null) return;
 
@@ -1044,6 +1049,7 @@ class ProfileManager {
       'description': description,
       'type': type,
       'amount': amount,
+      'attunement': attunement ?? 0,
     };
 
     if (existingItemList.isNotEmpty) {
@@ -1073,6 +1079,7 @@ class ProfileManager {
     String? description,
     String? type,
     int? amount,
+    int? attunement,
   }) async {
     if (currentDb == null) return;
 
@@ -1084,6 +1091,7 @@ class ProfileManager {
       'description': description,
       'type': type,
       'amount': itemAmount,
+      'attunement': attunement ?? 0,
     };
 
     try {
@@ -1770,12 +1778,15 @@ class ProfileManager {
     final document = XmlDocument.parse(xmlString);
     List<FeatureData> features = [];
 
-    void parseFeats(Iterable<XmlElement> featElements, String type) {
+    void parseFeats(Iterable<XmlElement> featElements, [String? defaultType]) {
       for (final feat in featElements) {
         final name = feat.findElements('name').first.innerText;
         final description = feat.findElements('text').isNotEmpty
             ? feat.findElements('text').first.innerText
             : feat.findElements('description').first.innerText;
+        final type = feat.findElements('type').isNotEmpty
+            ? feat.findElements('type').first.innerText
+            : (defaultType ?? 'Sonstige');
 
         features.add(FeatureData(
           name: name,
@@ -1886,6 +1897,10 @@ class ProfileManager {
       Defines.statInitiative: parseIntStat('initiative'),
       Defines.statSpellSaveDC: parseIntStat('spellSaveDC'),
       Defines.statSpellAttackBonus: parseIntStat('spellAttackBonus'),
+      Defines.statMovement: document.findAllElements('movement').isNotEmpty
+          ? document.findAllElements('movement').first.innerText
+          : "",
+      Defines.statAttunmentCount: parseIntStat('attunementCount'),
     };
 
     int getLevelFromDocument(XmlDocument document) {
@@ -2029,10 +2044,8 @@ class ProfileManager {
       Defines.infoAppearance: getText('info', Defines.infoAppearance),
       Defines.infoBackstory: getText('info', Defines.infoBackstory),
       Defines.infoNotes: getText('info', Defines.infoNotes),
-      Defines.infoSpellcastingClass:
-          getText('info', Defines.infoSpellcastingClass),
-      Defines.infoSpellcastingAbility:
-          getText('info', Defines.infoSpellcastingAbility),
+      Defines.infoSpellcastingClass: getText('info', "spellcastingClass"),
+      Defines.infoSpellcastingAbility: getText('info', "spellcastingAbility"),
     };
   }
 
@@ -2241,21 +2254,29 @@ class ProfileManager {
       if (!isInsideClassTag) {
         final weaponElements = weaponsElement.findAllElements('weapon');
         for (final weaponElement in weaponElements) {
-          final name = weaponElement.findElements('name').isNotEmpty
-              ? weaponElement.findElements('name').first.innerText
-              : '';
-          final attackBonus =
-              weaponElement.findElements('attackBonus').isNotEmpty
-                  ? weaponElement.findElements('attackBonus').first.innerText
-                  : '';
-          final damage = weaponElement.findElements('damage').isNotEmpty
-              ? weaponElement.findElements('damage').first.innerText
-              : '';
+          final name = weaponElement.getElement('name')?.innerText ?? '';
+          final attribute =
+              weaponElement.getElement('attribute')?.innerText ?? '';
+          final reach = weaponElement.getElement('reach')?.innerText ?? '';
+          final bonus =
+              weaponElement.getElement('attackBonus')?.innerText ?? '';
+          final damage = weaponElement.getElement('damage')?.innerText ?? '';
+          final damageType =
+              weaponElement.getElement('damageType')?.innerText ?? '';
+          final description =
+              weaponElement.getElement('description')?.innerText ?? '';
+          final attunement =
+              weaponElement.getElement('attunement')?.innerText ?? '';
 
           attacks.add({
             'name': name,
-            'attackBonus': attackBonus,
+            'attribute': attribute,
+            'reach': reach,
+            'bonus': bonus,
             'damage': damage,
+            'damageType': damageType,
+            'description': description,
+            'attunement': attunement,
           });
         }
       }
@@ -2275,12 +2296,16 @@ class ProfileManager {
       final damageType = attackElement.findElements('damageType').isNotEmpty
           ? attackElement.findElements('damageType').first.innerText
           : '';
+      final attunement = attackElement.findElements('attunement').isNotEmpty
+          ? attackElement.findElements('attunement').first.innerText
+          : '';
 
       attacks.add({
         'name': name,
         'attackBonus': attackBonus,
         'damage': damage,
         'damageType': damageType,
+        'attunement': attunement,
       });
     }
 
@@ -2323,11 +2348,17 @@ class ProfileManager {
           ? itemElement.findElements('quantity').first.innerText
           : '1';
 
+      final attunementElement =
+          itemElement.findElements('attunement').isNotEmpty
+              ? itemElement.findElements('attunement').first.innerText
+              : '';
+
       items.add({
         'name': name,
         if (detailElement != null) 'detail': detailElement,
         'type': typeElement,
         'amount': amountElement,
+        'attunement': attunementElement,
       });
     }
 
@@ -2336,64 +2367,25 @@ class ProfileManager {
 
   Map<String, int> parseSavingThrows(String xmlString) {
     final document = XmlDocument.parse(xmlString);
-
     final Map<String, int> savingThrows = {};
+    final savingthrowsElement =
+        document.findAllElements('savingthrows').isNotEmpty
+            ? document.findAllElements('savingthrows').first
+            : null;
 
-    final savingthrowsElement = document.findElements('savingthrows').isNotEmpty
-        ? document.findElements('savingthrows').first
-        : null;
+    final saveKeys = [
+      Defines.saveStr,
+      Defines.saveDex,
+      Defines.saveCon,
+      Defines.saveInt,
+      Defines.saveWis,
+      Defines.saveCha,
+    ];
 
-    if (savingthrowsElement == null) {
-      savingThrows[Defines.saveStr] = 0;
-      savingThrows[Defines.saveDex] = 0;
-      savingThrows[Defines.saveCon] = 0;
-      savingThrows[Defines.saveInt] = 0;
-      savingThrows[Defines.saveWis] = 0;
-      savingThrows[Defines.saveCha] = 0;
-    } else {
-      final saveStr = savingthrowsElement
-              .findElements(Defines.saveStr)
-              .isNotEmpty
-          ? int.parse(
-              savingthrowsElement.findElements(Defines.saveStr).first.innerText)
-          : 0;
-      final saveDex = savingthrowsElement
-              .findElements(Defines.saveDex)
-              .isNotEmpty
-          ? int.parse(
-              savingthrowsElement.findElements(Defines.saveDex).first.innerText)
-          : 0;
-      final saveCon = savingthrowsElement
-              .findElements(Defines.saveCon)
-              .isNotEmpty
-          ? int.parse(
-              savingthrowsElement.findElements(Defines.saveCon).first.innerText)
-          : 0;
-      final saveInt = savingthrowsElement
-              .findElements(Defines.saveInt)
-              .isNotEmpty
-          ? int.parse(
-              savingthrowsElement.findElements(Defines.saveInt).first.innerText)
-          : 0;
-      final saveWis = savingthrowsElement
-              .findElements(Defines.saveWis)
-              .isNotEmpty
-          ? int.parse(
-              savingthrowsElement.findElements(Defines.saveWis).first.innerText)
-          : 0;
-      final saveCha = savingthrowsElement
-              .findElements(Defines.saveCha)
-              .isNotEmpty
-          ? int.parse(
-              savingthrowsElement.findElements(Defines.saveCha).first.innerText)
-          : 0;
-
-      savingThrows[Defines.saveStr] = saveStr;
-      savingThrows[Defines.saveDex] = saveDex;
-      savingThrows[Defines.saveCon] = saveCon;
-      savingThrows[Defines.saveInt] = saveInt;
-      savingThrows[Defines.saveWis] = saveWis;
-      savingThrows[Defines.saveCha] = saveCha;
+    for (final key in saveKeys) {
+      final value =
+          savingthrowsElement?.findElements(key).firstOrNull?.innerText;
+      savingThrows[key] = int.tryParse(value ?? '0') ?? 0;
     }
 
     return savingThrows;
@@ -2705,6 +2697,11 @@ class ProfileManager {
     await updateStats(
         field: Defines.statCurrentHitDice,
         value: parsedStats[Defines.statCurrentHitDice]);
+    await updateStats(
+        field: Defines.statMovement, value: parsedStats[Defines.statMovement]);
+    await updateStats(
+        field: Defines.statAttunmentCount,
+        value: parsedStats[Defines.statAttunmentCount] ?? 0);
   }
 
   Future<void> _importProfileInfo(Map<String, dynamic> parsedInfos) async {
@@ -2806,12 +2803,15 @@ class ProfileManager {
     for (final weapon in parsedWeapons) {
       await addWeapon(
         weapon: weapon['name']!,
-        bonus: weapon['attackBonus'],
+        bonus: weapon['bonus'],
         damage: weapon['damage'],
         reach: weapon['reach'],
         attribute: weapon['attribute'],
         damagetype: weapon['damageType'],
         description: weapon['description'],
+        attunement: weapon['attunement'] != null
+            ? int.tryParse(weapon['attunement'].toString()) ?? 0
+            : 0,
       );
     }
   }
@@ -2839,6 +2839,9 @@ class ProfileManager {
         description: item['detail'],
         type: item['type'],
         amount: amount,
+        attunement: item['attunement'] != null
+            ? int.tryParse(item['attunement'].toString()) ?? 0
+            : 0,
       );
     }
   }
@@ -2975,6 +2978,8 @@ class ProfileManager {
           addStatElement('level', stats[Defines.statLevel]);
           addStatElement('hdCurrent', stats[Defines.statCurrentHitDice]);
           addStatElement('hd', stats[Defines.statMaxHitDice]);
+          addStatElement('movement', stats[Defines.statMovement]);
+          addStatElement('attunementCount', stats[Defines.statAttunmentCount]);
         }
       });
 
@@ -3094,13 +3099,16 @@ class ProfileManager {
             if (weapon['damage'] != null && weapon['damage']!.isNotEmpty) {
               builder.element('damage', nest: weapon['damage']);
             }
-            if (weapon['damageType'] != null &&
-                weapon['damageType']!.isNotEmpty) {
-              builder.element('damageType', nest: weapon['damageType']);
+            if (weapon['damagetype'] != null &&
+                weapon['damagetype']!.isNotEmpty) {
+              builder.element('damageType', nest: weapon['damagetype']);
             }
             if (weapon['description'] != null &&
                 weapon['description']!.isNotEmpty) {
               builder.element('description', nest: weapon['description']);
+            }
+            if (weapon['attunement'] != null) {
+              builder.element('attunement', nest: weapon['attunement']);
             }
           });
         }
@@ -3127,6 +3135,13 @@ class ProfileManager {
 
             final amount = item['amount'] ?? 1;
             builder.element('quantity', nest: amount.toString());
+
+            final attunement = item['attunement'] ?? '';
+            if (attunement != null) {
+              builder.element('attunement', nest: attunement);
+            } else {
+              builder.element('attunement', nest: 0);
+            }
           });
         }
       });
@@ -3329,9 +3344,8 @@ class ProfileManager {
     /* Infos */
     filledValues["Charaktername_page1"] = infos.first[Defines.infoName];
     filledValues["Charaktername_page2"] = infos.first[Defines.infoName];
-    filledValues["KlasseUndStufe"] = infos.first[Defines.infoClass] +
-        " " +
-        stats.first[Defines.statLevel].toString();
+    filledValues["KlasseUndStufe"] =
+        "${infos.first[Defines.infoClass]} ${stats.first[Defines.statLevel]}";
     filledValues["Hintergrund"] = infos.first[Defines.infoBackground];
     filledValues["Volk"] = infos.first[Defines.infoRace];
     filledValues["Erfahrungspunkte"] = stats.first[Defines.statXP].toString();

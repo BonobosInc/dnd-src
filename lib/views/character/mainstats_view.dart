@@ -7,13 +7,16 @@ import 'package:dnd/views/wiki/creatures_view.dart';
 import 'package:flutter/material.dart';
 import 'package:dnd/classes/profile_manager.dart';
 import 'package:dnd/configs/defines.dart';
+import 'package:dnd/l10n/app_localizations.dart';
+import 'package:dnd/classes/session_manager.dart';
 
 class MainStatsPage extends StatefulWidget {
   final ProfileManager profileManager;
   final WikiParser wikiParser;
+  final VoidCallback? onStatsChanged;
 
   const MainStatsPage(
-      {super.key, required this.profileManager, required this.wikiParser});
+      {super.key, required this.profileManager, required this.wikiParser, this.onStatsChanged});
 
   @override
   MainStatsPageState createState() => MainStatsPageState();
@@ -32,6 +35,7 @@ class MainStatsPageState extends State<MainStatsPage> {
   int inspiration = 0;
   int proficiencyBonus = 0;
   int initiative = 0;
+  int initiative_bonus = 0;
   String movement = '0m';
 
   Timer? _timer;
@@ -41,23 +45,26 @@ class MainStatsPageState extends State<MainStatsPage> {
   List<Creature> creatures = [];
 
   List<Condition> statusEffects = [];
-  List<String> conditionOptions = [
-    'Blind', // Blinded
-    'Festgesetzt', // Restrained
-    'Betäubt', // Stunned
-    'Gelähmt', // Paralyzed
-    'Erschöpfung', // Exhaustion
-    'Vergiftet', // Poisoned
-    'Verängstigt', // Frightened
-    'Gepackt', // Grappled
-    'Versteinert', // Petrified
-    'Bezaubert', // Charmed
-    'Taub', // Deafened
-    'Bewusstlos', // Unconscious
-    'Liegend', // Prone
-    'Kampfunfähig', // Incapacitated
-    'Unsichtbar', // Invisible
-  ];
+  List<String> getConditionOptions(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    return [
+      loc.conditionBlind,
+      loc.conditionRestrained,
+      loc.conditionStunned,
+      loc.conditionParalyzed,
+      loc.conditionExhaustion,
+      loc.conditionPoisoned,
+      loc.conditionFrightened,
+      loc.conditionGrappled,
+      loc.conditionPetrified,
+      loc.conditionCharmed,
+      loc.conditionDeafened,
+      loc.conditionUnconscious,
+      loc.conditionProne,
+      loc.conditionIncapacitated,
+      loc.conditionInvisible,
+    ];
+  }
 
   @override
   void initState() {
@@ -79,14 +86,27 @@ class MainStatsPageState extends State<MainStatsPage> {
         tempHP = characterData[Defines.statTempHP];
         armor = characterData[Defines.statArmor];
         inspiration = characterData[Defines.statInspiration];
-        proficiencyBonus = characterData[Defines.statProficiencyBonus];
-        initiative = characterData[Defines.statInitiative];
+        proficiencyBonus = _calculateProficiencyBonus(
+            int.tryParse(characterData[Defines.statLevel].toString()) ?? 1);
+        initiative = (((characterData[Defines.statDEX] is int
+                        ? characterData[Defines.statDEX]
+                        : int.tryParse(
+                                characterData[Defines.statDEX].toString()) ??
+                            10) -
+                    10) /
+                2)
+            .floor();
+        initiative_bonus = characterData[Defines.statInitiativeBonus] ?? 0;
         movement = characterData[Defines.statMovement].toString();
         currentHitDice = characterData[Defines.statCurrentHitDice];
         maxHitDice = characterData[Defines.statMaxHitDice];
         healFactor = characterData[Defines.statHitDiceFactor];
       });
     }
+    await widget.profileManager.updateStats(
+        field: Defines.statProficiencyBonus, value: proficiencyBonus);
+    await widget.profileManager
+        .updateStats(field: Defines.statInitiative, value: initiative);
   }
 
   void refreshContent() {
@@ -94,6 +114,14 @@ class MainStatsPageState extends State<MainStatsPage> {
     _loadTrackers();
     _loadConditions();
     _fetchCreatures();
+  }
+
+  int _calculateProficiencyBonus(int level) {
+    if (level >= 17) return 6;
+    if (level >= 13) return 5;
+    if (level >= 9) return 4;
+    if (level >= 5) return 3;
+    return 2;
   }
 
   Future<void> _loadConditions() async {
@@ -172,6 +200,7 @@ class MainStatsPageState extends State<MainStatsPage> {
         }
       }
     });
+    widget.onStatsChanged?.call();
   }
 
   void _decrementHP() {
@@ -184,6 +213,7 @@ class MainStatsPageState extends State<MainStatsPage> {
         _updateStat(Defines.statCurrentHP, currentHP);
       }
     });
+    widget.onStatsChanged?.call();
   }
 
   void _startIncrementingC(int index) {
@@ -198,11 +228,6 @@ class MainStatsPageState extends State<MainStatsPage> {
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       _decrementCreatureHP(index);
     });
-  }
-
-  void _stopTimerC() {
-    _timer?.cancel();
-    _timer = null;
   }
 
   void _incrementCreatureHP(int index) {
@@ -231,11 +256,42 @@ class MainStatsPageState extends State<MainStatsPage> {
 
   Future<void> _updateStat(String field, dynamic value) async {
     await widget.profileManager.updateStats(field: field, value: value);
+
+    // Send updated stats to server if connected to a session
+    await _sendStatsToServer();
+  }
+
+  Future<void> _sendStatsToServer() async {
+    final sessionManager = SessionManager();
+    if (sessionManager.isConnected) {
+      try {
+        final stats = await widget.profileManager.getStats();
+        if (stats.isNotEmpty) {
+          final hp = stats.first['currenthp'] as int?;
+          final maxHp = stats.first['maxhp'] as int?;
+          final tempHp = stats.first['temphp'] as int?;
+          final ac = stats.first['armor'] as int?;
+
+          if (hp != null && ac != null) {
+            await sessionManager.client!.sendStats({
+              'HP': hp,
+              'maxHP': maxHp,
+              'tempHP': tempHp ?? 0,
+              'AC': ac,
+            });
+            print('📤 Sent updated stats to server: HP=$hp/$maxHp, TempHP=$tempHp, AC=$ac');
+          }
+        }
+      } catch (e) {
+        print('❌ Error sending stats to server: $e');
+      }
+    }
   }
 
   Future<void> _showEditStatDialog(
       String statName, String field, dynamic currentValue,
       {bool isCount = false}) async {
+    final loc = AppLocalizations.of(context)!;
     dynamic newValue = currentValue;
 
     TextEditingController controller =
@@ -255,7 +311,9 @@ class MainStatsPageState extends State<MainStatsPage> {
                       ? Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Wert:'),
+                            Text(field == Defines.statInitiativeBonus
+                                ? '${loc.bonus}:'
+                                : '${loc.value}:'),
                             Row(
                               children: [
                                 IconButton(
@@ -294,7 +352,7 @@ class MainStatsPageState extends State<MainStatsPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text("Abbrechen"),
+                  child: Text(loc.abort),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -310,8 +368,8 @@ class MainStatsPageState extends State<MainStatsPage> {
                       if (field == Defines.statProficiencyBonus) {
                         proficiencyBonus = int.tryParse(newValue.toString())!;
                       }
-                      if (field == Defines.statInitiative) {
-                        initiative = int.tryParse(newValue.toString())!;
+                      if (field == Defines.statInitiativeBonus) {
+                        initiative_bonus = int.tryParse(newValue.toString())!;
                       }
                       if (field == Defines.statMovement) {
                         movement = newValue;
@@ -321,7 +379,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                     await _loadCharacterData();
                     if (context.mounted) Navigator.of(context).pop();
                   },
-                  child: const Text("Speichern"),
+                  child: Text(loc.save),
                 ),
               ],
             );
@@ -332,6 +390,7 @@ class MainStatsPageState extends State<MainStatsPage> {
   }
 
   void _showEditCreatureHPDialog(int index) {
+    final loc = AppLocalizations.of(context)!;
     TextEditingController hpController = TextEditingController(
       text: creatures[index].currentHP.toString(),
     );
@@ -343,19 +402,19 @@ class MainStatsPageState extends State<MainStatsPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("HP für ${creatures[index].name}"),
+          title: Text("${loc.hpfor} ${creatures[index].name}"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildTextField(
-                label: 'Aktuelle HP',
+                label: loc.currenthp,
                 controller: hpController,
                 onChanged: (value) {},
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 10),
               _buildTextField(
-                label: 'Maximale HP',
+                label: loc.maxhp,
                 controller: maxHpController,
                 onChanged: (value) {},
                 keyboardType: TextInputType.number,
@@ -367,7 +426,7 @@ class MainStatsPageState extends State<MainStatsPage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Abbrechen'),
+              child: Text(loc.abort),
             ),
             TextButton(
               onPressed: () {
@@ -384,7 +443,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                 });
                 Navigator.of(context).pop();
               },
-              child: const Text('Speichern'),
+              child: Text(loc.save),
             ),
           ],
         );
@@ -393,6 +452,7 @@ class MainStatsPageState extends State<MainStatsPage> {
   }
 
   Future<void> _showEditHpDialog() async {
+    final loc = AppLocalizations.of(context)!;
     int newCurrentHP = currentHP;
     int newMaxHP = maxHP;
     int newTempHP = tempHP;
@@ -413,7 +473,7 @@ class MainStatsPageState extends State<MainStatsPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildTextField(
-                  label: "Aktuelle HP",
+                  label: loc.currenthp,
                   controller: currentHpController,
                   onChanged: (value) {
                     newCurrentHP = int.tryParse(value) ?? currentHP;
@@ -421,7 +481,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                   keyboardType: TextInputType.number),
               const SizedBox(height: 8),
               _buildTextField(
-                  label: "Max HP",
+                  label: loc.maxhp,
                   controller: maxHpController,
                   onChanged: (value) {
                     newMaxHP = int.tryParse(value) ?? maxHP;
@@ -429,7 +489,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                   keyboardType: TextInputType.number),
               const SizedBox(height: 8),
               _buildTextField(
-                  label: "Temp HP",
+                  label: loc.temphp,
                   controller: tempHpController,
                   onChanged: (value) {
                     newTempHP = int.tryParse(value) ?? tempHP;
@@ -440,7 +500,7 @@ class MainStatsPageState extends State<MainStatsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Abbrechen"),
+              child: Text(loc.abort),
             ),
             TextButton(
               onPressed: () async {
@@ -457,9 +517,11 @@ class MainStatsPageState extends State<MainStatsPage> {
                   tempHP = newTempHP;
                 });
 
+                widget.onStatsChanged?.call();
+
                 if (context.mounted) Navigator.of(context).pop();
               },
-              child: const Text("Speichern"),
+              child: Text(loc.save),
             ),
           ],
         );
@@ -468,6 +530,7 @@ class MainStatsPageState extends State<MainStatsPage> {
   }
 
   Future<void> _addNewTracker() async {
+    final loc = AppLocalizations.of(context)!;
     String newTrackerName = '';
     int newTrackerValue = 0;
     int newTrackerMaxValue = 0;
@@ -479,12 +542,12 @@ class MainStatsPageState extends State<MainStatsPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text("Neuen Tracker erstellen"),
+              title: Text(loc.addtracker),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildTextField(
-                    label: "Tracker",
+                    label: loc.tracker,
                     controller: TextEditingController(text: newTrackerName),
                     onChanged: (value) {
                       newTrackerName = value;
@@ -492,17 +555,17 @@ class MainStatsPageState extends State<MainStatsPage> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: newTrackerType,
-                    items: const [
-                      DropdownMenuItem(value: 'never', child: Text('Niemals')),
+                    initialValue: newTrackerType,
+                    items: [
+                      DropdownMenuItem(value: 'never', child: Text(loc.never)),
                       DropdownMenuItem(
-                          value: 'long', child: Text('Lange Rast')),
+                          value: 'long', child: Text(loc.longrest)),
                       DropdownMenuItem(
-                          value: 'short', child: Text('Kurze Rast')),
+                          value: 'short', child: Text(loc.shortrest)),
                     ],
-                    decoration: const InputDecoration(
-                      labelText: 'Zurücksetzen',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: loc.reset,
+                      border: const OutlineInputBorder(),
                     ),
                     onChanged: (value) {
                       setState(() {
@@ -514,7 +577,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Aktueller Wert:'),
+                      Text('${loc.currentvalue}:'),
                       Row(
                         children: [
                           IconButton(
@@ -543,7 +606,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Maximaler Wert:'),
+                      Text('${loc.maximumvalue}:'),
                       Row(
                         children: [
                           IconButton(
@@ -574,7 +637,7 @@ class MainStatsPageState extends State<MainStatsPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text("Abbrechen"),
+                  child: Text(loc.abort),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -589,13 +652,13 @@ class MainStatsPageState extends State<MainStatsPage> {
                       if (context.mounted) Navigator.of(context).pop();
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
+                        SnackBar(
                             content:
-                                Text("Bitte einen Tracker-Namen eingeben.")),
+                                Text(loc.entertrackername)),
                       );
                     }
                   },
-                  child: const Text("Hinzufügen"),
+                  child: Text(loc.save),
                 ),
               ],
             );
@@ -606,6 +669,7 @@ class MainStatsPageState extends State<MainStatsPage> {
   }
 
   Future<void> _editTracker(Tracker tracker) async {
+    final loc = AppLocalizations.of(context)!;
     String editedTrackerName = tracker.tracker;
     int editedValue = tracker.value ?? 0;
     int editedMaxValue = tracker.max ?? 0;
@@ -624,7 +688,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildTextField(
-                    label: "Tracker Name",
+                    label: loc.trackername,
                     controller: TextEditingController(text: editedTrackerName),
                     onChanged: (value) {
                       editedTrackerName = value;
@@ -632,17 +696,15 @@ class MainStatsPageState extends State<MainStatsPage> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: editedTrackerType,
-                    items: const [
-                      DropdownMenuItem(value: 'never', child: Text('Niemals')),
-                      DropdownMenuItem(
-                          value: 'long', child: Text('Lange Rast')),
-                      DropdownMenuItem(
-                          value: 'short', child: Text('Kurze Rast')),
+                    initialValue: editedTrackerType,
+                    items: [
+                      DropdownMenuItem(value: 'never', child: Text(loc.never)),
+                      DropdownMenuItem(value: 'long', child: Text(loc.longrest)),
+                      DropdownMenuItem(value: 'short', child: Text(loc.shortrest)),
                     ],
-                    decoration: const InputDecoration(
-                      labelText: 'Zurücksetzen',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: loc.reset,
+                      border: const OutlineInputBorder(),
                     ),
                     onChanged: (value) {
                       setState(() {
@@ -654,7 +716,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Aktueller Wert:'),
+                      Text('${loc.currentvalue}:'),
                       Row(
                         children: [
                           IconButton(
@@ -681,7 +743,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Maximaler Wert:'),
+                      Text('${loc.maximumvalue}:'),
                       Row(
                         children: [
                           IconButton(
@@ -710,7 +772,7 @@ class MainStatsPageState extends State<MainStatsPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Abbrechen'),
+                  child: Text(loc.abort),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -725,7 +787,7 @@ class MainStatsPageState extends State<MainStatsPage> {
 
                     if (context.mounted) Navigator.of(context).pop();
                   },
-                  child: const Text('Speichern'),
+                  child: Text(loc.save),
                 ),
               ],
             );
@@ -736,6 +798,7 @@ class MainStatsPageState extends State<MainStatsPage> {
   }
 
   Future<void> _addCondition() async {
+    final loc = AppLocalizations.of(context)!;
     String? selectedCondition;
     int? newConditionUUID;
 
@@ -745,21 +808,21 @@ class MainStatsPageState extends State<MainStatsPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text("Neue Bedingung hinzufügen"),
+              title: Text(loc.addcondition),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButtonFormField<String>(
-                    value: selectedCondition,
-                    items: conditionOptions.map((condition) {
+                    initialValue: selectedCondition,
+                    items: getConditionOptions(context).map((condition) {
                       return DropdownMenuItem<String>(
                         value: condition,
                         child: Text(condition),
                       );
                     }).toList(),
-                    decoration: const InputDecoration(
-                      labelText: 'Bedingung auswählen',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: loc.addcondition,
+                      border: const OutlineInputBorder(),
                     ),
                     onChanged: (value) {
                       setState(() {
@@ -773,7 +836,7 @@ class MainStatsPageState extends State<MainStatsPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text("Abbrechen"),
+                  child: Text(loc.abort),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -789,12 +852,12 @@ class MainStatsPageState extends State<MainStatsPage> {
                       if (context.mounted) Navigator.of(context).pop();
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text("Bitte eine Bedingung auswählen.")),
+                        SnackBar(
+                            content: Text(loc.choosecondition)),
                       );
                     }
                   },
-                  child: const Text("Hinzufügen"),
+                  child: Text(loc.save),
                 ),
               ],
             );
@@ -805,6 +868,7 @@ class MainStatsPageState extends State<MainStatsPage> {
   }
 
   void _editCondition(Condition condition) async {
+    final loc = AppLocalizations.of(context)!;
     String? selectedCondition = condition.condition;
     int? conditionUUID = condition.uuid;
 
@@ -814,21 +878,21 @@ class MainStatsPageState extends State<MainStatsPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text("Bedingung bearbeiten"),
+              title: Text(loc.editcondition),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButtonFormField<String>(
-                    value: selectedCondition,
-                    items: conditionOptions.map((condition) {
+                    initialValue: selectedCondition,
+                    items: getConditionOptions(context).map((condition) {
                       return DropdownMenuItem<String>(
                         value: condition,
                         child: Text(condition),
                       );
                     }).toList(),
-                    decoration: const InputDecoration(
-                      labelText: 'Bedingung auswählen',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: loc.editcondition,
+                      border: const OutlineInputBorder(),
                     ),
                     onChanged: (value) {
                       setState(() {
@@ -842,7 +906,7 @@ class MainStatsPageState extends State<MainStatsPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text("Abbrechen"),
+                  child: Text(loc.abort),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -860,13 +924,13 @@ class MainStatsPageState extends State<MainStatsPage> {
                       if (context.mounted) Navigator.of(context).pop();
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Bitte eine Bedingung auswählen."),
+                        SnackBar(
+                          content: Text(loc.choosecondition),
                         ),
                       );
                     }
                   },
-                  child: const Text("Speichern"),
+                  child: Text(loc.save),
                 ),
               ],
             );
@@ -952,6 +1016,7 @@ class MainStatsPageState extends State<MainStatsPage> {
   }
 
   Future<void> _showEditHitDiceDialog() async {
+    final loc = AppLocalizations.of(context)!;
     int newCurrentHitDice = currentHitDice;
     int newMaxHitDice = maxHitDice;
     String newHealFactor = healFactor;
@@ -962,12 +1027,12 @@ class MainStatsPageState extends State<MainStatsPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text("Hit Dice"),
+              title: Text(loc.hitdice),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildTextField(
-                    label: "Heilungsfaktor",
+                    label: loc.healfactor,
                     controller: TextEditingController(text: healFactor),
                     onChanged: (value) {
                       newHealFactor = value;
@@ -978,7 +1043,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Aktuelle Hit Dice:'),
+                      Text('${loc.currenthitdice}:'),
                       Row(
                         children: [
                           IconButton(
@@ -1010,7 +1075,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Max Hit Dice:'),
+                      Text('${loc.maxhitdice}:'),
                       Row(
                         children: [
                           IconButton(
@@ -1039,7 +1104,7 @@ class MainStatsPageState extends State<MainStatsPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text("Abbrechen"),
+                  child: Text(loc.abort),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -1060,7 +1125,7 @@ class MainStatsPageState extends State<MainStatsPage> {
 
                     if (context.mounted) Navigator.of(context).pop();
                   },
-                  child: const Text("Speichern"),
+                  child: Text(loc.save),
                 ),
               ],
             );
@@ -1082,506 +1147,527 @@ class MainStatsPageState extends State<MainStatsPage> {
 
   @override
   Widget build(BuildContext context) {
-    double healthBarWidth = MediaQuery.of(context).size.width - 32;
-    double currentHPWidth =
-        maxHP > 0 ? (currentHP / maxHP) * healthBarWidth : 0;
+    return SafeArea(child: LayoutBuilder(builder: (context, constraints) {
+      final loc = AppLocalizations.of(context)!;
+      final double screenWidth = constraints.maxWidth;
 
-    double tempHPWidth = maxHP > 0 ? (tempHP / maxHP) * healthBarWidth : 0;
+      final double healthBarWidth = screenWidth - 32;
+      final double currentHPWidth =
+          maxHP > 0 ? (currentHP / maxHP) * healthBarWidth : 0;
+      final double tempHPWidth =
+          maxHP > 0 ? (tempHP / maxHP) * healthBarWidth : 0;
 
-    final screenWidth = MediaQuery.of(context).size.width;
-    int itemsPerRow = 3;
-    double itemWidth = 100.0;
+      int itemsPerRow;
+      double itemWidth;
 
-    if (screenWidth >= 800) {
-      itemsPerRow = 5;
-      itemWidth = (screenWidth - 64) / itemsPerRow;
-    } else if (screenWidth >= 600) {
-      itemsPerRow = 4;
-      itemWidth = (screenWidth - 64) / itemsPerRow;
-    } else if (screenWidth >= 400) {
-      itemsPerRow = 3;
-      itemWidth = (screenWidth - 32) / itemsPerRow;
-    } else {
-      itemsPerRow = 2;
-      itemWidth = (screenWidth - 32) / itemsPerRow;
-    }
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Lebenspunkte',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          Divider(color: AppColors.textColorLight, thickness: 1.5),
-          Row(
-            children: [
-              GestureDetector(
-                onTap: _showEditHpDialog,
-                child: Text(
-                  tempHP > 0
-                      ? '$currentHP/$maxHP + $tempHP Temp'
-                      : '$currentHP/$maxHP',
-                  style: const TextStyle(fontSize: 18),
-                ),
-              ),
-              const Spacer(),
-              GestureDetector(
-                onLongPressStart: (_) => _startDecrementing(),
-                onLongPressEnd: (_) => _stopTimer(),
-                child: IconButton(
-                  icon: const Icon(Icons.remove),
-                  onPressed: _decrementHP,
-                ),
-              ),
-              GestureDetector(
-                onLongPressStart: (_) => _startIncrementing(),
-                onLongPressEnd: (_) => _stopTimer(),
-                child: IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: _incrementHP,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          GestureDetector(
-            onTap: _showEditHpDialog,
-            child: Stack(
+      if (screenWidth >= 800) {
+        itemsPerRow = 5;
+        itemWidth = (screenWidth - 64) / itemsPerRow;
+      } else if (screenWidth >= 600) {
+        itemsPerRow = 4;
+        itemWidth = (screenWidth - 64) / itemsPerRow;
+      } else if (screenWidth >= 400) {
+        itemsPerRow = 3;
+        itemWidth = (screenWidth - 32) / itemsPerRow;
+      } else {
+        itemsPerRow = 2;
+        itemWidth = (screenWidth - 32) / itemsPerRow;
+      }
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              loc.hp,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            Divider(color: AppColors.textColorLight, thickness: 1.5),
+            Row(
               children: [
-                Container(
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: AppColors.missingHealth,
-                    borderRadius: BorderRadius.circular(5),
+                GestureDetector(
+                  onTap: _showEditHpDialog,
+                  child: Text(
+                    tempHP > 0
+                        ? '$currentHP/$maxHP + $tempHP Temp'
+                        : '$currentHP/$maxHP',
+                    style: const TextStyle(fontSize: 18),
                   ),
                 ),
-                Positioned(
-                  left: 0,
-                  child: Container(
+                const Spacer(),
+                GestureDetector(
+                  onLongPressStart: (_) => _startDecrementing(),
+                  onLongPressEnd: (_) => _stopTimer(),
+                  child: IconButton(
+                    icon: const Icon(Icons.remove),
+                    onPressed: _decrementHP,
+                  ),
+                ),
+                GestureDetector(
+                  onLongPressStart: (_) => _startIncrementing(),
+                  onLongPressEnd: (_) => _stopTimer(),
+                  child: IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: _incrementHP,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: _showEditHpDialog,
+              child: Stack(
+                children: [
+                  Container(
                     height: 20,
-                    width: currentHPWidth,
                     decoration: BoxDecoration(
-                      color: AppColors.currentHealth,
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(5),
-                        bottomLeft: const Radius.circular(5),
-                        topRight: (currentHP == maxHP)
-                            ? const Radius.circular(5)
-                            : Radius.zero,
-                        bottomRight: (currentHP == maxHP)
-                            ? const Radius.circular(5)
-                            : Radius.zero,
-                      ),
+                      color: AppColors.missingHealth,
+                      borderRadius: BorderRadius.circular(5),
                     ),
                   ),
-                ),
-                if (tempHP > 0)
                   Positioned(
                     left: 0,
                     child: Container(
                       height: 20,
-                      width: tempHPWidth,
+                      width: currentHPWidth,
                       decoration: BoxDecoration(
-                        color: AppColors.tempHealth,
+                        color: AppColors.currentHealth,
                         borderRadius: BorderRadius.only(
                           topLeft: const Radius.circular(5),
                           bottomLeft: const Radius.circular(5),
-                          topRight: (tempHP == maxHP)
+                          topRight: (currentHP == maxHP)
                               ? const Radius.circular(5)
                               : Radius.zero,
-                          bottomRight: (tempHP == maxHP)
+                          bottomRight: (currentHP == maxHP)
                               ? const Radius.circular(5)
                               : Radius.zero,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (tempHP > 0)
+                    Positioned(
+                      left: 0,
+                      child: Container(
+                        height: 20,
+                        width: tempHPWidth,
+                        decoration: BoxDecoration(
+                          color: AppColors.tempHealth,
+                          borderRadius: BorderRadius.only(
+                            topLeft: const Radius.circular(5),
+                            bottomLeft: const Radius.circular(5),
+                            topRight: (tempHP == maxHP)
+                                ? const Radius.circular(5)
+                                : Radius.zero,
+                            bottomRight: (tempHP == maxHP)
+                                ? const Radius.circular(5)
+                                : Radius.zero,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 25),
+
+            // Stats Section
+            Text(
+              loc.statistic,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            Divider(color: AppColors.textColorLight, thickness: 1.5),
+            const SizedBox(height: 8),
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildStatCard(loc.ac, armor, Defines.statArmor,
+                        isCount: true),
+                    _buildStatCard(
+                        loc.inspiration, inspiration, Defines.statInspiration,
+                        isCount: true),
+                    _buildStatCard(loc.proficiencyBonus, proficiencyBonus,
+                        Defines.statProficiencyBonus,
+                        isCount: true, isClickable: false),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildStatCard(
+                        loc.initiative, (initiative + initiative_bonus), Defines.statInitiativeBonus,
+                        isCount: true),
+                    _buildStatCard(
+                        loc.movement, movement, Defines.statMovement),
+                    _buildEditHitDiceCard(),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 25),
+
+            // Status Effects Section
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  loc.statuseffects,
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: _addCondition,
+                ),
+              ],
+            ),
+            Divider(color: AppColors.textColorLight, thickness: 1.5),
+            Column(
+              children: [
+                for (int i = 0; i < statusEffects.length; i += itemsPerRow)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          for (int j = i;
+                              j < i + itemsPerRow && j < statusEffects.length;
+                              j++)
+                            SizedBox(
+                              width: itemWidth,
+                              child: GestureDetector(
+                                onTap: () {
+                                  _editCondition(statusEffects[j]);
+                                },
+                                onLongPress: () {
+                                  _showDeleteConfirmationDialogCondition(
+                                      statusEffects[j]);
+                                },
+                                child: Column(
+                                  children: [
+                                    SizedBox(
+                                      height: 50,
+                                      child: Card(
+                                        color: AppColors.cardColor,
+                                        elevation: 3,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(6),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Center(
+                                            child: Text(
+                                              statusEffects[j].condition,
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 25),
+
+            // Trackers Section
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  loc.tracker,
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: _addNewTracker,
+                ),
+              ],
+            ),
+            Divider(color: AppColors.textColorLight, thickness: 1.5),
+            Column(
+              children: [
+                for (int i = 0; i < trackers.length; i += itemsPerRow)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          for (int j = i;
+                              j < i + itemsPerRow && j < trackers.length;
+                              j++)
+                            SizedBox(
+                              width: itemWidth,
+                              child: GestureDetector(
+                                onTap: () {
+                                  _editTracker(trackers[j]);
+                                },
+                                onLongPress: () {
+                                  _showDeleteConfirmationDialog(trackers[j]);
+                                },
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      trackers[j].tracker,
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: itemWidth,
+                                      child: Card(
+                                        color: AppColors.cardColor,
+                                        elevation: 3,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(6),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                trackers[j].value.toString(),
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+
+            // Creatures Section
+            const SizedBox(height: 25),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  loc.companion,
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: _addCreature,
+                ),
+              ],
+            ),
+            Divider(color: AppColors.textColorLight, thickness: 1.5),
+            Column(
+              children: [
+                for (int i = 0; i < creatures.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: GestureDetector(
+                      onLongPress: () {
+                        _showDeleteConfirmationDialogC(creatures[i]);
+                      },
+                      onTap: () {
+                        _editCreature(creatures[i]);
+                      },
+                      child: Card(
+                        color: AppColors.cardColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        elevation: 3,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      '${creatures[i].name} ${creatures[i].currentHP} / ${creatures[i].maxHP}',
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      GestureDetector(
+                                        onLongPressStart: (_) =>
+                                            _startDecrementingC(i),
+                                        onLongPressEnd: (_) => _stopTimer(),
+                                        child: IconButton(
+                                          icon: const Icon(Icons.remove),
+                                          onPressed: () {
+                                            _decrementCreatureHP(i);
+                                          },
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onLongPressStart: (_) =>
+                                            _startIncrementingC(i),
+                                        onLongPressEnd: (_) => _stopTimer(),
+                                        child: IconButton(
+                                          icon: const Icon(Icons.add),
+                                          onPressed: () {
+                                            _incrementCreatureHP(i);
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  _showEditCreatureHPDialog(i);
+                                },
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    double cardWidth = constraints.maxWidth;
+                                    double greenBarWidth = 0;
+
+                                    if (creatures[i].maxHP > 0) {
+                                      greenBarWidth = (creatures[i].currentHP /
+                                              creatures[i].maxHP) *
+                                          cardWidth;
+                                      greenBarWidth =
+                                          greenBarWidth.clamp(0.0, cardWidth);
+                                    }
+
+                                    return Stack(
+                                      children: [
+                                        Container(
+                                          height: 20,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF581B10),
+                                            borderRadius:
+                                                BorderRadius.circular(5),
+                                          ),
+                                        ),
+                                        Positioned(
+                                          left: 0,
+                                          child: Container(
+                                            height: 20,
+                                            width: greenBarWidth,
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF1B6533),
+                                              borderRadius:
+                                                  BorderRadius.circular(5),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
               ],
             ),
-          ),
 
-          const SizedBox(height: 25),
-
-          // Stats Section
-          const Text(
-            'Statistik',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          Divider(color: AppColors.textColorLight, thickness: 1.5),
-          const SizedBox(height: 8),
-          Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildStatCard('Rüstungsklasse', armor, Defines.statArmor,
-                      isCount: true),
-                  _buildStatCard(
-                      'Inspiration', inspiration, Defines.statInspiration,
-                      isCount: true),
-                  _buildStatCard('Übungsbonus', proficiencyBonus,
-                      Defines.statProficiencyBonus,
-                      isCount: true),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildStatCard(
-                      'Initiative', initiative, Defines.statInitiative,
-                      isCount: true),
-                  _buildStatCard(
-                      'Bewegungsrate', movement, Defines.statMovement),
-                  _buildEditHitDiceCard(),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 25),
-
-          // Status Effects Section
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Status Effekte',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: _addCondition,
-              ),
-            ],
-          ),
-          Divider(color: AppColors.textColorLight, thickness: 1.5),
-          Column(
-            children: [
-              for (int i = 0; i < statusEffects.length; i += itemsPerRow)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        for (int j = i;
-                            j < i + itemsPerRow && j < statusEffects.length;
-                            j++)
-                          SizedBox(
-                            width: itemWidth,
-                            child: GestureDetector(
-                              onTap: () {
-                                _editCondition(statusEffects[j]);
-                              },
-                              onLongPress: () {
-                                _showDeleteConfirmationDialogCondition(
-                                    statusEffects[j]);
-                              },
-                              child: Column(
-                                children: [
-                                  SizedBox(
-                                    height: 50,
-                                    child: Card(
-                                      elevation: 3,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Center(
-                                          child: Text(
-                                            statusEffects[j].condition,
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 25),
-
-          // Trackers Section
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Tracker',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: _addNewTracker,
-              ),
-            ],
-          ),
-          Divider(color: AppColors.textColorLight, thickness: 1.5),
-          Column(
-            children: [
-              for (int i = 0; i < trackers.length; i += itemsPerRow)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        for (int j = i;
-                            j < i + itemsPerRow && j < trackers.length;
-                            j++)
-                          SizedBox(
-                            width: itemWidth,
-                            child: GestureDetector(
-                              onTap: () {
-                                _editTracker(trackers[j]);
-                              },
-                              onLongPress: () {
-                                _showDeleteConfirmationDialog(trackers[j]);
-                              },
-                              child: Column(
-                                children: [
-                                  Text(
-                                    trackers[j].tracker,
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: itemWidth,
-                                    child: Card(
-                                      elevation: 3,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              trackers[j].value.toString(),
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-
-          // Creatures Section
-          const SizedBox(height: 25),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Begleiter',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: _addCreature,
-              ),
-            ],
-          ),
-          Divider(color: AppColors.textColorLight, thickness: 1.5),
-          Column(
-            children: [
-              for (int i = 0; i < creatures.length; i++)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: GestureDetector(
-                    onLongPress: () {
-                      _showDeleteConfirmationDialogC(creatures[i]);
-                    },
-                    onTap: () {
-                      _editCreature(creatures[i]);
-                    },
-                    child: Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      elevation: 3,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    '${creatures[i].name} ${creatures[i].currentHP} / ${creatures[i].maxHP}',
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    GestureDetector(
-                                      onLongPressStart: (_) =>
-                                          _startDecrementingC(i),
-                                      onLongPressEnd: (_) => _stopTimer(),
-                                      child: IconButton(
-                                        icon: const Icon(Icons.remove),
-                                        onPressed: () {
-                                          _decrementCreatureHP(i);
-                                        },
-                                      ),
-                                    ),
-                                    GestureDetector(
-                                      onLongPressStart: (_) =>
-                                          _startIncrementingC(i),
-                                      onLongPressEnd: (_) => _stopTimer(),
-                                      child: IconButton(
-                                        icon: const Icon(Icons.add),
-                                        onPressed: () {
-                                          _incrementCreatureHP(i);
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                _showEditCreatureHPDialog(i);
-                              },
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  double cardWidth = constraints.maxWidth;
-                                  double greenBarWidth = 0;
-
-                                  if (creatures[i].maxHP > 0) {
-                                    greenBarWidth = (creatures[i].currentHP /
-                                            creatures[i].maxHP) *
-                                        cardWidth;
-                                    greenBarWidth =
-                                        greenBarWidth.clamp(0.0, cardWidth);
-                                  }
-
-                                  return Stack(
-                                    children: [
-                                      Container(
-                                        height: 20,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF581B10),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        ),
-                                      ),
-                                      Positioned(
-                                        left: 0,
-                                        child: Container(
-                                          height: 20,
-                                          width: greenBarWidth,
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF1B6533),
-                                            borderRadius:
-                                                BorderRadius.circular(5),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(String name, dynamic value, dynamic statType,
-      {bool isCount = false}) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          _showEditStatDialog(name, statType, value, isCount: isCount);
-        },
-        child: Column(
-          children: [
-            Text(
-              name,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(
-              height: 50,
-              child: Card(
-                elevation: 3,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Center(
-                    child: Text(
-                      '$value',
-                      style: const TextStyle(
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            const SizedBox(height: 8),
           ],
         ),
-      ),
+      );
+    }));
+  }
+
+  Widget _buildStatCard(
+    String name,
+    dynamic value,
+    dynamic statType, {
+    bool isCount = false,
+    bool isClickable = true,
+  }) {
+    Widget cardContent = Column(
+      children: [
+        Text(
+          name,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(
+          height: 50,
+          child: Card(
+            color: AppColors.cardColor,
+            elevation: 3,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Center(
+                child: Text(
+                  '$value',
+                  style: const TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+
+    return Expanded(
+      child: isClickable
+          ? GestureDetector(
+              onTap: () {
+                if (statType == Defines.statInitiativeBonus) value = initiative_bonus;
+                _showEditStatDialog(name, statType, value, isCount: isCount);
+              },
+              child: cardContent,
+            )
+          : cardContent,
     );
   }
 
   Widget _buildEditHitDiceCard() {
+    final loc = AppLocalizations.of(context)!;
     return Expanded(
       child: GestureDetector(
         onTap: _showEditHitDiceDialog,
         child: Column(
           children: [
             Text(
-              'Hit Dice $healFactor',
+              '${loc.hitdice} $healFactor',
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
@@ -1590,6 +1676,7 @@ class MainStatsPageState extends State<MainStatsPage> {
             SizedBox(
               height: 50,
               child: Card(
+                color: AppColors.cardColor,
                 elevation: 3,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
@@ -1619,22 +1706,23 @@ class MainStatsPageState extends State<MainStatsPage> {
   }
 
   void _showDeleteConfirmationDialog(Tracker tracker) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Tracker löschen'),
+          title: Text(loc.deletetracker),
           content: Text(
-              'Bist du sicher, dass du "${tracker.tracker}" löschen willst?'),
+            loc.confirmItemDelete(tracker.tracker)),
           actions: [
             TextButton(
-              child: const Text('Abbrechen'),
+              child: Text(loc.abort),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Löschen'),
+              child: Text(loc.delete),
               onPressed: () {
                 _removeTracker(tracker.uuid);
                 Navigator.of(context).pop();
@@ -1647,22 +1735,23 @@ class MainStatsPageState extends State<MainStatsPage> {
   }
 
   void _showDeleteConfirmationDialogCondition(Condition condition) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Statuseffekt löschen'),
+          title: Text(loc.deletestatuseffect),
           content: Text(
-              'Bist du sicher, dass du "${condition.condition}" löschen willst?'),
+              loc.confirmItemDelete(condition.condition)),
           actions: [
             TextButton(
-              child: const Text('Abbrechen'),
+              child: Text(loc.abort),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Löschen'),
+              child: Text(loc.delete),
               onPressed: () {
                 _removeCondition(condition.uuid);
                 Navigator.of(context).pop();
@@ -1675,22 +1764,23 @@ class MainStatsPageState extends State<MainStatsPage> {
   }
 
   void _showDeleteConfirmationDialogC(Creature creature) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Begleiter löschen'),
+          title: Text(loc.deletecompanion),
           content: Text(
-              'Bist du sicher, dass du "${creature.name}" löschen willst?'),
+              loc.confirmItemDelete(creature.name)),
           actions: [
             TextButton(
-              child: const Text('Abbrechen'),
+              child: Text(loc.abort),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Löschen'),
+              child: Text(loc.delete),
               onPressed: () {
                 _removeCreature(creature.uuid);
                 Navigator.of(context).pop();

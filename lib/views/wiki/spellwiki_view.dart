@@ -3,6 +3,7 @@ import 'package:dnd/configs/defines.dart';
 import 'package:dnd/views/spell_editing_view.dart';
 import 'package:flutter/material.dart';
 import 'package:dnd/classes/wiki_classes.dart';
+import 'package:dnd/l10n/app_localizations.dart';
 
 class SpellDetailPage extends StatelessWidget {
   final SpellData spellData;
@@ -14,31 +15,33 @@ class SpellDetailPage extends StatelessWidget {
     this.importspell = false,
   });
 
-  String getSchoolFullName(String abbreviation) {
+  String getSchoolFullName(String abbreviation, BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     switch (abbreviation) {
       case 'T':
-        return 'Verwandlungszauber';
+        return loc.schoolTransmutation;
       case 'D':
-        return 'Weissagung';
+        return loc.schoolDivination;
       case 'EV':
-        return 'Hervorrufungszauber';
+        return loc.schoolEvocation;
       case 'EN':
-        return 'Verzauberungen';
+        return loc.schoolEnchantment;
       case 'C':
-        return 'Beschwörung';
+        return loc.schoolConjuration;
       case 'A':
-        return 'Bannmagie';
+        return loc.schoolAbjuration;
       case 'I':
-        return 'Illusion';
+        return loc.schoolIllusion;
       case 'N':
-        return 'Nekromantiezauber';
+        return loc.schoolNecromancy;
       default:
-        return 'Keine Schule';
+        return loc.schoolNone;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     final uniqueClasses = spellData.classes.toSet().toList();
     final classesString = uniqueClasses.join(', ');
 
@@ -56,22 +59,22 @@ class SpellDetailPage extends StatelessWidget {
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            Text('Level: ${spellData.level}'),
-            Text('Schule: ${getSchoolFullName(spellData.school)}'),
-            Text('Zauberzeit: ${spellData.time}'),
-            Text('Reichweite: ${spellData.range}'),
-            Text('Dauer: ${spellData.duration}'),
-            Text('Ritual: ${spellData.ritual}'),
-            Text('Komponenten: ${spellData.components}'),
+            Text('${loc.level}: ${spellData.level}'),
+            Text('${loc.school}: ${getSchoolFullName(spellData.school, context)}'),
+            Text('${loc.castingtime}: ${spellData.time}'),
+            Text('${loc.range}: ${spellData.range}'),
+            Text('${loc.duration}: ${spellData.duration}'),
+            Text('${loc.ritual}: ${spellData.ritual}'),
+            Text('${loc.components}: ${spellData.components}'),
             const SizedBox(height: 10),
             Text(
-              'Klassen: $classesString',
+              '${loc.classesKey}: $classesString',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            const Text(
-              'Beschreibung:',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Text(
+              '${loc.description}:',
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 5),
             Text(spellData.text),
@@ -116,8 +119,8 @@ class ClassSpellsPageState extends State<ClassSpellsPage> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
 
-  bool isSearchVisible = false; // Tracks the visibility of the search bar
-  String _searchText = ''; // Tracks the current search query
+  bool isSearchVisible = false;
+  String _searchText = '';
 
   @override
   void initState() {
@@ -157,20 +160,21 @@ class ClassSpellsPageState extends State<ClassSpellsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: isSearchVisible
             ? TextField(
                 controller: _searchController,
                 focusNode: _searchFocusNode,
-                decoration: const InputDecoration(
-                  hintText: 'Zauber durchsuchen...',
+                decoration: InputDecoration(
+                  hintText: '${loc.search}...',
                   border: InputBorder.none,
                   hintStyle: TextStyle(color: Colors.white54),
                 ),
                 style: const TextStyle(color: Colors.white),
               )
-            : Text('${widget.className} Zauber'),
+            : Text('${widget.className} ${loc.spell}'),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -227,8 +231,8 @@ class AllSpellsPageState extends State<AllSpellsPage> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
 
-  bool isSearchVisible = false; // Tracks the visibility of the search bar
-  String _searchText = ''; // Tracks the current search query
+  bool isSearchVisible = false;
+  String _searchText = '';
 
   @override
   void initState() {
@@ -268,20 +272,21 @@ class AllSpellsPageState extends State<AllSpellsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: isSearchVisible
             ? TextField(
                 controller: _searchController,
                 focusNode: _searchFocusNode,
-                decoration: const InputDecoration(
-                  hintText: 'Zauber durchsuchen...',
+                decoration: InputDecoration(
+                  hintText: '${loc.search}...',
                   border: InputBorder.none,
                   hintStyle: TextStyle(color: Colors.white54),
                 ),
                 style: const TextStyle(color: Colors.white),
               )
-            : const Text('Alle Zauber'),
+            : Text(loc.allspells),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -371,6 +376,7 @@ Widget buildCollapsibleSectionForSpells(
   Set<SpellData> selectedSpells,
   void Function(SpellData spell, bool isSelected) onSpellSelected,
 ) {
+  final loc = AppLocalizations.of(context)!;
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -379,7 +385,7 @@ Widget buildCollapsibleSectionForSpells(
         title: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Text(
-            level == "Zaubertrick" ? "Zaubertrick" : 'Level $level',
+            level == "Zaubertrick" ? loc.cantrip : '${loc.level} $level',
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
         ),
@@ -429,6 +435,7 @@ class ClassSelectionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     final groupedSpells = <String, List<SpellData>>{};
 
     for (var spell in spells) {
@@ -444,13 +451,13 @@ class ClassSelectionPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Wählen Sie eine Klasse'),
+        title: Text(loc.chooseclass),
         backgroundColor: AppColors.appBarColor,
       ),
       body: ListView(
         children: [
           ListTile(
-            title: const Text('Alle Zauber'),
+            title: Text(loc.allspells),
             onTap: () {
               Navigator.push(
                 context,
@@ -531,6 +538,7 @@ Future<Spell?> _showAddSpellDialog(
 
 Future<Spell?> _showSpellDialog(
     BuildContext context, Spell spell, bool isNewSpell) {
+  final loc = AppLocalizations.of(context)!;
   final TextEditingController descriptionController =
       TextEditingController(text: spell.description);
 
@@ -543,9 +551,10 @@ Future<Spell?> _showSpellDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
-        title: const Text('Zauber bearbeiten'),
+        title: Text(loc.editSpell),
         content: SingleChildScrollView(
-          child: _buildSpellDetailForm(spell, descriptionController, reachController, durationController),
+          child: _buildSpellDetailForm(spell, descriptionController,
+              reachController, durationController, loc),
         ),
         actions: [
           SizedBox(
@@ -554,7 +563,7 @@ Future<Spell?> _showSpellDialog(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Abbrechen'),
+              child: Text(loc.abort),
             ),
           ),
           SizedBox(
@@ -564,7 +573,7 @@ Future<Spell?> _showSpellDialog(
                 spell.description = descriptionController.text;
                 Navigator.of(context).pop(spell);
               },
-              child: const Text('Speichern'),
+              child: Text(loc.save),
             ),
           ),
         ],
@@ -577,37 +586,38 @@ Widget _buildSpellDetailForm(
     Spell spell,
     TextEditingController descriptionController,
     TextEditingController reach,
-    TextEditingController duration) {
+    TextEditingController duration, AppLocalizations loc) {
   return Column(
     mainAxisSize: MainAxisSize.min,
     children: [
       _buildTextField(
-        label: 'Zaubername',
+        label: loc.spellname,
         controller: TextEditingController(text: spell.name),
         onChanged: (value) => spell.name = value,
       ),
       const SizedBox(height: 16),
-      _buildDescriptionTextField(descriptionController, 'Beschreibung', 4),
+      _buildDescriptionTextField(descriptionController, loc.description, 4),
       const SizedBox(height: 16),
-      _buildDescriptionTextField(reach, 'Reichweite', 1),
+      _buildDescriptionTextField(reach, loc.reach, 1),
       const SizedBox(height: 16),
-      _buildDescriptionTextField(duration, 'Dauer', 1),
+      _buildDescriptionTextField(duration, loc.duration, 1),
       const SizedBox(height: 16),
-      _buildLevelDropdown(spell),
+      _buildLevelDropdown(spell, loc),
       const SizedBox(height: 16),
-      _buildStatusDropdown(spell),
+      _buildStatusDropdown(spell, loc),
     ],
   );
 }
 
-Widget _buildStatusDropdown(Spell spell) {
+Widget _buildStatusDropdown(Spell spell, AppLocalizations loc) {
+
   const List<String> statuses = [Defines.spellPrep, Defines.spellKnown];
 
   return DropdownButtonFormField<String>(
     value: spell.status,
-    decoration: const InputDecoration(
-      labelText: 'Status',
-      border: OutlineInputBorder(),
+    decoration: InputDecoration(
+      labelText: loc.status,
+      border: const OutlineInputBorder(),
     ),
     items: statuses.map((String status) {
       return DropdownMenuItem<String>(
@@ -623,17 +633,17 @@ Widget _buildStatusDropdown(Spell spell) {
   );
 }
 
-Widget _buildLevelDropdown(Spell spell) {
+Widget _buildLevelDropdown(Spell spell, AppLocalizations loc) {
   return DropdownButtonFormField<int>(
     value: spell.level,
-    decoration: const InputDecoration(
-      labelText: 'Level',
-      border: OutlineInputBorder(),
+    decoration: InputDecoration(
+      labelText: loc.level,
+      border: const OutlineInputBorder(),
     ),
     items: List.generate(10, (index) => index).map((int level) {
       return DropdownMenuItem<int>(
         value: level,
-        child: Text(level == 0 ? 'Zaubertrick' : 'Level $level'),
+        child: Text(level == 0 ? loc.cantrip : '${loc.level} $level'),
       );
     }).toList(),
     onChanged: (value) {

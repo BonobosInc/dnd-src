@@ -3,6 +3,12 @@ import 'package:dnd/views/character/mainstats_view.dart';
 import 'package:dnd/views/character/stats_view.dart';
 import 'package:dnd/views/appstatus.dart';
 import 'package:dnd/views/settings_view.dart';
+import 'package:dnd/views/session/client_view.dart';
+import 'package:dnd/views/session/host.dart';
+import 'package:dnd/views/session/session_view.dart';
+import 'package:dnd/classes/server.dart';
+import 'package:dnd/classes/client.dart';
+import 'package:dnd/classes/session_manager.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:dnd/classes/profile_manager.dart';
@@ -16,17 +22,22 @@ import 'package:dnd/configs/colours.dart';
 import 'spell_view.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:dnd/l10n/app_localizations.dart';
 
 class CharacterView extends StatefulWidget {
   final ProfileManager profileManager;
   final WikiParser wikiParser;
   final Character profile;
+  final DnDMulticastServer? server;
+  final DnDClient? client;
 
   const CharacterView({
     super.key,
     required this.profileManager,
     required this.wikiParser,
     required this.profile,
+    this.server,
+    this.client,
   });
 
   @override
@@ -37,8 +48,32 @@ class CharacterViewState extends State<CharacterView> {
   String name = "Charakter";
   int level = 0;
   int xp = 0;
+  final SessionManager _sessionManager = SessionManager();
 
   dynamic _profileImagePath = AssetImage('assets/images/default.png');
+
+  final List<int> xpThresholds = [
+    0,
+    300,
+    900,
+    2700,
+    6500,
+    14000,
+    23000,
+    34000,
+    48000,
+    64000,
+    85000,
+    100000,
+    120000,
+    140000,
+    165000,
+    195000,
+    225000,
+    265000,
+    305000,
+    355000,
+  ];
 
   GlobalKey<MainStatsPageState> mainStatsPageKey =
       GlobalKey<MainStatsPageState>();
@@ -47,11 +82,16 @@ class CharacterViewState extends State<CharacterView> {
   void initState() {
     super.initState();
     name = widget.profile.name;
-    _loadCharacterData();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadCharacterData();
+    });
     _getProfileImagePath();
   }
 
   Future<void> _loadCharacterData() async {
+    final loc = AppLocalizations.of(context)!;
+
     List<Map<String, dynamic>> result =
         await widget.profileManager.getProfileInfo();
     List<Map<String, dynamic>> stats = await widget.profileManager.getStats();
@@ -59,7 +99,7 @@ class CharacterViewState extends State<CharacterView> {
     if (result.isNotEmpty) {
       Map<String, dynamic> characterData = result.first;
       setState(() {
-        name = characterData[Defines.infoName] ?? "Unbekannter Charakter";
+        name = characterData[Defines.infoName] ?? loc.unknownchar;
       });
     }
     if (stats.isNotEmpty) {
@@ -71,7 +111,28 @@ class CharacterViewState extends State<CharacterView> {
     }
   }
 
+  // Send stats to server if connected to a session
+  Future<void> sendStatsToServer() async {
+    if (_sessionManager.isConnected && _sessionManager.client != null) {
+      final hp = mainStatsPageKey.currentState?.currentHP;
+      final maxHp = mainStatsPageKey.currentState?.maxHP;
+      final tempHp = mainStatsPageKey.currentState?.tempHP;
+      final ac = mainStatsPageKey.currentState?.armor;
+      print(
+          '📤 sendStatsToServer: HP=$hp, maxHP=$maxHp, tempHP=$tempHp, AC=$ac');
+      if (hp != null && ac != null) {
+        await _sessionManager.client!.sendStats({
+          'HP': hp,
+          'maxHP': maxHp,
+          'tempHP': tempHp ?? 0,
+          'AC': ac,
+        });
+      }
+    }
+  }
+
   void _showLevelDialog() {
+    final loc = AppLocalizations.of(context)!;
     showDialog<int>(
       context: context,
       builder: (BuildContext context) {
@@ -80,14 +141,14 @@ class CharacterViewState extends State<CharacterView> {
         return StatefulBuilder(
           builder: (BuildContext context, setStateDialog) {
             return AlertDialog(
-              title: const Text("Level"),
+              title: Text(loc.level),
               content: SizedBox(
                 width: 150,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.remove, size: 24),
+                      icon: Icon(Icons.remove, size: 24, color: AppColors.warningColor),
                       onPressed: () {
                         if (tempLevel > 1) {
                           setStateDialog(() {
@@ -101,7 +162,7 @@ class CharacterViewState extends State<CharacterView> {
                       style: const TextStyle(fontSize: 20),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.add, size: 24),
+                      icon: Icon(Icons.add, size: 24, color: AppColors.currentHealth),
                       onPressed: () {
                         if (tempLevel < 20) {
                           setStateDialog(() {
@@ -115,21 +176,32 @@ class CharacterViewState extends State<CharacterView> {
               ),
               actions: <Widget>[
                 TextButton(
-                  child: const Text("Abbrechen"),
+                  child: Text(loc.abort),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                 ),
                 TextButton(
-                  child: const Text("Speichern"),
+                  child: Text(loc.save),
                   onPressed: () async {
                     setState(() {
                       level = tempLevel;
+                      xp = xpThresholds[level - 1];
                     });
+
                     await widget.profileManager.updateStats(
                       field: Defines.statLevel,
                       value: level,
                     );
+                    await widget.profileManager.updateStats(
+                      field: Defines.statXP,
+                      value: xp,
+                    );
+
+                    if (mainStatsPageKey.currentState != null) {
+                      mainStatsPageKey.currentState!.refreshContent();
+                    }
+
                     if (context.mounted) Navigator.of(context).pop();
                   },
                 ),
@@ -142,6 +214,7 @@ class CharacterViewState extends State<CharacterView> {
   }
 
   void _showXPDialog() {
+    final loc = AppLocalizations.of(context)!;
     showDialog<int>(
       context: context,
       builder: (BuildContext context) {
@@ -150,9 +223,9 @@ class CharacterViewState extends State<CharacterView> {
             TextEditingController(text: tempXP.toString());
 
         return AlertDialog(
-          title: const Text("XP"),
+          title: Text(loc.xp),
           content: _buildTextField(
-            label: 'Gib die Anzahl deiner XP ein',
+            label: loc.enterxpamount,
             controller: controller,
             onChanged: (value) {
               tempXP = int.tryParse(value) ?? 0;
@@ -160,21 +233,28 @@ class CharacterViewState extends State<CharacterView> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text("Abbrechen"),
+              child: Text(loc.abort),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text("Speichern"),
+              child: Text(loc.save),
               onPressed: () async {
                 setState(() {
                   xp = tempXP;
+                  level = _calculateLevelFromXP(xp);
                 });
+
                 await widget.profileManager.updateStats(
                   field: Defines.statXP,
                   value: xp,
                 );
+                await widget.profileManager.updateStats(
+                  field: Defines.statLevel,
+                  value: level,
+                );
+
                 if (context.mounted) Navigator.of(context).pop();
               },
             ),
@@ -182,6 +262,13 @@ class CharacterViewState extends State<CharacterView> {
         );
       },
     );
+  }
+
+  int _calculateLevelFromXP(int xp) {
+    for (int i = xpThresholds.length - 1; i >= 0; i--) {
+      if (xp >= xpThresholds[i]) return i + 1;
+    }
+    return 1;
   }
 
   Future<List<Map<String, dynamic>>> _getSpellSlots() async {
@@ -205,8 +292,9 @@ class CharacterViewState extends State<CharacterView> {
   }
 
   Future<void> _longRest() async {
-    final shouldProceed = await _showConfirmationDialog(
-        'Lange Rast', 'Möchtest du wirklich eine lange Rast machen?');
+    final loc = AppLocalizations.of(context)!;
+    final shouldProceed =
+        await _showConfirmationDialog(loc.longrest, loc.longrestconfirm);
 
     if (!shouldProceed) return;
 
@@ -254,8 +342,9 @@ class CharacterViewState extends State<CharacterView> {
   }
 
   Future<void> _shortRest() async {
-    final shouldProceed = await _showConfirmationDialog(
-        'Kurze Rast', 'Möchtest du wirklich eine kurze Rast machen?');
+    final loc = AppLocalizations.of(context)!;
+    final shouldProceed =
+        await _showConfirmationDialog(loc.shortrest, loc.shortrestconfirm);
 
     if (!shouldProceed) return;
 
@@ -276,6 +365,7 @@ class CharacterViewState extends State<CharacterView> {
   }
 
   Future<bool> _showConfirmationDialog(String title, String message) async {
+    final loc = AppLocalizations.of(context)!;
     return await showDialog<bool>(
           context: context,
           builder: (BuildContext context) {
@@ -284,13 +374,13 @@ class CharacterViewState extends State<CharacterView> {
               content: Text(message),
               actions: <Widget>[
                 TextButton(
-                  child: Text('Nein'),
+                  child: Text(loc.no),
                   onPressed: () {
                     Navigator.of(context).pop(false);
                   },
                 ),
                 TextButton(
-                  child: Text('Ja'),
+                  child: Text(loc.yes),
                   onPressed: () {
                     Navigator.of(context).pop(true);
                   },
@@ -318,6 +408,7 @@ class CharacterViewState extends State<CharacterView> {
   }
 
   void _showProfileImageDialog(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -344,6 +435,10 @@ class CharacterViewState extends State<CharacterView> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accentTeal,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: () async {
                   final pickedFile = await FilePicker.platform.pickFiles(
                     type: FileType.image,
@@ -362,14 +457,18 @@ class CharacterViewState extends State<CharacterView> {
                     }
                   }
                 },
-                child: Text("Bild hinzufügen"),
+                child: Text(loc.addimage),
               ),
               SizedBox(height: 10),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.warningColor,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: () {
                   _showDeleteConfirmationDialog(context);
                 },
-                child: Text("Bild entfernen"),
+                child: Text(loc.deleteimage),
               ),
             ],
           ),
@@ -379,22 +478,22 @@ class CharacterViewState extends State<CharacterView> {
   }
 
   void _showDeleteConfirmationDialog(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Bild entfernen'),
-          content:
-              const Text('Bist du sicher, dass du das Bild entfernen willst?'),
+          title: Text(loc.deleteimage),
+          content: Text(loc.deleteimageconfirm),
           actions: [
             TextButton(
-              child: const Text('Abbrechen'),
+              child: Text(loc.abort),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Entfernen'),
+              child: Text(loc.delete),
               onPressed: () async {
                 if (_profileImagePath is File) {
                   File profileImageFile = _profileImagePath as File;
@@ -472,6 +571,7 @@ class CharacterViewState extends State<CharacterView> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return PopScope(
       onPopInvokedWithResult: (bool didPop, Object? result) {
         if (didPop) {
@@ -510,21 +610,61 @@ class CharacterViewState extends State<CharacterView> {
               ],
             ),
             backgroundColor: AppColors.appBarColor,
-            bottom: TabBar(
-              tabs: [
-                Tab(icon: Icon(MdiIcons.swordCross)),
-                const Tab(icon: Icon(Icons.list)),
-              ],
+            bottom: PreferredSize(
+              preferredSize: Size.fromHeight(48.0),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth < 600) {
+                    return TabBar(
+                      tabs: [
+                        Tab(icon: Icon(MdiIcons.swordCross)),
+                        Tab(icon: Icon(Icons.list)),
+                      ],
+                    );
+                  } else {
+                    return SizedBox.shrink();
+                  }
+                },
+              ),
             ),
           ),
-          body: TabBarView(
-            children: [
-              MainStatsPage(
-                  key: mainStatsPageKey,
-                  profileManager: widget.profileManager,
-                  wikiParser: widget.wikiParser),
-              StatsPage(profileManager: widget.profileManager),
-            ],
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              bool isWideScreen = constraints.maxWidth >= 600;
+              if (isWideScreen) {
+                return Row(
+                  children: [
+                    Expanded(
+                      child: MainStatsPage(
+                        key: mainStatsPageKey,
+                        profileManager: widget.profileManager,
+                        wikiParser: widget.wikiParser,
+                        onStatsChanged: sendStatsToServer,
+                      ),
+                    ),
+                    Expanded(
+                      child: StatsPage(
+                        profileManager: widget.profileManager,
+                      ),
+                    ),
+                  ],
+                );
+              } else {
+                return TabBarView(
+                  children: [
+                    MainStatsPage(
+                      key: mainStatsPageKey,
+                      profileManager: widget.profileManager,
+                      wikiParser: widget.wikiParser,
+                      onStatsChanged: sendStatsToServer,
+                    ),
+                    StatsPage(
+                      profileManager: widget.profileManager,
+                    ),
+                  ],
+                );
+              }
+            },
           ),
           endDrawer: SizedBox(
             width: 250,
@@ -553,7 +693,7 @@ class CharacterViewState extends State<CharacterView> {
                                     GestureDetector(
                                       onTap: _showLevelDialog,
                                       child: Text(
-                                        'Level: $level',
+                                        '${loc.level}: $level',
                                         style: TextStyle(
                                           color: AppColors.textColorLight,
                                           fontSize: 18,
@@ -583,17 +723,17 @@ class CharacterViewState extends State<CharacterView> {
                                       },
                                       itemBuilder: (BuildContext context) {
                                         return [
-                                          const PopupMenuItem<int>(
+                                          PopupMenuItem<int>(
                                             value: 1,
-                                            child: Text('Lange Rast'),
+                                            child: Text(loc.longrest),
                                           ),
-                                          const PopupMenuItem<int>(
+                                          PopupMenuItem<int>(
                                             value: 2,
-                                            child: Text('Kurze Rast'),
+                                            child: Text(loc.shortrest),
                                           ),
-                                          const PopupMenuItem<int>(
+                                          PopupMenuItem<int>(
                                             value: 3,
-                                            child: Text('Einstellungen'),
+                                            child: Text(loc.settings),
                                           ),
                                         ];
                                       },
@@ -603,7 +743,7 @@ class CharacterViewState extends State<CharacterView> {
                                 GestureDetector(
                                   onTap: _showXPDialog,
                                   child: Text(
-                                    'XP: $xp',
+                                    '${loc.xp}: $xp',
                                     style: TextStyle(
                                       color: AppColors.textColorLight,
                                       fontSize: 18,
@@ -616,8 +756,9 @@ class CharacterViewState extends State<CharacterView> {
                           ),
                         ),
                         ListTile(
+                          leading: Icon(Icons.auto_fix_high, color: AppColors.accentPurple),
                           title: Text(
-                            'Zauber',
+                            loc.spells,
                             style: TextStyle(color: AppColors.textColorLight),
                           ),
                           onTap: () {
@@ -634,8 +775,9 @@ class CharacterViewState extends State<CharacterView> {
                           },
                         ),
                         ListTile(
+                          leading: Icon(Icons.gavel, color: AppColors.accentOrange),
                           title: Text(
-                            'Waffen',
+                            loc.weapons,
                             style: TextStyle(color: AppColors.textColorLight),
                           ),
                           onTap: () {
@@ -651,8 +793,9 @@ class CharacterViewState extends State<CharacterView> {
                           },
                         ),
                         ListTile(
+                          leading: Icon(Icons.description, color: AppColors.accentCyan),
                           title: Text(
-                            'Notizen',
+                            loc.notes,
                             style: TextStyle(color: AppColors.textColorLight),
                           ),
                           onTap: () {
@@ -669,8 +812,9 @@ class CharacterViewState extends State<CharacterView> {
                           },
                         ),
                         ListTile(
+                          leading: Icon(Icons.backpack, color: AppColors.accentYellow),
                           title: Text(
-                            'Ausrüstung',
+                            loc.equipments,
                             style: TextStyle(color: AppColors.textColorLight),
                           ),
                           onTap: () {
@@ -686,8 +830,9 @@ class CharacterViewState extends State<CharacterView> {
                           },
                         ),
                         ListTile(
+                          leading: Icon(Icons.menu_book, color: AppColors.accentTeal),
                           title: Text(
-                            'Wiki',
+                            loc.wiki,
                             style: TextStyle(color: AppColors.textColorLight),
                           ),
                           onTap: () {
@@ -702,22 +847,73 @@ class CharacterViewState extends State<CharacterView> {
                             );
                           },
                         ),
+                        ListTile(
+                          leading: Icon(Icons.groups, color: AppColors.accentPink),
+                          title: Text(
+                            loc.session,
+                            style: TextStyle(color: AppColors.textColorLight),
+                          ),
+                          onTap: () {
+                            Navigator.pop(context);
+                            if (_sessionManager.isHosting) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => HostPage(
+                                    server: _sessionManager.server!,
+                                    sessionName: _sessionManager.server!.name,
+                                    wikiParser: widget.wikiParser,
+                                  ),
+                                ),
+                              );
+                            } else if (_sessionManager.isConnected) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ClientPage(
+                                    client: _sessionManager.client!,
+                                    playerName:
+                                        _sessionManager.client!.playerName ??
+                                            'Unknown Player',
+                                    isFromLobby: false,
+                                    profileManager: widget.profileManager,
+                                  ),
+                                ),
+                              );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => LobbyPage(
+                                    server: _sessionManager.getOrCreateServer(),
+                                    client: _sessionManager.getOrCreateClient(),
+                                    profiles: widget.profileManager.profiles,
+                                    profileManager: widget.profileManager,
+                                    wikiParser: widget.wikiParser,
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                        ),
                       ],
                     ),
                   ),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: IconButton(
-                        icon: Icon(Icons.info_outline,
-                            color: AppColors.textColorLight),
-                        onPressed: () {
-                          showAppStatusDialog(context);
-                        },
-                        highlightColor: Colors.transparent,
-                        splashColor: Colors.transparent,
-                        hoverColor: Colors.transparent,
+                  SafeArea(
+                    child: Align(
+                      alignment: Alignment.bottomRight,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: IconButton(
+                          icon: Icon(Icons.info_outline,
+                              color: AppColors.textColorLight),
+                          onPressed: () {
+                            showAppStatusDialog(context);
+                          },
+                          highlightColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          hoverColor: Colors.transparent,
+                        ),
                       ),
                     ),
                   ),

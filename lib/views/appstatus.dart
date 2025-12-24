@@ -1,6 +1,7 @@
 import 'package:dnd/configs/colours.dart';
 import 'package:dnd/configs/version.dart';
 import 'package:flutter/material.dart';
+import 'package:dnd/l10n/app_localizations.dart';
 
 class AppStatusDialog extends StatelessWidget {
   final String title;
@@ -16,6 +17,7 @@ class AppStatusDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return AlertDialog(
       title: Text(title),
       content: GestureDetector(
@@ -29,7 +31,7 @@ class AppStatusDialog extends StatelessWidget {
       ),
       actions: <Widget>[
         TextButton(
-          child: Text('Schließen'),
+          child: Text(loc.close),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -40,9 +42,10 @@ class AppStatusDialog extends StatelessWidget {
 }
 
 void showAppStatusDialog(BuildContext context) {
+  final loc = AppLocalizations.of(context)!;
   String version = appVersion;
 
-  String content = "Für Bonobos, von Bonobos\nVersion: $version\n";
+  String content = "${loc.bonodnd}\nVersion: $version\n";
 
   showDialog(
     context: context,

@@ -1,5 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:dnd/classes/session_manager.dart';
+import 'package:dnd/views/session/client_view.dart';
+import 'package:dnd/views/session/host.dart';
+import 'package:dnd/views/session/session_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:dnd/classes/profile_manager.dart';
 import 'package:dnd/configs/colours.dart';
 import 'character_view.dart';
+import 'package:dnd/l10n/app_localizations.dart';
 
 class ProfileHomeScreen extends StatefulWidget {
   final WikiParser wikiParser;
@@ -27,6 +32,7 @@ class ProfileHomeScreen extends StatefulWidget {
 class ProfileHomeScreenState extends State<ProfileHomeScreen> {
   ProfileManager profileManager = ProfileManager();
   bool _isImporting = false;
+  final SessionManager _sessionManager = SessionManager();
 
   @override
   void initState() {
@@ -41,6 +47,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
 
   Future<void> _addNewProfile() async {
     TextEditingController controller = TextEditingController();
+    final loc = AppLocalizations.of(context)!;
 
     await showDialog(
       context: context,
@@ -50,16 +57,15 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
-              title: const Text('Neuer Charakter'),
+              title: Text(loc.newchar),
               content: TextField(
                 controller: controller,
-                decoration:
-                    const InputDecoration(hintText: 'Charakternamen eingeben'),
+                decoration: InputDecoration(hintText: loc.entercharactername),
               ),
               actions: <Widget>[
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Abbrechen'),
+                  child: Text(loc.abort),
                 ),
                 TextButton(
                   onPressed: isCreatingProfile
@@ -78,7 +84,8 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'Der Charakter "$profileName" existiert bereits. Bitte wähle einen anderen Namen.',
+                                    AppLocalizations.of(context)!
+                                        .characterExists(profileName),
                                     style: TextStyle(
                                         color: AppColors.textColorLight),
                                   ),
@@ -107,7 +114,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                             }
                           }
                         },
-                  child: const Text('Erstellen'),
+                  child: Text(loc.create),
                 ),
               ],
             );
@@ -118,22 +125,22 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
   }
 
   Future<void> _clearDatabase() async {
+    final loc = AppLocalizations.of(context)!;
     bool confirmDelete = await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Datenbank leeren'),
-          content:
-              const Text('Möchtest du wirklich die gesamte Datenbank leeren?'),
+          title: Text(loc.cleardatabase),
+          content: Text(loc.cleardatabaseconfirm),
           actions: <Widget>[
             TextButton(
-              child: const Text('Nein'),
+              child: Text(loc.no),
               onPressed: () {
                 Navigator.of(context).pop(false);
               },
             ),
             TextButton(
-              child: const Text('Ja'),
+              child: Text(loc.yes),
               onPressed: () {
                 Navigator.of(context).pop(true);
               },
@@ -160,21 +167,21 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
   }
 
   Future<void> _renameProfile(Character oldProfile) async {
+    final loc = AppLocalizations.of(context)!;
     TextEditingController controller = TextEditingController();
     await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Charakter umbenennen'),
+          title: Text(loc.changeName),
           content: TextField(
             controller: controller,
-            decoration: const InputDecoration(
-                hintText: 'Neuen Charakternamen eingeben'),
+            decoration: InputDecoration(hintText: loc.enternewname),
           ),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Abbrechen'),
+              child: Text(loc.abort),
             ),
             TextButton(
               onPressed: () async {
@@ -200,7 +207,8 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Der Charakter "$newName" existiert bereits. Bitte wähle einen anderen Namen.',
+                            AppLocalizations.of(context)!
+                                .characterExists(newName),
                             style: TextStyle(color: AppColors.textColorLight),
                           ),
                           backgroundColor: AppColors.warningColor,
@@ -210,7 +218,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                   }
                 }
               },
-              child: const Text('Umbenennen'),
+              child: Text(loc.rename),
             ),
           ],
         );
@@ -219,12 +227,13 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
   }
 
   Future<void> _exportFeatsToXml(Character profile) async {
+    final loc = AppLocalizations.of(context)!;
     try {
       String xmlString = await profileManager.exportFeatsToXml(profile);
 
       if (kIsWeb || Platform.isWindows) {
         String? filePath = await FilePicker.platform.saveFile(
-          dialogTitle: 'Speichern unter',
+          dialogTitle: loc.saveto,
           fileName: '${profile.name}.xml',
           type: FileType.custom,
           allowedExtensions: ['xml'],
@@ -237,13 +246,13 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Export erfolgreich')),
+              SnackBar(content: Text(loc.exportgood)),
             );
           }
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Kein Speicherort ausgewählt')),
+              SnackBar(content: Text(loc.nosavelocation)),
             );
           }
         }
@@ -255,18 +264,18 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
         final shareFile = XFile(file.path);
 
         await Share.shareXFiles([shareFile],
-            text: 'Feats exportiert: ${profile.name}.xml');
+            text: '${loc.exportedto}: ${profile.name}.xml');
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Export erfolgreich')),
+            SnackBar(content: Text(loc.exportgood)),
           );
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Export fehlschlagen: $e')),
+          SnackBar(content: Text('${loc.exportbad}: $e')),
         );
       }
     } finally {
@@ -275,6 +284,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
   }
 
   Future<void> showExportDialog(BuildContext context, Character profile) async {
+    final loc = AppLocalizations.of(context)!;
     return showDialog<void>(
       context: context,
       barrierDismissible: true,
@@ -284,7 +294,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
-              title: Text('Export Format'),
+              title: Text(loc.exportformat),
               content: isLoading
                   ? SizedBox(
                       width: 24.0,
@@ -318,14 +328,11 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                             if (success) {
                               Navigator.of(context).pop();
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text('PDF export erfolgreich!')),
+                                SnackBar(content: Text(loc.exportgood)),
                               );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content:
-                                        Text('PDF export fehlgeschlagen!')),
+                                SnackBar(content: Text(loc.exportbad)),
                               );
                             }
                           }
@@ -341,6 +348,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
   }
 
   Future<void> _importProfileFromXmlFile() async {
+    final loc = AppLocalizations.of(context)!;
     setState(() {
       _isImporting = true;
     });
@@ -356,7 +364,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
         if (!filePath.endsWith('.xml')) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Nur XML-Dateien sind erlaubt.')),
+              SnackBar(content: Text(loc.onlyxmlallowed)),
             );
           }
           return;
@@ -367,21 +375,20 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Import erfolgreich')),
+            SnackBar(content: Text(loc.importgood)),
           );
         }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Keine Datei zum importieren ausgewählt.')),
+            SnackBar(content: Text(loc.noimportfiles)),
           );
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Import fehlschlagen: $e')),
+          SnackBar(content: Text('${loc.importbad}: $e')),
         );
       }
     } finally {
@@ -393,6 +400,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         actions: [
@@ -414,29 +422,83 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                 );
               } else if (value == 'info') {
                 showAppStatusDialog(context);
+              } else if (value == 'session') {
+                if (_sessionManager.isHosting) {
+                  if (context.mounted) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => HostPage(
+                            server: _sessionManager.server!,
+                            sessionName: _sessionManager.server!.name,
+                            wikiParser: widget.wikiParser),
+                      ),
+                    );
+                  }
+                  return;
+                } else if (_sessionManager.isConnected) {
+                  if (context.mounted) {
+                    // Find and select the character profile based on player name
+                    final playerName = _sessionManager.client!.playerName;
+                    final matchingProfile = profileManager.profiles.firstWhere(
+                      (profile) => profile.name == playerName,
+                      orElse: () => profileManager.profiles.first,
+                    );
+
+                    await profileManager.selectProfile(matchingProfile);
+
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ClientPage(
+                              client: _sessionManager.client!,
+                              playerName: _sessionManager.client!.playerName ??
+                                  'Unknown Player',
+                              isFromLobby: false,
+                              profileManager: profileManager),
+                        ));
+                  }
+                  return;
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LobbyPage(
+                          server: _sessionManager.getOrCreateServer(),
+                          client: _sessionManager.getOrCreateClient(),
+                          profiles: profileManager.profiles,
+                          profileManager: profileManager,
+                          wikiParser: widget.wikiParser),
+                    ),
+                  );
+                }
               }
             },
             itemBuilder: (BuildContext context) {
               return [
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: 'create',
-                  child: Text('Neuen Charakter erstellen'),
+                  child: Text(loc.createnewchar),
                 ),
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: 'import',
-                  child: Text('Charakter aus Datei importieren'),
+                  child: Text(loc.importchar),
                 ),
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: 'clear',
-                  child: Text('Datenbank leeren'),
+                  child: Text(loc.cleardatabase),
                 ),
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: 'settings',
-                  child: Text('Einstellungen'),
+                  child: Text(loc.settings),
                 ),
                 const PopupMenuItem<String>(
                   value: 'info',
                   child: Text('BonoDND'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'session',
+                  child: Text('Session'),
                 ),
               ];
             },
@@ -461,7 +523,8 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                             child: Material(
                               elevation: 4,
                               borderRadius: BorderRadius.circular(12),
-                              shadowColor: Colors.black.withOpacity(0.5),
+                              shadowColor:
+                                  Colors.black.withAlpha((0.5 * 255).toInt()),
                               child: Container(
                                 padding: const EdgeInsets.all(8.0),
                                 decoration: BoxDecoration(
@@ -484,6 +547,8 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                             profileManager: profileManager,
                                             wikiParser: widget.wikiParser,
                                             profile: profile,
+                                            server: _sessionManager.server,
+                                            client: _sessionManager.client,
                                           ),
                                         ),
                                       );
@@ -492,24 +557,24 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                   trailing: PopupMenuButton<String>(
                                     onSelected: (value) async {
                                       if (value == 'delete') {
-                                        bool confirmDelete = await showDialog(
+                                        bool? confirmDelete = await showDialog(
                                           context: context,
                                           builder: (BuildContext context) {
                                             return AlertDialog(
-                                              title: const Text(
-                                                  'Charakter löschen'),
+                                              title: Text(loc.deletechar),
                                               content: Text(
-                                                  'Willst du wirklich den Charakter ${profile.name} löschen?'),
+                                                  loc.deletecharconfirm(
+                                                      profile.name)),
                                               actions: <Widget>[
                                                 TextButton(
-                                                  child: const Text('Nein'),
+                                                  child: Text(loc.no),
                                                   onPressed: () {
                                                     Navigator.of(context)
                                                         .pop(false);
                                                   },
                                                 ),
                                                 TextButton(
-                                                  child: const Text('Ja'),
+                                                  child: Text(loc.yes),
                                                   onPressed: () {
                                                     Navigator.of(context)
                                                         .pop(true);
@@ -532,17 +597,17 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                     },
                                     itemBuilder: (BuildContext context) {
                                       return [
-                                        const PopupMenuItem<String>(
+                                        PopupMenuItem<String>(
                                           value: 'dump',
-                                          child: Text('Exportieren'),
+                                          child: Text(loc.export),
                                         ),
-                                        const PopupMenuItem<String>(
+                                        PopupMenuItem<String>(
                                           value: 'delete',
-                                          child: Text('Charakter löschen'),
+                                          child: Text(loc.deletechar),
                                         ),
-                                        const PopupMenuItem<String>(
+                                        PopupMenuItem<String>(
                                           value: 'rename',
-                                          child: Text('Charakter umbenennen'),
+                                          child: Text(loc.changeName),
                                         ),
                                       ];
                                     },
@@ -555,7 +620,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                       )
                     : Center(
                         child: Text(
-                          'Keine Charaktere vorhanden',
+                          loc.nocharfound,
                           style: TextStyle(
                               fontSize: 20, color: AppColors.textColorLight),
                         ),
