@@ -21,21 +21,21 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_ENV
 
       - name: Download Android APK Artifact
-        uses: dawidd6/action-download-artifact@v3
+        uses: dawidd6/action-download-artifact@v6
         with:
           workflow: build.yml
           name: release-apk
           path: ./artifacts
 
       - name: Download Windows Build Artifact
-        uses: dawidd6/action-download-artifact@v3
+        uses: dawidd6/action-download-artifact@v6
         with:
           workflow: build.yml
           name: release-windows
           path: ./artifacts
 
       - name: Download Linux Build Artifact
-        uses: dawidd6/action-download-artifact@v3
+        uses: dawidd6/action-download-artifact@v6
         with:
           workflow: build.yml
           name: release-linux
