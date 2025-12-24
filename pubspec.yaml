@@ -77,8 +77,6 @@ msix_config:
   identity_name: com.bonobo.dnd
   msix_version: 1.0.0.0
   logo_path: assets\icon\icon.png
-  certificate_path: temp\BonoDND.pfx
-  certificate_password: bonodnd
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
