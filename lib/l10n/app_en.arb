@@ -32,6 +32,12 @@
         }
     },
     "type": "Type",
+    "manageItemTypes": "Manage Item Types",
+    "newTypeName": "New Type Name",
+    "defaultType": "Default",
+    "customType": "Custom",
+    "addType": "Add Type",
+    "deleteType": "Delete Type",
     "unknownchar": "Unknown Character",
     "createnewchar": "Create New Character",
     "importchar": "Import Character from File",

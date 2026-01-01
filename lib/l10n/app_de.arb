@@ -32,6 +32,12 @@
         }
     },
     "type": "Typ",
+    "manageItemTypes": "Gegenstands-Typen verwalten",
+    "newTypeName": "Neuer Typname",
+    "defaultType": "Standard",
+    "customType": "Benutzerdefiniert",
+    "addType": "Typ hinzufügen",
+    "deleteType": "Typ löschen",
     "unknownchar": "Unbekannter Charakter",
     "createnewchar": "Neuen Charakter erstellen",
     "importchar": "Charakter aus Datei importieren",

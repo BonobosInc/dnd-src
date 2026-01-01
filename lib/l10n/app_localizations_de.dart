@@ -89,6 +89,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get type => 'Typ';
 
   @override
+  String get manageItemTypes => 'Gegenstands-Typen verwalten';
+
+  @override
+  String get newTypeName => 'Neuer Typname';
+
+  @override
+  String get defaultType => 'Standard';
+
+  @override
+  String get customType => 'Benutzerdefiniert';
+
+  @override
+  String get addType => 'Typ hinzufügen';
+
+  @override
+  String get deleteType => 'Typ löschen';
+
+  @override
   String get unknownchar => 'Unbekannter Charakter';
 
   @override

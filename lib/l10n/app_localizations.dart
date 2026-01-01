@@ -254,6 +254,42 @@ abstract class AppLocalizations {
   /// **'Typ'**
   String get type;
 
+  /// No description provided for @manageItemTypes.
+  ///
+  /// In de, this message translates to:
+  /// **'Gegenstands-Typen verwalten'**
+  String get manageItemTypes;
+
+  /// No description provided for @newTypeName.
+  ///
+  /// In de, this message translates to:
+  /// **'Neuer Typname'**
+  String get newTypeName;
+
+  /// No description provided for @defaultType.
+  ///
+  /// In de, this message translates to:
+  /// **'Standard'**
+  String get defaultType;
+
+  /// No description provided for @customType.
+  ///
+  /// In de, this message translates to:
+  /// **'Benutzerdefiniert'**
+  String get customType;
+
+  /// No description provided for @addType.
+  ///
+  /// In de, this message translates to:
+  /// **'Typ hinzufügen'**
+  String get addType;
+
+  /// No description provided for @deleteType.
+  ///
+  /// In de, this message translates to:
+  /// **'Typ löschen'**
+  String get deleteType;
+
   /// No description provided for @unknownchar.
   ///
   /// In de, this message translates to:

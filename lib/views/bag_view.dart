@@ -28,6 +28,7 @@ class BagPageState extends State<BagPage> {
   final ScrollController _scrollController = ScrollController();
 
   final List<Item> items = [];
+  List<Map<String, dynamic>> itemTypes = [];
 
   int attunementCount = 0;
 
@@ -37,6 +38,7 @@ class BagPageState extends State<BagPage> {
     _loadCharacterData();
     _fetchItems();
     _fetchAttunementCount();
+    _fetchItemTypes();
   }
 
   _fetchAttunementCount() async {
@@ -44,6 +46,14 @@ class BagPageState extends State<BagPage> {
 
     setState(() {
       attunementCount = stats.first[Defines.statAttunmentCount] ?? 0;
+    });
+  }
+
+  Future<void> _fetchItemTypes() async {
+    List<Map<String, dynamic>> types =
+        await widget.profileManager.getItemTypes();
+    setState(() {
+      itemTypes = types;
     });
   }
 
@@ -120,6 +130,11 @@ class BagPageState extends State<BagPage> {
         title: Text(loc.equipments),
         backgroundColor: AppColors.appBarColor,
         actions: [
+          IconButton(
+            icon: Icon(Icons.category, color: AppColors.accentYellow),
+            onPressed: _showManageTypesDialog,
+            tooltip: loc.manageItemTypes,
+          ),
           IconButton(
             icon: Icon(Icons.add, color: AppColors.accentYellow),
             onPressed: _showAddItemDialog,
@@ -210,10 +225,123 @@ class BagPageState extends State<BagPage> {
     );
   }
 
+  void _showManageTypesDialog() {
+    final loc = AppLocalizations.of(context)!;
+    TextEditingController newTypeController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: Text(loc.manageItemTypes),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: newTypeController,
+                            decoration: InputDecoration(
+                              labelText: loc.newTypeName,
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        IconButton(
+                          icon: Icon(Icons.add, color: AppColors.accentYellow),
+                          onPressed: () {
+                            if (newTypeController.text.isNotEmpty) {
+                              widget.profileManager
+                                  .addItemType(typeName: newTypeController.text)
+                                  .then((_) {
+                                _fetchItemTypes().then((_) {
+                                  setState(() {
+                                    newTypeController.clear();
+                                  });
+                                });
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    Flexible(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: itemTypes.length,
+                        itemBuilder: (context, index) {
+                          final type = itemTypes[index];
+                          final isDefault = type['is_default'] == 1;
+                          return ListTile(
+                            title: Text(
+                              type['type_name'],
+                              style: TextStyle(
+                                color: isDefault
+                                    ? AppColors.textColorLight
+                                    : AppColors.textColorDark,
+                              ),
+                            ),
+                            trailing: isDefault
+                                ? Text(
+                                    loc.defaultType,
+                                    style: TextStyle(
+                                      color: AppColors.textColorLight,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  )
+                                : IconButton(
+                                    icon: Icon(Icons.delete,
+                                        color: AppColors.textColorDark),
+                                    onPressed: () {
+                                      widget.profileManager
+                                          .removeItemType(type['ID'])
+                                          .then((_) {
+                                        _fetchItemTypes().then((_) {
+                                          setState(() {});
+                                        });
+                                      });
+                                    },
+                                  ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _fetchItemTypes();
+                  },
+                  child: Text(loc.ok),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showAddItemDialog() {
     var newItem = true;
     _showItemDialog(
-        Item(name: '', description: '', type: 'Sonstige', amount: 1, attunement: 0), newItem);
+        Item(
+            name: '',
+            description: '',
+            type: 'Sonstige',
+            amount: 1,
+            attunement: 0),
+        newItem);
   }
 
   void _showItemDetails(Item item) {
@@ -246,14 +374,26 @@ class BagPageState extends State<BagPage> {
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       value: selectedType,
-                      items: [
-                        DropdownMenuItem(
-                            value: 'Gegenstände', child: Text(loc.item)),
-                        DropdownMenuItem(
-                            value: 'Ausrüstung', child: Text(loc.equipment)),
-                        DropdownMenuItem(
-                            value: 'Sonstige', child: Text(loc.other)),
-                      ],
+                      items: itemTypes.map((type) {
+                        final typeName = type['type_name'] as String;
+                        String displayName;
+
+                        // Map type names to localized names
+                        if (typeName == 'Gegenstände') {
+                          displayName = loc.item;
+                        } else if (typeName == 'Ausrüstung') {
+                          displayName = loc.equipment;
+                        } else if (typeName == 'Sonstige') {
+                          displayName = loc.other;
+                        } else {
+                          displayName = typeName;
+                        }
+
+                        return DropdownMenuItem(
+                          value: typeName,
+                          child: Text(displayName),
+                        );
+                      }).toList(),
                       decoration: InputDecoration(
                         labelText: loc.type,
                         border: OutlineInputBorder(),
@@ -353,11 +493,10 @@ class BagPageState extends State<BagPage> {
                   child: TextButton(
                     onPressed: () {
                       item.amount = editedAmount;
-                      item.attunement =
-                          attunementController.text.isNotEmpty &&
-                                  attunementController.text != '0'
-                              ? int.parse(attunementController.text)
-                              : 0;
+                      item.attunement = attunementController.text.isNotEmpty &&
+                              attunementController.text != '0'
+                          ? int.parse(attunementController.text)
+                          : 0;
                       if (newItem) {
                         _addItem(item, descriptionController.text, loc);
                       } else {
@@ -482,26 +621,26 @@ class BagPageState extends State<BagPage> {
   Widget _buildItemsTiles(AppLocalizations loc) {
     items.sort((a, b) => a.uuid!.compareTo(b.uuid!));
 
-    Map<String, List<Item>> groupedItems = {
-      loc.item: [],
-      loc.equipment: [],
-      loc.other: [],
-    };
+    // Create dynamic grouped items based on available types
+    Map<String, List<Item>> groupedItems = {};
 
+    // Initialize groups for all available types
+    for (var type in itemTypes) {
+      final typeName = type['type_name'] as String;
+      groupedItems[typeName] = [];
+    }
+
+    // Assign items to their groups
     for (var item in items) {
-      String groupKey;
-      switch (item.type) {
-        case 'Gegenstände':
-          groupKey = loc.item;
-          break;
-        case 'Ausrüstung':
-          groupKey = loc.equipment;
-          break;
-        default:
-          groupKey = loc.other;
-          break;
+      final itemType = item.type ?? 'Sonstige';
+      if (groupedItems.containsKey(itemType)) {
+        groupedItems[itemType]!.add(item);
+      } else {
+        // If item has a type that's not in the database, add it to 'Sonstige'
+        if (groupedItems.containsKey('Sonstige')) {
+          groupedItems['Sonstige']!.add(item);
+        }
       }
-      groupedItems[groupKey]!.add(item);
     }
 
     var nonEmptyCategories =
@@ -510,6 +649,19 @@ class BagPageState extends State<BagPage> {
     return Column(
       children: nonEmptyCategories.map((entry) {
         String category = entry.key;
+
+        // Get display name for category
+        String displayCategory;
+        if (category == 'Gegenstände') {
+          displayCategory = loc.item;
+        } else if (category == 'Ausrüstung') {
+          displayCategory = loc.equipment;
+        } else if (category == 'Sonstige') {
+          displayCategory = loc.other;
+        } else {
+          displayCategory = category;
+        }
+
         List<Item> itemsOfCategory = entry.value;
 
         List<Widget> categoryWidgets = [
@@ -517,7 +669,7 @@ class BagPageState extends State<BagPage> {
           ExpansionTile(
             shape: const Border(),
             title: Text(
-              category,
+              displayCategory,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             children: itemsOfCategory.map((item) {

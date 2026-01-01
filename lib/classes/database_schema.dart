@@ -146,6 +146,12 @@ class DatabaseSchema {
       'amount': 'INTEGER',
       'attunement': 'INTEGER',
     },
+    'item_types': {
+      'ID': 'INTEGER PRIMARY KEY AUTOINCREMENT',
+      'charId': 'INTEGER',
+      'type_name': 'TEXT',
+      'is_default': 'INTEGER',
+    },
     'tracker': {
       'ID': 'INTEGER PRIMARY KEY AUTOINCREMENT',
       'trackername': 'TEXT',
@@ -267,7 +273,6 @@ class DatabaseSchema {
   }
 
   static String versionTable() {
-
     String columnDefinitions = '';
 
     tablesColumns["version"]!.forEach((key, value) {

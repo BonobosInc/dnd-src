@@ -89,6 +89,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get type => 'Type';
 
   @override
+  String get manageItemTypes => 'Manage Item Types';
+
+  @override
+  String get newTypeName => 'New Type Name';
+
+  @override
+  String get defaultType => 'Default';
+
+  @override
+  String get customType => 'Custom';
+
+  @override
+  String get addType => 'Add Type';
+
+  @override
+  String get deleteType => 'Delete Type';
+
+  @override
   String get unknownchar => 'Unknown Character';
 
   @override
