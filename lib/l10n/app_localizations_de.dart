@@ -604,6 +604,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get legendaryaction => 'Legendäre Aktion';
 
   @override
+  String get legendaryActions => 'Legendäre Aktionen';
+
+  @override
   String get addlegendaryaction => 'Legendäre Aktion hinzufügen';
 
   @override
@@ -790,6 +793,30 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get edit => 'Bearbeite';
+
+  @override
+  String get add => 'Hinzufügen';
+
+  @override
+  String get trait => 'Merkmal';
+
+  @override
+  String get traits => 'Merkmale';
+
+  @override
+  String get editTrait => 'Merkmal bearbeiten';
+
+  @override
+  String get addTrait => 'Merkmal hinzufügen';
+
+  @override
+  String get feature => 'Klassenmerkmal';
+
+  @override
+  String get addFeature => 'Klassenmerkmal hinzufügen';
+
+  @override
+  String get editFeature => 'Klassenmerkmal bearbeiten';
 
   @override
   String get proficiency => 'Übung';
@@ -1136,4 +1163,79 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get player => 'Spieler';
+
+  @override
+  String get basicInfo => 'Grundinformationen';
+
+  @override
+  String get combatStats => 'Kampfwerte';
+
+  @override
+  String get abilityScores => 'Attributswerte';
+
+  @override
+  String get otherStats => 'Weitere Werte';
+
+  @override
+  String get str => 'STÄ';
+
+  @override
+  String get dex => 'GES';
+
+  @override
+  String get con => 'KON';
+
+  @override
+  String get int => 'INT';
+
+  @override
+  String get wis => 'WEI';
+
+  @override
+  String get cha => 'CHA';
+
+  @override
+  String get savesOptional => 'Rettungswürfe (optional)';
+
+  @override
+  String get skillsOptional => 'Fertigkeiten (optional)';
+
+  @override
+  String get resistancesOptional => 'Resistenzen (optional)';
+
+  @override
+  String get vulnerabilitiesOptional => 'Anfälligkeiten (optional)';
+
+  @override
+  String get immunitiesOptional => 'Immunitäten (optional)';
+
+  @override
+  String get conditionImmunitiesOptional => 'Zustandsimmunitäten (optional)';
+
+  @override
+  String get sensesOptional => 'Sinne (optional)';
+
+  @override
+  String get languagesOptional => 'Sprachen (optional)';
+
+  @override
+  String get speed => 'Bewegung';
+
+  @override
+  String get addMonster => 'Monster hinzufügen';
+
+  @override
+  String get addRace => 'Rasse hinzufügen';
+
+  @override
+  String get addBackground => 'Hintergrund hinzufügen';
+
+  @override
+  String get addClass => 'Klasse hinzufügen';
+
+  @override
+  String get addSpellWiki => 'Zauber hinzufügen';
+
+  @override
+  String get addTalent => 'Talent hinzufügen';
 }

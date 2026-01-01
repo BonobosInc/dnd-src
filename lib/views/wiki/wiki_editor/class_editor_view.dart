@@ -1,15 +1,13 @@
-<<<<<<< HEAD
-=======
-import 'package:dnd/classes/wiki_classes.dart';
->>>>>>> 31b1db7b19c2173dacb5692f5645304edae5dc1d
 import 'package:dnd/configs/colours.dart';
 import 'package:flutter/material.dart';
 import 'package:dnd/classes/wiki_classes.dart';
+import 'package:dnd/l10n/app_localizations.dart';
 
 class AddClassPage extends StatefulWidget {
-  final void Function(ClassData) onSave;
+  final Future<void> Function(ClassData) onSave;
+  final ClassData? existingClass;
 
-  const AddClassPage({super.key, required this.onSave});
+  const AddClassPage({super.key, required this.onSave, this.existingClass});
 
   @override
   AddClassPageState createState() => AddClassPageState();
@@ -22,6 +20,34 @@ class AddClassPageState extends State<AddClassPage> {
   final _numSkillsController = TextEditingController();
   final Map<int, List<FeatureData>> _featuresByLevel = {};
   final Map<int, Slots> _slotsByLevel = {};
+  String? _originalName;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingClass != null) {
+      _loadExistingClass();
+    }
+  }
+
+  void _loadExistingClass() {
+    final classData = widget.existingClass!;
+    _originalName = classData.name;
+    _nameController.text = classData.name;
+    _hdController.text = classData.hd;
+    _proficiencyController.text = classData.proficiency;
+    _numSkillsController.text = classData.numSkills;
+
+    for (final autolevel in classData.autolevels) {
+      final level = int.tryParse(autolevel.level) ?? 1;
+      if (autolevel.slots != null) {
+        _slotsByLevel[level] = autolevel.slots!;
+      }
+      if (autolevel.features != null && autolevel.features!.isNotEmpty) {
+        _featuresByLevel[level] = autolevel.features!;
+      }
+    }
+  }
 
   void _editLevel(int level) async {
     final updatedLevel = await Navigator.push(
@@ -43,7 +69,7 @@ class AddClassPageState extends State<AddClassPage> {
     }
   }
 
-  void _saveClass() {
+  Future<void> _saveClass() async {
     final List<Autolevel> autolevels = [];
 
     for (int level = 1; level <= 20; level++) {
@@ -72,16 +98,20 @@ class AddClassPageState extends State<AddClassPage> {
       autolevels: autolevels,
     );
 
-    widget.onSave(classData);
+    await widget.onSave(classData);
     Navigator.pop(context);
   }
 
   Widget _buildLevels() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-<<<<<<< HEAD
       children: List.generate(20, (index) {
         final level = index + 1;
+        final features = _featuresByLevel[level];
+        final hasFeatures = features != null && features.isNotEmpty;
+        final hasSlots =
+            _slotsByLevel[level]?.slots.any((slot) => slot > 0) ?? false;
+
         return Card(
           color: AppColors.cardColor,
           elevation: 4.0,
@@ -91,71 +121,21 @@ class AddClassPageState extends State<AddClassPage> {
               'Level $level',
               style: TextStyle(
                 color: AppColors.textColorLight,
-=======
-      children: [
-        Row(
-          children: [
-            const Text(
-              'Autolevels',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const Spacer(),
-            IconButton(
-              onPressed: _addAutolevel,
-              icon: const Icon(Icons.add),
-              tooltip: 'Add Autolevel',
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        for (var autolevel in _autolevels) ...[
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Card(
-              color: AppColors.cardColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
-              ),
-              elevation: 3,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Level: ${autolevel.level}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (autolevel.slots != null)
-                            Text('Slots: ${autolevel.slots!.slots.join(', ')}'),
-                          for (var feature in autolevel.features)
-                            Text('- ${feature.name}'),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => _deleteAutolevel(autolevel),
-                      icon: const Icon(Icons.delete),
-                      tooltip: 'Delete Autolevel',
-                    ),
-                  ],
-                ),
->>>>>>> 31b1db7b19c2173dacb5692f5645304edae5dc1d
+                fontWeight: FontWeight.bold,
               ),
             ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-            ),
+            subtitle: hasFeatures || hasSlots
+                ? Text(
+                    '${hasFeatures ? '${features.length} feature${features.length > 1 ? 's' : ''}' : ''}${hasFeatures && hasSlots ? ', ' : ''}${hasSlots ? 'Has spell slots' : ''}',
+                    style: TextStyle(
+                      color: AppColors.textColorLight.withOpacity(0.7),
+                    ),
+                  )
+                : null,
             onTap: () => _editLevel(level),
-            trailing: SizedBox(
-              width: 35,
-              height: 35,
+            trailing: Icon(
+              Icons.edit,
+              color: AppColors.textColorLight,
             ),
             tileColor: AppColors.cardColor,
             shape: RoundedRectangleBorder(
@@ -169,9 +149,10 @@ class AddClassPageState extends State<AddClassPage> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Class'),
+        title: Text(loc.addClass),
         actions: [
           IconButton(
             icon: Icon(Icons.save),
@@ -180,26 +161,91 @@ class AddClassPageState extends State<AddClassPage> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(labelText: 'Name'),
-            ),
-            TextField(
-              controller: _hdController,
-              decoration: InputDecoration(labelText: 'HD'),
-            ),
-            TextField(
-              controller: _proficiencyController,
-              decoration: InputDecoration(labelText: 'Proficiency'),
-            ),
-            TextField(
-              controller: _numSkillsController,
-              decoration: InputDecoration(labelText: 'Number of Skills'),
+            Card(
+              color: AppColors.cardColor,
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      loc.classesKey,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textColorLight,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        labelText: loc.name,
+                        border: const OutlineInputBorder(),
+                        filled: true,
+                        fillColor: AppColors.primaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _hdController,
+                            decoration: InputDecoration(
+                              labelText: 'HD',
+                              border: const OutlineInputBorder(),
+                              filled: true,
+                              fillColor: AppColors.primaryColor,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextField(
+                            controller: _numSkillsController,
+                            decoration: InputDecoration(
+                              labelText: loc.numskills,
+                              border: const OutlineInputBorder(),
+                              filled: true,
+                              fillColor: AppColors.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _proficiencyController,
+                      decoration: InputDecoration(
+                        labelText: loc.abilities,
+                        border: const OutlineInputBorder(),
+                        filled: true,
+                        fillColor: AppColors.primaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 20),
+            Text(
+              '${loc.level}s',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textColorLight,
+              ),
+            ),
+            const SizedBox(height: 12),
             _buildLevels(),
             const SizedBox(height: 20),
           ],
@@ -290,92 +336,154 @@ class EditLevelPageState extends State<EditLevelPage> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Level ${widget.level}'),
+        title: Text('${loc.level} ${widget.level}'),
         actions: [
           IconButton(
             onPressed: _saveLevel,
             icon: Icon(Icons.save),
-            tooltip: 'Save Level',
+            tooltip: loc.save,
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              'Zauberplätze',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            GridView.builder(
-              shrinkWrap: true,
-              itemCount: 10,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5,
-                crossAxisSpacing: 5,
-                mainAxisSpacing: 1,
-                childAspectRatio: 1,
+            Card(
+              color: AppColors.cardColor,
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              itemBuilder: (context, index) {
-                return TextField(
-                  controller: _slotControllers[index],
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: (index == 0) ? 'Zaubertrick' : '$index',
-                    border: OutlineInputBorder(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => _editFeature(),
-              child: Text('Add Feature'),
-            ),
-            ListView(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              children: _features.map((feature) {
-                return Card(
-                  color: AppColors.cardColor,
-                  elevation: 4.0,
-                  margin: const EdgeInsets.symmetric(
-                      vertical: 8.0, horizontal: 16.0),
-                  child: ListTile(
-                    title: Text(
-                      feature.name,
-                      style: TextStyle(color: AppColors.textColorLight),
-                    ),
-                    subtitle: Text(
-                      feature.description,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      loc.spellslots,
                       style: TextStyle(
-                          color: AppColors.textColorLight.withOpacity(0.7)),
-                    ),
-                    onTap: () => _editFeature(feature: feature),
-                    trailing: SizedBox(
-                      width: 35,
-                      height: 35,
-                      child: IconButton(
-                        icon: Icon(Icons.close, color: AppColors.textColorDark),
-                        iconSize: 20.0,
-                        padding: EdgeInsets.zero,
-                        onPressed: () {
-                          setState(() {
-                            _features.remove(feature);
-                          });
-                        },
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textColorLight,
                       ),
                     ),
-                    tileColor: AppColors.cardColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
+                    const SizedBox(height: 12),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: 10,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 5,
+                        crossAxisSpacing: 8,
+                        mainAxisSpacing: 8,
+                        childAspectRatio: 1.2,
+                      ),
+                      itemBuilder: (context, index) {
+                        return TextField(
+                          controller: _slotControllers[index],
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          decoration: InputDecoration(
+                            labelText: (index == 0) ? loc.cantrip : '$index',
+                            border: const OutlineInputBorder(),
+                            filled: true,
+                            fillColor: AppColors.primaryColor,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 8,
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  ),
-                );
-              }).toList(),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Card(
+              color: AppColors.cardColor,
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          loc.feats,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textColorLight,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => _editFeature(),
+                          icon: Icon(Icons.add, color: AppColors.accentTeal),
+                          tooltip: loc.addFeature,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ListView(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: _features.map((feature) {
+                        return Card(
+                          color: AppColors.cardColor,
+                          elevation: 4.0,
+                          margin: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 0),
+                          child: ListTile(
+                            title: Text(
+                              feature.name,
+                              style: TextStyle(color: AppColors.textColorLight),
+                            ),
+                            subtitle: Text(
+                              feature.description,
+                              style: TextStyle(
+                                  color: AppColors.textColorLight
+                                      .withOpacity(0.7)),
+                            ),
+                            onTap: () => _editFeature(feature: feature),
+                            trailing: SizedBox(
+                              width: 35,
+                              height: 35,
+                              child: IconButton(
+                                icon: Icon(Icons.close,
+                                    color: AppColors.textColorDark),
+                                iconSize: 20.0,
+                                padding: EdgeInsets.zero,
+                                onPressed: () {
+                                  setState(() {
+                                    _features.remove(feature);
+                                  });
+                                },
+                              ),
+                            ),
+                            tileColor: AppColors.cardColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -426,29 +534,43 @@ class _FeatureEditDialogState extends State<FeatureEditDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: Text(widget.feature == null ? 'Add Feature' : 'Edit Feature'),
+      title: Text(widget.feature == null ? loc.addFeature : loc.editFeature),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
             controller: _nameController,
-            decoration: InputDecoration(labelText: 'Name'),
+            decoration: InputDecoration(
+              labelText: loc.name,
+              border: const OutlineInputBorder(),
+            ),
           ),
+          const SizedBox(height: 12),
           TextField(
             controller: _descriptionController,
-            decoration: InputDecoration(labelText: 'Description'),
+            decoration: InputDecoration(
+              labelText: loc.description,
+              border: const OutlineInputBorder(),
+            ),
+            maxLines: 3,
           ),
         ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('Cancel'),
+          style: TextButton.styleFrom(foregroundColor: AppColors.textColorDark),
+          child: Text(loc.cancel),
         ),
         ElevatedButton(
           onPressed: _saveFeature,
-          child: Text('Save'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.accentTeal,
+            foregroundColor: Colors.white,
+          ),
+          child: Text(loc.save),
         ),
       ],
     );

@@ -5,8 +5,16 @@ import 'package:dnd/l10n/app_localizations.dart';
 class FeatDetailPage extends StatelessWidget {
   final FeatData featData;
   final bool importFeat;
+  final Function(FeatData)? onEdit;
+  final Function(String)? onDelete;
 
-  const FeatDetailPage({super.key, required this.featData, this.importFeat = false});
+  const FeatDetailPage({
+    super.key,
+    required this.featData,
+    this.importFeat = false,
+    this.onEdit,
+    this.onDelete,
+  });
 
   FeatureData _convertToFeatureData(FeatData feat, loc) {
     return FeatureData(
@@ -28,11 +36,48 @@ class FeatDetailPage extends StatelessWidget {
                   icon: const Icon(Icons.check),
                   onPressed: () {
                     Navigator.of(context).pop();
-                    Navigator.of(context).pop(_convertToFeatureData(featData, loc));
+                    Navigator.of(context)
+                        .pop(_convertToFeatureData(featData, loc));
                   },
                 ),
               ]
-            : null,
+            : [
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () {
+                    if (onEdit != null) {
+                      Navigator.of(context).pop();
+                      onEdit!(featData);
+                    }
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(loc.confirmdelete),
+                        content: Text('${loc.delete} "${featData.name}"?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: Text(loc.abort),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: Text(loc.delete),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true && onDelete != null) {
+                      Navigator.of(context).pop();
+                      onDelete!(featData.name);
+                    }
+                  },
+                ),
+              ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(8.0),
@@ -44,7 +89,8 @@ class FeatDetailPage extends StatelessWidget {
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            if (featData.prerequisite != null && featData.prerequisite!.isNotEmpty)
+            if (featData.prerequisite != null &&
+                featData.prerequisite!.isNotEmpty)
               Text('${loc.requirement}: ${featData.prerequisite}'),
             const SizedBox(height: 10),
             Text(

@@ -16,7 +16,10 @@ class MainStatsPage extends StatefulWidget {
   final VoidCallback? onStatsChanged;
 
   const MainStatsPage(
-      {super.key, required this.profileManager, required this.wikiParser, this.onStatsChanged});
+      {super.key,
+      required this.profileManager,
+      required this.wikiParser,
+      this.onStatsChanged});
 
   @override
   MainStatsPageState createState() => MainStatsPageState();
@@ -279,7 +282,8 @@ class MainStatsPageState extends State<MainStatsPage> {
               'tempHP': tempHp ?? 0,
               'AC': ac,
             });
-            print('📤 Sent updated stats to server: HP=$hp/$maxHp, TempHP=$tempHp, AC=$ac');
+            print(
+                '📤 Sent updated stats to server: HP=$hp/$maxHp, TempHP=$tempHp, AC=$ac');
           }
         }
       } catch (e) {
@@ -652,9 +656,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                       if (context.mounted) Navigator.of(context).pop();
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content:
-                                Text(loc.entertrackername)),
+                        SnackBar(content: Text(loc.entertrackername)),
                       );
                     }
                   },
@@ -699,8 +701,10 @@ class MainStatsPageState extends State<MainStatsPage> {
                     initialValue: editedTrackerType,
                     items: [
                       DropdownMenuItem(value: 'never', child: Text(loc.never)),
-                      DropdownMenuItem(value: 'long', child: Text(loc.longrest)),
-                      DropdownMenuItem(value: 'short', child: Text(loc.shortrest)),
+                      DropdownMenuItem(
+                          value: 'long', child: Text(loc.longrest)),
+                      DropdownMenuItem(
+                          value: 'short', child: Text(loc.shortrest)),
                     ],
                     decoration: InputDecoration(
                       labelText: loc.reset,
@@ -852,8 +856,7 @@ class MainStatsPageState extends State<MainStatsPage> {
                       if (context.mounted) Navigator.of(context).pop();
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: Text(loc.choosecondition)),
+                        SnackBar(content: Text(loc.choosecondition)),
                       );
                     }
                   },
@@ -946,12 +949,15 @@ class MainStatsPageState extends State<MainStatsPage> {
   }
 
   void _addCreature() async {
+    final creatures = await widget.wikiParser.creatures;
+    if (!mounted) return;
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => AllCreaturesPage(
           importCreature: true,
-          creatures: widget.wikiParser.creatures,
+          creatures: creatures,
         ),
       ),
     );
@@ -1299,7 +1305,9 @@ class MainStatsPageState extends State<MainStatsPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildStatCard(
-                        loc.initiative, (initiative + initiative_bonus), Defines.statInitiativeBonus,
+                        loc.initiative,
+                        (initiative + initiative_bonus),
+                        Defines.statInitiativeBonus,
                         isCount: true),
                     _buildStatCard(
                         loc.movement, movement, Defines.statMovement),
@@ -1316,7 +1324,8 @@ class MainStatsPageState extends State<MainStatsPage> {
               children: [
                 Text(
                   loc.statuseffects,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 IconButton(
                   icon: const Icon(Icons.add),
@@ -1390,7 +1399,8 @@ class MainStatsPageState extends State<MainStatsPage> {
               children: [
                 Text(
                   loc.tracker,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 IconButton(
                   icon: const Icon(Icons.add),
@@ -1474,7 +1484,8 @@ class MainStatsPageState extends State<MainStatsPage> {
               children: [
                 Text(
                   loc.companion,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 IconButton(
                   icon: const Icon(Icons.add),
@@ -1650,7 +1661,8 @@ class MainStatsPageState extends State<MainStatsPage> {
       child: isClickable
           ? GestureDetector(
               onTap: () {
-                if (statType == Defines.statInitiativeBonus) value = initiative_bonus;
+                if (statType == Defines.statInitiativeBonus)
+                  value = initiative_bonus;
                 _showEditStatDialog(name, statType, value, isCount: isCount);
               },
               child: cardContent,
@@ -1712,8 +1724,7 @@ class MainStatsPageState extends State<MainStatsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(loc.deletetracker),
-          content: Text(
-            loc.confirmItemDelete(tracker.tracker)),
+          content: Text(loc.confirmItemDelete(tracker.tracker)),
           actions: [
             TextButton(
               child: Text(loc.abort),
@@ -1741,8 +1752,7 @@ class MainStatsPageState extends State<MainStatsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(loc.deletestatuseffect),
-          content: Text(
-              loc.confirmItemDelete(condition.condition)),
+          content: Text(loc.confirmItemDelete(condition.condition)),
           actions: [
             TextButton(
               child: Text(loc.abort),
@@ -1770,8 +1780,7 @@ class MainStatsPageState extends State<MainStatsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(loc.deletecompanion),
-          content: Text(
-              loc.confirmItemDelete(creature.name)),
+          content: Text(loc.confirmItemDelete(creature.name)),
           actions: [
             TextButton(
               child: Text(loc.abort),

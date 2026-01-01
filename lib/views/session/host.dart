@@ -382,11 +382,14 @@ class _HostPageState extends State<HostPage> {
   Future<void> _addMonster() async {
     if (widget.wikiParser == null) return;
 
+    final creatures = await widget.wikiParser!.creatures;
+    if (!mounted) return;
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => AllCreaturesPage(
-          creatures: widget.wikiParser!.creatures,
+          creatures: creatures,
           importCreature: true,
         ),
       ),

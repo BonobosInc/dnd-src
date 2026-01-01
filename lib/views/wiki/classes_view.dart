@@ -5,11 +5,15 @@ import 'package:dnd/l10n/app_localizations.dart';
 class ClassDetailPage extends StatefulWidget {
   final ClassData classData;
   final bool importFeat;
+  final Function(ClassData)? onEdit;
+  final Function(String)? onDelete;
 
   const ClassDetailPage({
     super.key,
     required this.classData,
     this.importFeat = false,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -51,7 +55,45 @@ class ClassDetailPageState extends State<ClassDetailPage> {
                   },
                 ),
               ]
-            : null,
+            : [
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () {
+                    if (widget.onEdit != null) {
+                      Navigator.of(context).pop();
+                      widget.onEdit!(widget.classData);
+                    }
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () async {
+                    final loc = AppLocalizations.of(context)!;
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(loc.confirmdelete),
+                        content:
+                            Text('${loc.delete} "${widget.classData.name}"?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: Text(loc.abort),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: Text(loc.delete),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true && widget.onDelete != null) {
+                      Navigator.of(context).pop();
+                      widget.onDelete!(widget.classData.name);
+                    }
+                  },
+                ),
+              ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(8.0),
@@ -75,12 +117,14 @@ class ClassDetailPageState extends State<ClassDetailPage> {
       featuresByLevel.putIfAbsent(level, () => []);
       _tileKeys.putIfAbsent(level, () => GlobalKey());
 
-      final existingFeatures = featuresByLevel[level]!.toSet();
+      if (features != null) {
+        final existingFeatures = featuresByLevel[level]!.toSet();
 
-      for (var feature in features!) {
-        if (!existingFeatures.contains(feature)) {
-          featuresByLevel[level]!.add(feature);
-          existingFeatures.add(feature);
+        for (var feature in features) {
+          if (!existingFeatures.contains(feature)) {
+            featuresByLevel[level]!.add(feature);
+            existingFeatures.add(feature);
+          }
         }
       }
     }
@@ -254,7 +298,6 @@ class ClassDetailPageState extends State<ClassDetailPage> {
             return Column(
               children: [
                 if (index == 0) const Divider(),
-
                 ListTile(
                   title: Text(
                     feature.name,
@@ -280,7 +323,6 @@ class ClassDetailPageState extends State<ClassDetailPage> {
                     );
                   },
                 ),
-
                 if (index < features.length - 1) const Divider(),
               ],
             );
