@@ -5,11 +5,15 @@ import 'package:dnd/l10n/app_localizations.dart';
 class BackgroundDetailPage extends StatefulWidget {
   final BackgroundData backgroundData;
   final bool importFeat;
+  final Function(BackgroundData)? onEdit;
+  final Function(String)? onDelete;
 
   const BackgroundDetailPage({
     super.key,
     required this.backgroundData,
     this.importFeat = false,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -34,7 +38,44 @@ class BackgroundDetailPageState extends State<BackgroundDetailPage> {
                   },
                 ),
               ]
-            : null,
+            : [
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () {
+                    if (widget.onEdit != null) {
+                      Navigator.of(context).pop();
+                      widget.onEdit!(widget.backgroundData);
+                    }
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () async {
+                    final loc = AppLocalizations.of(context)!;
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(loc.confirmdelete),
+                        content: Text('${loc.delete} "${widget.backgroundData.name}"?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: Text(loc.abort),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: Text(loc.delete),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true && widget.onDelete != null) {
+                      Navigator.of(context).pop();
+                      widget.onDelete!(widget.backgroundData.name);
+                    }
+                  },
+                ),
+              ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(8.0),

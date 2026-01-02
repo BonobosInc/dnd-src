@@ -17,6 +17,7 @@ jobs:
   build-android:
     name: Build Android
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
@@ -25,16 +26,7 @@ jobs:
         with:
           version: '3.38.3'
           channel: 'stable'
-          cache: false
-      - name: 'Checkout Flutter 3.38.3'
-        shell: bash
-        run: |
-          cd $FLUTTER_ROOT
-          git fetch --tags
-          git checkout 3.38.3
-          flutter --version
-          cd -
-      - run: flutter --version
+          cache: true
       - run: flutter pub get
 
       - name: Decode and Save Keystore
@@ -58,6 +50,7 @@ jobs:
   build-windows:
     name: Build Windows
     runs-on: windows-latest
+    if: github.ref == 'refs/heads/master'
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
@@ -67,18 +60,20 @@ jobs:
         with:
           version: '3.38.3'
           channel: 'stable'
+          cache: true
 
       - name: Install Flutter dependencies
         run: flutter pub get
 
       - name: Build Windows
-        run: flutter build windows
+        run: flutter build windows --release
 
       - name: Download sqlite.dll
         run: |
           Invoke-WebRequest -Uri "https://www.sqlite.org/2025/sqlite-dll-win-x64-3500100.zip" -OutFile "sqlite.zip"
           Expand-Archive -Path sqlite.zip -DestinationPath sqlite
           Copy-Item -Path ".\sqlite\sqlite3.dll" -Destination ".\build\windows\x64\runner\Release\sqlite3.dll" -Force
+
       - name: Zip Windows Build
         run: |
           $outputPath = "build\windows\x64\runner\Release"
@@ -102,6 +97,7 @@ jobs:
         with:
           version: '3.38.3'
           channel: 'stable'
+          cache: true
 
       - name: Install Linux dependencies
         run: |
@@ -112,7 +108,7 @@ jobs:
         run: flutter pub get
 
       - name: Build Linux
-        run: flutter build linux
+        run: flutter build linux --release
 
       - name: Zip Linux Build
         run: |

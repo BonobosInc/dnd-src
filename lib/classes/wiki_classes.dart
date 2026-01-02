@@ -17,10 +17,10 @@ class ClassData implements Nameable {
 
 class Autolevel {
   final String level;
-  final List<FeatureData> features;
+  final List<FeatureData>? features;
   final Slots? slots;
 
-  Autolevel({required this.level, required this.features, this.slots});
+  Autolevel({required this.level, this.features, this.slots});
 }
 
 class Slots {
@@ -176,7 +176,6 @@ class Creature {
     this.uuid = 0,
   });
 }
-
 
 class FeatData implements Nameable {
   @override
