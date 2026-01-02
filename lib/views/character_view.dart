@@ -148,7 +148,7 @@ class CharacterViewState extends State<CharacterView> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.remove, size: 24),
+                      icon: Icon(Icons.remove, size: 24, color: AppColors.warningColor),
                       onPressed: () {
                         if (tempLevel > 1) {
                           setStateDialog(() {
@@ -162,7 +162,7 @@ class CharacterViewState extends State<CharacterView> {
                       style: const TextStyle(fontSize: 20),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.add, size: 24),
+                      icon: Icon(Icons.add, size: 24, color: AppColors.currentHealth),
                       onPressed: () {
                         if (tempLevel < 20) {
                           setStateDialog(() {
@@ -435,6 +435,10 @@ class CharacterViewState extends State<CharacterView> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accentTeal,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: () async {
                   final pickedFile = await FilePicker.platform.pickFiles(
                     type: FileType.image,
@@ -457,6 +461,10 @@ class CharacterViewState extends State<CharacterView> {
               ),
               SizedBox(height: 10),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.warningColor,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: () {
                   _showDeleteConfirmationDialog(context);
                 },
@@ -748,6 +756,7 @@ class CharacterViewState extends State<CharacterView> {
                           ),
                         ),
                         ListTile(
+                          leading: Icon(Icons.auto_fix_high, color: AppColors.accentPurple),
                           title: Text(
                             loc.spells,
                             style: TextStyle(color: AppColors.textColorLight),
@@ -766,6 +775,7 @@ class CharacterViewState extends State<CharacterView> {
                           },
                         ),
                         ListTile(
+                          leading: Icon(Icons.gavel, color: AppColors.accentOrange),
                           title: Text(
                             loc.weapons,
                             style: TextStyle(color: AppColors.textColorLight),
@@ -783,6 +793,7 @@ class CharacterViewState extends State<CharacterView> {
                           },
                         ),
                         ListTile(
+                          leading: Icon(Icons.description, color: AppColors.accentCyan),
                           title: Text(
                             loc.notes,
                             style: TextStyle(color: AppColors.textColorLight),
@@ -801,6 +812,7 @@ class CharacterViewState extends State<CharacterView> {
                           },
                         ),
                         ListTile(
+                          leading: Icon(Icons.backpack, color: AppColors.accentYellow),
                           title: Text(
                             loc.equipments,
                             style: TextStyle(color: AppColors.textColorLight),
@@ -818,6 +830,7 @@ class CharacterViewState extends State<CharacterView> {
                           },
                         ),
                         ListTile(
+                          leading: Icon(Icons.menu_book, color: AppColors.accentTeal),
                           title: Text(
                             loc.wiki,
                             style: TextStyle(color: AppColors.textColorLight),
@@ -835,6 +848,7 @@ class CharacterViewState extends State<CharacterView> {
                           },
                         ),
                         ListTile(
+                          leading: Icon(Icons.groups, color: AppColors.accentPink),
                           title: Text(
                             loc.session,
                             style: TextStyle(color: AppColors.textColorLight),

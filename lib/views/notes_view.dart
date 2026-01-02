@@ -87,10 +87,10 @@ class NotesPageState extends State<NotesPage> {
     super.initState();
     _loadCharacterData();
     _fetchFeats();
-    featsData = widget.wikiParser.feats;
   }
 
   Future<void> _fetchFeats() async {
+    featsData = await widget.wikiParser.feats;
     List<Map<String, dynamic>> fetchedFeats =
         await widget.profileManager.getFeats();
 
@@ -142,8 +142,7 @@ class NotesPageState extends State<NotesPage> {
         hairColourController.text = characterData[Defines.infoHairColour] ?? '';
         skinColourController.text = characterData[Defines.infoSkinColour] ?? '';
         appearanceController.text = characterData[Defines.infoAppearance] ?? '';
-        backStoryController.text =
-            characterData[Defines.infoBackstory] ?? '';
+        backStoryController.text = characterData[Defines.infoBackstory] ?? '';
         otherNotesController.text = characterData[Defines.infoNotes] ?? '';
         sizeController.text = characterData[Defines.infoSize] ?? '';
       });
@@ -206,7 +205,7 @@ class NotesPageState extends State<NotesPage> {
           backgroundColor: AppColors.appBarColor,
           actions: [
             PopupMenuButton<String>(
-              icon: const Icon(Icons.add),
+              icon: Icon(Icons.add, color: AppColors.accentCyan),
               onSelected: (String value) {
                 if (value == 'addFeat') {
                   _showAddFeatDialog();
@@ -333,14 +332,14 @@ class NotesPageState extends State<NotesPage> {
                 DropdownButtonFormField<String>(
                   value: selectedType,
                   items: [
-                    DropdownMenuItem(value: 'Klasse', child: Text(loc.classKey)),
+                    DropdownMenuItem(
+                        value: 'Klasse', child: Text(loc.classKey)),
                     DropdownMenuItem(value: 'Rasse', child: Text(loc.race)),
                     DropdownMenuItem(
                         value: 'Hintergrund', child: Text(loc.background)),
                     DropdownMenuItem(
                         value: 'Fähigkeiten', child: Text(loc.abilities)),
-                    DropdownMenuItem(
-                        value: 'Sonstige', child: Text(loc.other)),
+                    DropdownMenuItem(value: 'Sonstige', child: Text(loc.other)),
                   ],
                   decoration: InputDecoration(
                     labelText: loc.type,
@@ -469,7 +468,8 @@ class NotesPageState extends State<NotesPage> {
       Row(
         children: [
           Expanded(
-              child: _buildTextField(loc.folk, raceController, Defines.infoRace)),
+              child:
+                  _buildTextField(loc.folk, raceController, Defines.infoRace)),
           const SizedBox(width: 16),
           Expanded(
               child: _buildTextField(
@@ -484,8 +484,8 @@ class NotesPageState extends State<NotesPage> {
                   loc.classKey, classController, Defines.infoClass)),
           const SizedBox(width: 16),
           Expanded(
-              child: _buildTextField(
-                  loc.background, backgroundController, Defines.infoBackground)),
+              child: _buildTextField(loc.background, backgroundController,
+                  Defines.infoBackground)),
         ],
       ),
       const SizedBox(height: 16),
@@ -495,8 +495,7 @@ class NotesPageState extends State<NotesPage> {
               child: _buildTextField(loc.age, ageController, Defines.infoAge)),
           const SizedBox(width: 16),
           Expanded(
-              child: _buildTextField(
-                  loc.sex, sexController, Defines.infoSex)),
+              child: _buildTextField(loc.sex, sexController, Defines.infoSex)),
         ],
       ),
       const SizedBox(height: 16),
@@ -531,8 +530,8 @@ class NotesPageState extends State<NotesPage> {
                   loc.skincolor, skinColourController, Defines.infoSkinColour)),
           const SizedBox(width: 16),
           Expanded(
-              child: _buildTextField(
-                  loc.faith, godController, Defines.infoGod)),
+              child:
+                  _buildTextField(loc.faith, godController, Defines.infoGod)),
         ],
       ),
       const SizedBox(height: 16),
@@ -551,8 +550,8 @@ class NotesPageState extends State<NotesPage> {
       _buildLargeTextField(
           loc.look, appearanceController, Defines.infoAppearance, 3),
       const SizedBox(height: 16),
-      _buildLargeTextField(loc.personalitytraits,
-          personalityTraitsController, Defines.infoPersonalityTraits, 3),
+      _buildLargeTextField(loc.personalitytraits, personalityTraitsController,
+          Defines.infoPersonalityTraits, 3),
       const SizedBox(height: 16),
       _buildLargeTextField(loc.ideals, idealsController, Defines.infoIdeals, 3),
       const SizedBox(height: 16),
@@ -560,8 +559,8 @@ class NotesPageState extends State<NotesPage> {
       const SizedBox(height: 16),
       _buildLargeTextField(loc.flaws, flawsController, Defines.infoFlaws, 3),
       const SizedBox(height: 16),
-      _buildLargeTextField(loc.backstory, backStoryController,
-          Defines.infoBackstory, 15),
+      _buildLargeTextField(
+          loc.backstory, backStoryController, Defines.infoBackstory, 15),
       const SizedBox(height: 16),
       _buildLargeTextField(
           loc.otherNotes, otherNotesController, Defines.infoNotes, 15),
@@ -661,8 +660,7 @@ class NotesPageState extends State<NotesPage> {
                       width: 35,
                       height: 35,
                       child: IconButton(
-                        icon: Icon(Icons.close,
-                            color: AppColors.textColorDark),
+                        icon: Icon(Icons.close, color: AppColors.warningColor),
                         iconSize: 20.0,
                         padding: EdgeInsets.zero,
                         onPressed: () {

@@ -6,12 +6,16 @@ class FeatDetailPage extends StatefulWidget {
   final FeatData featData;
   final bool importFeat;
   final bool characterCreator;
+  final Function(FeatData)? onEdit;
+  final Function(String)? onDelete;
 
   const FeatDetailPage({
     super.key,
     required this.featData,
     this.importFeat = false,
     this.characterCreator = false,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -35,24 +39,63 @@ class FeatDetailPageState extends State<FeatDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(feat.name),
-        actions: [
-          if (widget.importFeat)
-            IconButton(
-              icon: const Icon(Icons.check),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop(_convertToFeatureData(loc));
-              },
-            ),
-          if (widget.characterCreator && !widget.importFeat)
-            IconButton(
-              icon: const Icon(Icons.check),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop(feat);
-              },
-            ),
-        ],
+        actions: widget.importFeat
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.check),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(_convertToFeatureData(loc));
+                  },
+                ),
+              ]
+            : widget.characterCreator
+                ? [
+                    IconButton(
+                      icon: const Icon(Icons.check),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop(feat);
+                      },
+                    ),
+                  ]
+                : [
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () {
+                        if (widget.onEdit != null) {
+                          Navigator.of(context).pop();
+                          widget.onEdit!(feat);
+                        }
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text(loc.confirmdelete),
+                            content: Text('${loc.delete} "${feat.name}"?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: Text(loc.abort),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: Text(loc.delete),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirmed == true && widget.onDelete != null) {
+                          Navigator.of(context).pop();
+                          widget.onDelete!(feat.name);
+                        }
+                      },
+                    ),
+                  ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(12.0),

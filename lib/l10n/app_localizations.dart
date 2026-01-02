@@ -254,6 +254,42 @@ abstract class AppLocalizations {
   /// **'Typ'**
   String get type;
 
+  /// No description provided for @manageItemTypes.
+  ///
+  /// In de, this message translates to:
+  /// **'Gegenstands-Typen verwalten'**
+  String get manageItemTypes;
+
+  /// No description provided for @newTypeName.
+  ///
+  /// In de, this message translates to:
+  /// **'Neuer Typname'**
+  String get newTypeName;
+
+  /// No description provided for @defaultType.
+  ///
+  /// In de, this message translates to:
+  /// **'Standard'**
+  String get defaultType;
+
+  /// No description provided for @customType.
+  ///
+  /// In de, this message translates to:
+  /// **'Benutzerdefiniert'**
+  String get customType;
+
+  /// No description provided for @addType.
+  ///
+  /// In de, this message translates to:
+  /// **'Typ hinzufügen'**
+  String get addType;
+
+  /// No description provided for @deleteType.
+  ///
+  /// In de, this message translates to:
+  /// **'Typ löschen'**
+  String get deleteType;
+
   /// No description provided for @unknownchar.
   ///
   /// In de, this message translates to:
@@ -1262,6 +1298,12 @@ abstract class AppLocalizations {
   /// **'Legendäre Aktion'**
   String get legendaryaction;
 
+  /// No description provided for @legendaryActions.
+  ///
+  /// In de, this message translates to:
+  /// **'Legendäre Aktionen'**
+  String get legendaryActions;
+
   /// No description provided for @addlegendaryaction.
   ///
   /// In de, this message translates to:
@@ -1633,6 +1675,54 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Bearbeite'**
   String get edit;
+
+  /// No description provided for @add.
+  ///
+  /// In de, this message translates to:
+  /// **'Hinzufügen'**
+  String get add;
+
+  /// No description provided for @trait.
+  ///
+  /// In de, this message translates to:
+  /// **'Merkmal'**
+  String get trait;
+
+  /// No description provided for @traits.
+  ///
+  /// In de, this message translates to:
+  /// **'Merkmale'**
+  String get traits;
+
+  /// No description provided for @editTrait.
+  ///
+  /// In de, this message translates to:
+  /// **'Merkmal bearbeiten'**
+  String get editTrait;
+
+  /// No description provided for @addTrait.
+  ///
+  /// In de, this message translates to:
+  /// **'Merkmal hinzufügen'**
+  String get addTrait;
+
+  /// No description provided for @feature.
+  ///
+  /// In de, this message translates to:
+  /// **'Klassenmerkmal'**
+  String get feature;
+
+  /// No description provided for @addFeature.
+  ///
+  /// In de, this message translates to:
+  /// **'Klassenmerkmal hinzufügen'**
+  String get addFeature;
+
+  /// No description provided for @editFeature.
+  ///
+  /// In de, this message translates to:
+  /// **'Klassenmerkmal bearbeiten'**
+  String get editFeature;
 
   /// No description provided for @proficiency.
   ///
@@ -2419,6 +2509,156 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Spieler'**
   String get player;
+
+  /// No description provided for @basicInfo.
+  ///
+  /// In de, this message translates to:
+  /// **'Grundinformationen'**
+  String get basicInfo;
+
+  /// No description provided for @combatStats.
+  ///
+  /// In de, this message translates to:
+  /// **'Kampfwerte'**
+  String get combatStats;
+
+  /// No description provided for @abilityScores.
+  ///
+  /// In de, this message translates to:
+  /// **'Attributswerte'**
+  String get abilityScores;
+
+  /// No description provided for @otherStats.
+  ///
+  /// In de, this message translates to:
+  /// **'Weitere Werte'**
+  String get otherStats;
+
+  /// No description provided for @str.
+  ///
+  /// In de, this message translates to:
+  /// **'STÄ'**
+  String get str;
+
+  /// No description provided for @dex.
+  ///
+  /// In de, this message translates to:
+  /// **'GES'**
+  String get dex;
+
+  /// No description provided for @con.
+  ///
+  /// In de, this message translates to:
+  /// **'KON'**
+  String get con;
+
+  /// No description provided for @int.
+  ///
+  /// In de, this message translates to:
+  /// **'INT'**
+  String get int;
+
+  /// No description provided for @wis.
+  ///
+  /// In de, this message translates to:
+  /// **'WEI'**
+  String get wis;
+
+  /// No description provided for @cha.
+  ///
+  /// In de, this message translates to:
+  /// **'CHA'**
+  String get cha;
+
+  /// No description provided for @savesOptional.
+  ///
+  /// In de, this message translates to:
+  /// **'Rettungswürfe (optional)'**
+  String get savesOptional;
+
+  /// No description provided for @skillsOptional.
+  ///
+  /// In de, this message translates to:
+  /// **'Fertigkeiten (optional)'**
+  String get skillsOptional;
+
+  /// No description provided for @resistancesOptional.
+  ///
+  /// In de, this message translates to:
+  /// **'Resistenzen (optional)'**
+  String get resistancesOptional;
+
+  /// No description provided for @vulnerabilitiesOptional.
+  ///
+  /// In de, this message translates to:
+  /// **'Anfälligkeiten (optional)'**
+  String get vulnerabilitiesOptional;
+
+  /// No description provided for @immunitiesOptional.
+  ///
+  /// In de, this message translates to:
+  /// **'Immunitäten (optional)'**
+  String get immunitiesOptional;
+
+  /// No description provided for @conditionImmunitiesOptional.
+  ///
+  /// In de, this message translates to:
+  /// **'Zustandsimmunitäten (optional)'**
+  String get conditionImmunitiesOptional;
+
+  /// No description provided for @sensesOptional.
+  ///
+  /// In de, this message translates to:
+  /// **'Sinne (optional)'**
+  String get sensesOptional;
+
+  /// No description provided for @languagesOptional.
+  ///
+  /// In de, this message translates to:
+  /// **'Sprachen (optional)'**
+  String get languagesOptional;
+
+  /// No description provided for @speed.
+  ///
+  /// In de, this message translates to:
+  /// **'Bewegung'**
+  String get speed;
+
+  /// No description provided for @addMonster.
+  ///
+  /// In de, this message translates to:
+  /// **'Monster hinzufügen'**
+  String get addMonster;
+
+  /// No description provided for @addRace.
+  ///
+  /// In de, this message translates to:
+  /// **'Rasse hinzufügen'**
+  String get addRace;
+
+  /// No description provided for @addBackground.
+  ///
+  /// In de, this message translates to:
+  /// **'Hintergrund hinzufügen'**
+  String get addBackground;
+
+  /// No description provided for @addClass.
+  ///
+  /// In de, this message translates to:
+  /// **'Klasse hinzufügen'**
+  String get addClass;
+
+  /// No description provided for @addSpellWiki.
+  ///
+  /// In de, this message translates to:
+  /// **'Zauber hinzufügen'**
+  String get addSpellWiki;
+
+  /// No description provided for @addTalent.
+  ///
+  /// In de, this message translates to:
+  /// **'Talent hinzufügen'**
+  String get addTalent;
 }
 
 class _AppLocalizationsDelegate

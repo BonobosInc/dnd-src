@@ -89,6 +89,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get type => 'Type';
 
   @override
+  String get manageItemTypes => 'Manage Item Types';
+
+  @override
+  String get newTypeName => 'New Type Name';
+
+  @override
+  String get defaultType => 'Default';
+
+  @override
+  String get customType => 'Custom';
+
+  @override
+  String get addType => 'Add Type';
+
+  @override
+  String get deleteType => 'Delete Type';
+
+  @override
   String get unknownchar => 'Unknown Character';
 
   @override
@@ -600,6 +618,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get legendaryaction => 'Legendary Action';
 
   @override
+  String get legendaryActions => 'Legendary Actions';
+
+  @override
   String get addlegendaryaction => 'Add Legendary Action';
 
   @override
@@ -786,6 +807,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get edit => 'Edit';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get trait => 'Trait';
+
+  @override
+  String get traits => 'Traits';
+
+  @override
+  String get editTrait => 'Edit Trait';
+
+  @override
+  String get addTrait => 'Add Trait';
+
+  @override
+  String get feature => 'Feature';
+
+  @override
+  String get addFeature => 'Add Feature';
+
+  @override
+  String get editFeature => 'Edit Feature';
 
   @override
   String get proficiency => 'Proficiency';
@@ -1228,4 +1273,79 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get player => 'Player';
+
+  @override
+  String get basicInfo => 'Basic Info';
+
+  @override
+  String get combatStats => 'Combat Stats';
+
+  @override
+  String get abilityScores => 'Ability Scores';
+
+  @override
+  String get otherStats => 'Other Stats';
+
+  @override
+  String get str => 'STR';
+
+  @override
+  String get dex => 'DEX';
+
+  @override
+  String get con => 'CON';
+
+  @override
+  String get int => 'INT';
+
+  @override
+  String get wis => 'WIS';
+
+  @override
+  String get cha => 'CHA';
+
+  @override
+  String get savesOptional => 'Saves (optional)';
+
+  @override
+  String get skillsOptional => 'Skills (optional)';
+
+  @override
+  String get resistancesOptional => 'Resistances (optional)';
+
+  @override
+  String get vulnerabilitiesOptional => 'Vulnerabilities (optional)';
+
+  @override
+  String get immunitiesOptional => 'Immunities (optional)';
+
+  @override
+  String get conditionImmunitiesOptional => 'Condition Immunities (optional)';
+
+  @override
+  String get sensesOptional => 'Senses (optional)';
+
+  @override
+  String get languagesOptional => 'Languages (optional)';
+
+  @override
+  String get speed => 'Speed';
+
+  @override
+  String get addMonster => 'Add Monster';
+
+  @override
+  String get addRace => 'Add Race';
+
+  @override
+  String get addBackground => 'Add Background';
+
+  @override
+  String get addClass => 'Add Class';
+
+  @override
+  String get addSpellWiki => 'Add Spell';
+
+  @override
+  String get addTalent => 'Add Talent';
 }

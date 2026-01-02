@@ -145,8 +145,25 @@ class ProfileManager {
       return;
     }
 
+    // First, check for missing tables and create them
     var columns = DatabaseSchema.getAllColumns();
 
+    for (String tableName in columns.keys) {
+      final tableExists = await _tableExists(db, tableName);
+
+      if (!tableExists) {
+        // Create the entire table
+        final createTableQuery = DatabaseSchema.createTable(tableName);
+        if (createTableQuery.isNotEmpty) {
+          await db.execute(createTableQuery);
+          if (kDebugMode) {
+            print('Created missing table: $tableName');
+          }
+        }
+      }
+    }
+
+    // Then, check for missing columns in existing tables
     for (String table in columns.keys) {
       final tableColumns = columns[table]!;
 
@@ -170,6 +187,14 @@ class ProfileManager {
     if (kDebugMode) {
       print('Database schema updated to appVersion: $appVersion');
     }
+  }
+
+  Future<bool> _tableExists(Database db, String tableName) async {
+    final result = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+      [tableName],
+    );
+    return result.isNotEmpty;
   }
 
   Future<void> _addColumn(
@@ -513,6 +538,9 @@ class ProfileManager {
     currentDb = await openDatabase(profileDbPath);
     selectedProfile = profile.name;
     selectedID = profile.id;
+
+    // Initialize default item types if they don't exist
+    await initializeDefaultItemTypes();
   }
 
   Future<void> characterCreator(
@@ -524,8 +552,6 @@ class ProfileManager {
     Map<String, int> abilityScores,
   ) async {
     final profileDbPath = await _getPath();
-
-    Map<String, int> proficiencies = {};
 
     await createProfile(name);
 
@@ -559,12 +585,14 @@ class ProfileManager {
       orElse: () => Autolevel(level: '1', features: [], slots: null),
     );
 
-    for (final feature in levelOne.features) {
-      addFeat(
-        featName: feature.name,
-        description: feature.description,
-        type: "Klasse",
-      );
+    if (levelOne.features != null) {
+      for (final feature in levelOne.features!) {
+        addFeat(
+          featName: feature.name,
+          description: feature.description,
+          type: "Klasse",
+        );
+      }
     }
 
     final slots = levelOne.slots?.slots ?? [];
@@ -574,7 +602,7 @@ class ProfileManager {
       }
     }
 
-    proficiencies = parseRaceProficiencies(race.proficiency);
+    parseRaceProficiencies(race.proficiency);
 
 
 
@@ -643,6 +671,8 @@ class ProfileManager {
         .delete('weapons', where: 'charId = ?', whereArgs: [charId]);
     await currentDb!.delete('feats', where: 'charId = ?', whereArgs: [charId]);
     await currentDb!.delete('items', where: 'charId = ?', whereArgs: [charId]);
+    await currentDb!
+        .delete('item_types', where: 'charId = ?', whereArgs: [charId]);
     await currentDb!
         .delete('tracker', where: 'charId = ?', whereArgs: [charId]);
     await currentDb!
@@ -1218,6 +1248,78 @@ class ProfileManager {
       where: 'charId = ? AND ID = ?',
       whereArgs: [selectedID, uuid],
     );
+  }
+
+  // Custom Item Types Management
+  Future<void> addItemType({required String typeName}) async {
+    if (currentDb == null) return;
+
+    final Map<String, dynamic> typeData = {
+      'charId': selectedID,
+      'type_name': typeName,
+      'is_default': 0,
+    };
+
+    try {
+      await currentDb!.insert(
+        'item_types',
+        typeData,
+        conflictAlgorithm: ConflictAlgorithm.abort,
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error adding item type: $e');
+      }
+    }
+  }
+
+  Future<void> removeItemType(int typeId) async {
+    if (currentDb == null) return;
+
+    await currentDb!.delete(
+      'item_types',
+      where: 'charId = ? AND ID = ? AND is_default = 0',
+      whereArgs: [selectedID, typeId],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getItemTypes() async {
+    if (currentDb == null) return [];
+
+    final List<Map<String, dynamic>> result = await currentDb!.query(
+      'item_types',
+      where: 'charId = ?',
+      whereArgs: [selectedID],
+    );
+
+    return result;
+  }
+
+  Future<void> initializeDefaultItemTypes() async {
+    if (currentDb == null) return;
+
+    // Check if default types already exist
+    final existingTypes = await currentDb!.query(
+      'item_types',
+      where: 'charId = ? AND is_default = 1',
+      whereArgs: [selectedID],
+    );
+
+    if (existingTypes.isEmpty) {
+      final defaultTypes = ['Gegenstände', 'Ausrüstung', 'Sonstige'];
+
+      for (String type in defaultTypes) {
+        await currentDb!.insert(
+          'item_types',
+          {
+            'charId': selectedID,
+            'type_name': type,
+            'is_default': 1,
+          },
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        );
+      }
+    }
   }
 
   Future<void> updateTracker({
@@ -2415,6 +2517,37 @@ class ProfileManager {
     return attacks;
   }
 
+  List<Map<String, String>> parseItemTypes(String xmlString) {
+    final document = XmlDocument.parse(xmlString);
+
+    Iterable<XmlElement> itemTypeElements;
+
+    if (document.findAllElements('itemTypes').isNotEmpty) {
+      itemTypeElements = document
+          .findAllElements('itemTypes')
+          .first
+          .findAllElements('itemType');
+    } else {
+      return [];
+    }
+
+    List<Map<String, String>> itemTypes = [];
+
+    for (final typeElement in itemTypeElements) {
+      final name = typeElement.findElements('name').first.innerText;
+      final isDefault = typeElement.findElements('isDefault').isNotEmpty
+          ? typeElement.findElements('isDefault').first.innerText
+          : '0';
+
+      itemTypes.add({
+        'name': name,
+        'isDefault': isDefault,
+      });
+    }
+
+    return itemTypes;
+  }
+
   List<Map<String, String>> parseItems(String xmlString) {
     final document = XmlDocument.parse(xmlString);
 
@@ -2708,6 +2841,7 @@ class ProfileManager {
     final parsedWeapons = parseWeapons(xmlString);
     final parsedTrackers = parseTrackers(xmlString);
     final parsedItems = parseItems(xmlString);
+    final parsedItemTypes = parseItemTypes(xmlString);
     final parsedSavingThrows = parseSavingThrows(xmlString);
     final parsedBagItems = parseBagItems(xmlString);
     final parsedSkills = parseSkills(xmlString);
@@ -2727,6 +2861,7 @@ class ProfileManager {
     await _importFeats(parsedFeats);
     await _importWeapons(parsedWeapons);
     await _importTrackers(parsedTrackers);
+    await _importItemTypes(parsedItemTypes);
     await _importItems(parsedItems);
     await _importSavingThrows(parsedSavingThrows);
     await _importBagItems(parsedBagItems);
@@ -2931,6 +3066,20 @@ class ProfileManager {
     }
   }
 
+  Future<void> _importItemTypes(
+      List<Map<String, dynamic>> parsedItemTypes) async {
+    for (final itemType in parsedItemTypes) {
+      final isDefault = itemType['isDefault'] != null
+          ? int.tryParse(itemType['isDefault'].toString()) ?? 0
+          : 0;
+
+      // Only import custom types (non-default), as defaults are auto-created
+      if (isDefault == 0) {
+        await addItemType(typeName: itemType['name']!);
+      }
+    }
+  }
+
   Future<void> _importItems(List<Map<String, dynamic>> parsedItems) async {
     for (final item in parsedItems) {
       final amount = item['amount'] != null
@@ -3027,6 +3176,7 @@ class ProfileManager {
     final spellSlots = await getSpellSlots();
     final weapons = await getWeapons();
     final items = await getItems();
+    final itemTypes = await getItemTypes();
     final savingThrows = await getSavingThrows();
     final bagItems = await getBagItems();
     final skills = await getSkills();
@@ -3245,6 +3395,15 @@ class ProfileManager {
             } else {
               builder.element('attunement', nest: 0);
             }
+          });
+        }
+      });
+
+      builder.element('itemTypes', nest: () {
+        for (final itemType in itemTypes) {
+          builder.element('itemType', nest: () {
+            builder.element('name', nest: itemType['type_name']);
+            builder.element('isDefault', nest: itemType['is_default']);
           });
         }
       });

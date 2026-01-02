@@ -9,11 +9,17 @@ import 'package:dnd/views/wiki/races_view.dart';
 import 'package:dnd/views/wiki/spellwiki_view.dart';
 import 'package:dnd/classes/wiki_parser.dart';
 import 'package:dnd/views/wiki/wiki_editor/class_editor_view.dart';
+import 'package:dnd/views/wiki/wiki_editor/race_editor_view.dart';
+import 'package:dnd/views/wiki/wiki_editor/background_editor_view.dart';
+import 'package:dnd/views/wiki/wiki_editor/feat_editor_view.dart';
+import 'package:dnd/views/wiki/wiki_editor/spell_editor_view.dart';
+import 'package:dnd/views/wiki/wiki_editor/creature_editor_view.dart';
 import 'package:flutter/material.dart';
 import 'package:dnd/classes/wiki_classes.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dnd/l10n/app_localizations.dart';
+import 'package:dnd/configs/colours.dart';
 
 class WikiPage extends StatefulWidget {
   final WikiParser wikiParser;
@@ -34,6 +40,7 @@ class WikiPageState extends State<WikiPage> {
   List<SpellData> spells = [];
   List<Creature> creatures = [];
 
+  bool isLoading = true;
   String searchQuery = '';
   bool isSearchVisible = false;
   final TextEditingController searchController = TextEditingController();
@@ -70,34 +77,339 @@ class WikiPageState extends State<WikiPage> {
     return savedFilePath;
   }
 
-  void loadDataFromParser() {
+  Future<void> loadDataFromParser() async {
+    if (!mounted) return;
+
     setState(() {
-      classes = widget.wikiParser.classes;
-      races = widget.wikiParser.races;
-      backgrounds = widget.wikiParser.backgrounds;
-      feats = widget.wikiParser.feats;
-      spells = widget.wikiParser.spells;
-      creatures = widget.wikiParser.creatures;
+      isLoading = true;
     });
+
+    try {
+      final classesData = await widget.wikiParser.classes;
+      final racesData = await widget.wikiParser.races;
+      final backgroundsData = await widget.wikiParser.backgrounds;
+      final featsData = await widget.wikiParser.feats;
+      final spellsData = await widget.wikiParser.spells;
+      final creaturesData = await widget.wikiParser.creatures;
+
+      if (!mounted) return;
+
+      setState(() {
+        classes = classesData;
+        races = racesData;
+        backgrounds = backgroundsData;
+        feats = featsData;
+        spells = spellsData;
+        creatures = creaturesData;
+        isLoading = false;
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading wiki data: $e');
+      }
+      if (!mounted) return;
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   Future<void> _deleteXml() async {
-    widget.wikiParser.deleteXml();
-    widget.wikiParser.classes.clear();
-    widget.wikiParser.races.clear();
-    widget.wikiParser.backgrounds.clear();
-    widget.wikiParser.feats.clear();
-    widget.wikiParser.spells.clear();
-    widget.wikiParser.creatures.clear();
+    await widget.wikiParser.deleteXml();
+    await loadDataFromParser();
+  }
+
+  Future<void> _saveToXml<T>(T data, Future<void> Function(T) addToDb) async {
+    await addToDb(data);
+    await loadDataFromParser();
+    if (kDebugMode) {
+      print("${T.toString()} added successfully to database.");
+    }
+  }
+
+  Future<void> _deleteFromXml<T>(String name,
+      Future<void> Function(xml.XmlDocument, String) deleteFromXml) async {
+    await deleteFromXml(xml.XmlDocument(), name);
+    await loadDataFromParser();
+  }
+
+  Future<void> _updateInXml<T>(String oldName, T data,
+      Future<void> Function(xml.XmlDocument, String, T) updateInXml) async {
+    await updateInXml(xml.XmlDocument(), oldName, data);
+    await loadDataFromParser();
+  }
+
+  void _addclass() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddClassPage(
+          onSave: (newClass) async {
+            await _saveToXml(newClass, widget.wikiParser.addClass);
+          },
+        ),
+      ),
+    );
+    // Reload after returning from the add page
+    await loadDataFromParser();
+  }
+
+  void _addRace() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddRacePage(
+          onSave: (newRace) async {
+            await _saveToXml(newRace, widget.wikiParser.addRace);
+          },
+        ),
+      ),
+    );
+    // Reload after returning from the add page
+    await loadDataFromParser();
+  }
+
+  void _addBackground() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddBackgroundPage(
+          onSave: (newBackground) async {
+            await _saveToXml(newBackground, widget.wikiParser.addBackground);
+          },
+        ),
+      ),
+    );
+    // Reload after returning from the add page
+    await loadDataFromParser();
+  }
+
+  void _addFeat() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddFeatPage(
+          onSave: (newFeat) async {
+            await _saveToXml(newFeat, widget.wikiParser.addFeat);
+          },
+        ),
+      ),
+    );
+    // Reload after returning from the add page
+    await loadDataFromParser();
+  }
+
+  void _addSpell() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddSpellPage(
+          onSave: (newSpell) async {
+            await _saveToXml(newSpell, widget.wikiParser.addSpell);
+          },
+        ),
+      ),
+    );
+    // Reload after returning from the add page
+    await loadDataFromParser();
+  }
+
+  void _addCreature() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddCreaturePage(
+          onSave: (newCreature) async {
+            await _saveToXml(newCreature, widget.wikiParser.addCreature);
+          },
+        ),
+      ),
+    );
+    // Reload after returning from the add page
+    await loadDataFromParser();
+  }
+
+  void _editClass(ClassData classData) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddClassPage(
+          existingClass: classData,
+          onSave: (updatedClass) async {
+            await _updateInXml(classData.name, updatedClass,
+                widget.wikiParser.updateClassInXml);
+          },
+        ),
+      ),
+    );
+    // Reload after returning from the edit page
+    await loadDataFromParser();
+  }
+
+  void _editRace(RaceData raceData) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddRacePage(
+          existingRace: raceData,
+          onSave: (updatedRace) async {
+            await _updateInXml(
+                raceData.name, updatedRace, widget.wikiParser.updateRaceInXml);
+          },
+        ),
+      ),
+    );
+    // Reload after returning from the edit page
+    await loadDataFromParser();
+  }
+
+  void _editBackground(BackgroundData backgroundData) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddBackgroundPage(
+          existingBackground: backgroundData,
+          onSave: (updatedBackground) async {
+            await _updateInXml(backgroundData.name, updatedBackground,
+                widget.wikiParser.updateBackgroundInXml);
+          },
+        ),
+      ),
+    );
+    // Reload after returning from the edit page
+    await loadDataFromParser();
+  }
+
+  void _editFeat(FeatData featData) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddFeatPage(
+          existingFeat: featData,
+          onSave: (updatedFeat) async {
+            await _updateInXml(
+                featData.name, updatedFeat, widget.wikiParser.updateFeatInXml);
+          },
+        ),
+      ),
+    );
+    // Reload after returning from the edit page
+    await loadDataFromParser();
+  }
+
+  void _editSpell(SpellData spellData) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddSpellPage(
+          existingSpell: spellData,
+          onSave: (updatedSpell) async {
+            await _updateInXml(spellData.name, updatedSpell,
+                widget.wikiParser.updateSpellInXml);
+          },
+        ),
+      ),
+    );
+    // Reload after returning from the edit page
+    await loadDataFromParser();
+  }
+
+  void _editCreature(Creature creature) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddCreaturePage(
+          existingCreature: creature,
+          onSave: (updatedCreature) async {
+            await _updateInXml(creature.name, updatedCreature,
+                widget.wikiParser.updateCreatureInXml);
+          },
+        ),
+      ),
+    );
+    // Reload after returning from the edit page
+    await loadDataFromParser();
+  }
+
+  void _showAddMenu() {
+    final loc = AppLocalizations.of(context)!;
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.school, color: AppColors.accentTeal),
+              title: Text(loc.classesKey),
+              onTap: () {
+                Navigator.pop(context);
+                _addclass();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.people, color: AppColors.accentPurple),
+              title: Text(loc.races),
+              onTap: () {
+                Navigator.pop(context);
+                _addRace();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.book, color: AppColors.accentTeal),
+              title: Text(loc.backgrounds),
+              onTap: () {
+                Navigator.pop(context);
+                _addBackground();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.star, color: AppColors.accentPurple),
+              title: Text(loc.talents),
+              onTap: () {
+                Navigator.pop(context);
+                _addFeat();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.auto_fix_high, color: AppColors.accentTeal),
+              title: Text(loc.spells),
+              onTap: () {
+                Navigator.pop(context);
+                _addSpell();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.pets, color: AppColors.accentPurple),
+              title: Text(loc.monster),
+              onTap: () {
+                Navigator.pop(context);
+                _addCreature();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> importXml() async {
     final loc = AppLocalizations.of(context)!;
+
+    if (kDebugMode) {
+      print('📂 Opening file picker for wiki import...');
+    }
+
     String? filePath = await FilePicker.platform
         .pickFiles(
           type: FileType.any,
         )
         .then((result) => result?.files.single.path);
+
+    if (kDebugMode) {
+      print('Selected file: $filePath');
+    }
 
     if (filePath != null) {
       if (!filePath.endsWith('.xml')) {
@@ -111,7 +423,7 @@ class WikiPageState extends State<WikiPage> {
 
       try {
         await widget.wikiParser.importXml(filePath);
-        loadDataFromParser();
+        await loadDataFromParser();
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -119,6 +431,9 @@ class WikiPageState extends State<WikiPage> {
           );
         }
       } catch (e) {
+        if (kDebugMode) {
+          print('Import error: $e');
+        }
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('${loc.importbad}: $e')),
@@ -128,8 +443,7 @@ class WikiPageState extends State<WikiPage> {
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(loc.importbad)),
+          SnackBar(content: Text(loc.importbad)),
         );
       }
     }
@@ -137,11 +451,6 @@ class WikiPageState extends State<WikiPage> {
 
   Future<void> exportXml() async {
     final loc = AppLocalizations.of(context)!;
-    if (widget.wikiParser.savedXmlFilePath == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(loc.noexportfilefound)));
-      return;
-    }
 
     try {
       await widget.wikiParser.exportXml();
@@ -197,7 +506,7 @@ class WikiPageState extends State<WikiPage> {
         actions: widget.importFeat == false
             ? [
                 IconButton(
-                  icon: const Icon(Icons.search),
+                  icon: Icon(Icons.search, color: AppColors.accentTeal),
                   onPressed: () {
                     setState(() {
                       isSearchVisible = !isSearchVisible;
@@ -212,42 +521,14 @@ class WikiPageState extends State<WikiPage> {
                   },
                 ),
                 PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert),
-                  onSelected: (value) {
+                  icon: Icon(Icons.more_vert, color: AppColors.accentPurple),
+                  onSelected: (value) async {
                     if (value == 'import') {
-                      importXml();
+                      await importXml();
                     } else if (value == 'export') {
-                      exportXml();
+                      await exportXml();
                     } else if (value == 'delete') {
-                      _deleteXml();
-                      loadDataFromParser();
-                    } else if (value == 'class') {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AddClassPage(
-                            onSave: (newClass) async {
-                              final xmlFilePath = await getDir();
-                              final xmlFile = File(xmlFilePath);
-                              if (!xmlFile.existsSync()) {
-                                throw Exception(
-                                    "XML file not found at $xmlFilePath");
-                              }
-                              final document = xml.XmlDocument.parse(
-                                  await xmlFile.readAsString());
-
-                              widget.wikiParser
-                                  .addClassToXml(document, newClass);
-
-                              await xmlFile.writeAsString(
-                                  document.toXmlString(pretty: true));
-                              if (kDebugMode) {
-                                print("Class added successfully to XML.");
-                              }
-                            },
-                          ),
-                        ),
-                      );
+                      await _deleteXml();
                     }
                   },
                   itemBuilder: (BuildContext context) {
@@ -263,71 +544,105 @@ class WikiPageState extends State<WikiPage> {
                       PopupMenuItem<String>(
                         value: 'delete',
                         child: Text(loc.deletewiki),
-                      ),
-                      // const PopupMenuItem<String>(
-                      //   value: 'class',
-                      //   child: Text('Klasse hinzufügen'),
-                      // ),
+                      )
                     ];
                   },
                 ),
               ]
             : [],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: searchQuery.isNotEmpty
-            ? (filteredItems.isEmpty
-                ? [ListTile(title: Text(loc.noresultfound))]
-                : filteredItems.map((item) {
-                    return Column(
-                      children: [
-                        ListTile(
-                          title: Text(item.name),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  if (item is ClassData) {
-                                    return ClassDetailPage(
-                                        classData: item,
-                                        importFeat: widget.importFeat);
-                                  } else if (item is RaceData) {
-                                    return RaceDetailPage(
-                                        raceData: item,
-                                        importFeat: widget.importFeat);
-                                  } else if (item is BackgroundData) {
-                                    return BackgroundDetailPage(
-                                        backgroundData: item,
-                                        importFeat: widget.importFeat);
-                                  } else if (item is FeatData) {
-                                    return FeatDetailPage(
-                                        featData: item,
-                                        importFeat: widget.importFeat);
-                                  } else if (item is SpellData) {
-                                    return SpellDetailPage(spellData: item);
-                                  }
-                                  return const SizedBox.shrink();
+      floatingActionButton: widget.importFeat == false
+          ? FloatingActionButton(
+              onPressed: _showAddMenu,
+              backgroundColor: AppColors.accentTeal,
+              child: const Icon(Icons.add),
+            )
+          : null,
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: searchQuery.isNotEmpty
+                  ? (filteredItems.isEmpty
+                      ? [ListTile(title: Text(loc.noresultfound))]
+                      : filteredItems.map((item) {
+                          return Column(
+                            children: [
+                              ListTile(
+                                title: Text(item.name),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) {
+                                        if (item is ClassData) {
+                                          return ClassDetailPage(
+                                              classData: item,
+                                              importFeat: widget.importFeat);
+                                        } else if (item is RaceData) {
+                                          return RaceDetailPage(
+                                              raceData: item,
+                                              importFeat: widget.importFeat,
+                                              onEdit: _editRace,
+                                              onDelete: (name) async {
+                                                await _deleteFromXml(
+                                                    name,
+                                                    widget.wikiParser
+                                                        .deleteRaceFromXml);
+                                              });
+                                        } else if (item is BackgroundData) {
+                                          return BackgroundDetailPage(
+                                              backgroundData: item,
+                                              importFeat: widget.importFeat,
+                                              onEdit: _editBackground,
+                                              onDelete: (name) async {
+                                                await _deleteFromXml(
+                                                    name,
+                                                    widget.wikiParser
+                                                        .deleteBackgroundFromXml);
+                                              });
+                                        } else if (item is FeatData) {
+                                          return FeatDetailPage(
+                                              featData: item,
+                                              importFeat: widget.importFeat,
+                                              onEdit: _editFeat,
+                                              onDelete: (name) async {
+                                                await _deleteFromXml(
+                                                    name,
+                                                    widget.wikiParser
+                                                        .deleteFeatFromXml);
+                                              });
+                                        } else if (item is SpellData) {
+                                          return SpellDetailPage(
+                                              spellData: item,
+                                              onEdit: _editSpell,
+                                              onDelete: (name) async {
+                                                await _deleteFromXml(
+                                                    name,
+                                                    widget.wikiParser
+                                                        .deleteSpellFromXml);
+                                              });
+                                        }
+                                        return const SizedBox.shrink();
+                                      },
+                                    ),
+                                  );
                                 },
                               ),
-                            );
-                          },
-                        ),
-                        const Divider(),
-                      ],
-                    );
-                  }).toList())
-            : [
-                buildCollapsibleSection(loc.races, races),
-                buildCollapsibleSection(loc.classesKey, classes),
-                buildCollapsibleSection(loc.backgrounds, backgrounds),
-                buildCollapsibleSection(loc.talents, feats),
-                buildCreatureCollapsibleSection(loc.monster, creatures),
-                if (widget.importFeat == false)
-                  buildSpellCollapsibleSection(loc.spells, spells),
-              ],
-      ),
+                              const Divider(),
+                            ],
+                          );
+                        }).toList())
+                  : [
+                      buildCollapsibleSection(loc.races, races),
+                      buildCollapsibleSection(loc.classesKey, classes),
+                      buildCollapsibleSection(loc.backgrounds, backgrounds),
+                      buildCollapsibleSection(loc.talents, feats),
+                      buildCreatureCollapsibleSection(loc.monster, creatures),
+                      if (widget.importFeat == false)
+                        buildSpellCollapsibleSection(loc.spells, spells),
+                    ],
+            ),
     );
   }
 
@@ -371,22 +686,57 @@ class WikiPageState extends State<WikiPage> {
                               builder: (context) {
                                 if (item is ClassData) {
                                   return ClassDetailPage(
-                                      classData: item,
-                                      importFeat: widget.importFeat);
+                                    classData: item,
+                                    importFeat: widget.importFeat,
+                                    onEdit: _editClass,
+                                    onDelete: (name) async {
+                                      await _deleteFromXml(name,
+                                          widget.wikiParser.deleteClassFromXml);
+                                    },
+                                  );
                                 } else if (item is RaceData) {
                                   return RaceDetailPage(
                                       raceData: item,
-                                      importFeat: widget.importFeat);
+                                      importFeat: widget.importFeat,
+                                      onEdit: _editRace,
+                                      onDelete: (name) async {
+                                        await _deleteFromXml(
+                                            name,
+                                            widget
+                                                .wikiParser.deleteRaceFromXml);
+                                      });
                                 } else if (item is BackgroundData) {
                                   return BackgroundDetailPage(
                                       backgroundData: item,
-                                      importFeat: widget.importFeat);
+                                      importFeat: widget.importFeat,
+                                      onEdit: _editBackground,
+                                      onDelete: (name) async {
+                                        await _deleteFromXml(
+                                            name,
+                                            widget.wikiParser
+                                                .deleteBackgroundFromXml);
+                                      });
                                 } else if (item is FeatData) {
                                   return FeatDetailPage(
                                       featData: item,
-                                      importFeat: widget.importFeat);
+                                      importFeat: widget.importFeat,
+                                      onEdit: _editFeat,
+                                      onDelete: (name) async {
+                                        await _deleteFromXml(
+                                            name,
+                                            widget
+                                                .wikiParser.deleteFeatFromXml);
+                                      });
                                 } else if (item is SpellData) {
-                                  return SpellDetailPage(spellData: item);
+                                  return SpellDetailPage(
+                                      spellData: item,
+                                      onEdit: _editSpell,
+                                      onDelete: (name) async {
+                                        await _deleteFromXml(
+                                            name,
+                                            widget
+                                                .wikiParser.deleteSpellFromXml);
+                                      });
                                 }
                                 return const SizedBox.shrink();
                               },
@@ -496,8 +846,14 @@ class WikiPageState extends State<WikiPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        AllCreaturesPage(creatures: creatures),
+                    builder: (context) => AllCreaturesPage(
+                      creatures: creatures,
+                      onEdit: _editCreature,
+                      onDelete: (creature) async {
+                        await _deleteFromXml(creature.name,
+                            widget.wikiParser.deleteCreatureFromXml);
+                      },
+                    ),
                   ),
                 );
               },

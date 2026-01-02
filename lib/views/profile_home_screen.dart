@@ -47,13 +47,20 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
   }
 
   Future<void> _addNewProfile() async {
-    if (widget.wikiParser.isEmpty())
+    final isEmpty = await widget.wikiParser.isEmpty();
+    if (kDebugMode) {
+      print('Wiki isEmpty: $isEmpty');
+    }
+    if (isEmpty)
     {
       await _showBlankCharacterDialog();
       return;
     }
 
     final String? creationChoice = await _askCreationMethod();
+    if (kDebugMode) {
+      print('Creation choice: $creationChoice');
+    }
     if (creationChoice == 'creator') {
       await _navigateToCharacterCreator();
     } else if (creationChoice == 'blank') {

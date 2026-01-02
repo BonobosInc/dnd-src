@@ -1,0 +1,73 @@
+name: "Release"
+on:
+  workflow_run:
+    workflows: ["Build"]
+    types:
+      - completed
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from version.dart
+        id: get_version
+        run: |
+          VERSION=$(grep 'const String appVersion' lib/configs/version.dart | sed -E 's/.*"([0-9]+\.[0-9]+\.[0-9]+)";/\1/')
+          echo "VERSION=$VERSION"
+          echo "version=$VERSION" >> $GITHUB_ENV
+
+      - name: Download Android APK Artifact
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: build.yml
+          name: release-apk
+          path: ./artifacts
+
+      - name: Download Windows Build Artifact
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: build.yml
+          name: release-windows
+          path: ./artifacts
+
+      - name: Download Linux Build Artifact
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: build.yml
+          name: release-linux
+          path: ./artifacts
+
+      - name: Rename artifacts
+        run: |
+          mv ./artifacts/app-release.apk ./artifacts/BonoDND-${{ env.version }}.apk
+          mv ./artifacts/bonodnd-windows.zip ./artifacts/BonoDND-${{ env.version }}-windows.zip
+          mv ./artifacts/bonodnd-linux.zip ./artifacts/BonoDND-${{ env.version }}-linux.zip
+
+      - name: Push to Release Repo
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: |
+            ./artifacts/BonoDND-${{ env.version }}.apk
+            ./artifacts/BonoDND-${{ env.version }}-windows.zip
+            ./artifacts/BonoDND-${{ env.version }}-linux.zip
+          token: ${{ secrets.RELEASE_PAT }}
+          owner: BonobosInc
+          repo: dnd
+          tag: ${{ env.version }}
+
+      - name: Push to SRC Repo
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: |
+            ./artifacts/BonoDND-${{ env.version }}.apk
+            ./artifacts/BonoDND-${{ env.version }}-windows.zip
+            ./artifacts/BonoDND-${{ env.version }}-linux.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ env.version }}

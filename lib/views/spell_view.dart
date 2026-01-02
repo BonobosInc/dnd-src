@@ -104,7 +104,7 @@ class SpellManagementPageState extends State<SpellManagementPage> {
         title: Text(loc.spell),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: Icon(Icons.settings, color: AppColors.accentPurple),
             onPressed: () async {
               await Navigator.push(
                 context,
@@ -248,51 +248,74 @@ class SpellManagementPageState extends State<SpellManagementPage> {
 
   Widget _buildSpellLevelFields() {
     final loc = AppLocalizations.of(context)!;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Determine columns based on screen width
+    int crossAxisCount;
+    if (screenWidth > 1200) {
+      crossAxisCount = 3; // Large tablets/desktop - 3 columns
+    } else if (screenWidth > 600) {
+      crossAxisCount = 2; // Tablets/foldables - 2 columns
+    } else {
+      crossAxisCount = 1; // Phones - 1 column
+    }
+
     return SingleChildScrollView(
-      child: Column(
-        children: [
-          for (int levelIndex = 0;
-              levelIndex < spellLevels.length;
-              levelIndex++)
-            Center(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      if (levelIndex > 0) {
-                        _editSpellSlots(levelIndex);
-                      }
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (levelIndex > 0) ...[
-                          _buildDecrementButton(levelIndex),
-                        ],
-                        Text(
-                          levelIndex == 0
-                              ? loc.cantrip
-                              : '${loc.level} $levelIndex ',
-                          style: TextStyle(
-                            color: AppColors.textColorLight,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Wrap(
+            spacing: 16.0,
+            runSpacing: 16.0,
+            alignment: WrapAlignment.center,
+            children: [
+              for (int levelIndex = 0;
+                  levelIndex < spellLevels.length;
+                  levelIndex++)
+                SizedBox(
+                  width: (constraints.maxWidth / crossAxisCount) - (16.0 * (crossAxisCount - 1) / crossAxisCount),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          if (levelIndex > 0) {
+                            _editSpellSlots(levelIndex);
+                          }
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (levelIndex > 0) ...[
+                              _buildDecrementButton(levelIndex),
+                            ],
+                            Flexible(
+                              child: Text(
+                                levelIndex == 0
+                                    ? loc.cantrip
+                                    : '${loc.level} $levelIndex ',
+                                style: TextStyle(
+                                  color: AppColors.textColorLight,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (levelIndex > 0) ...[
+                              _buildSpellSlotControls(levelIndex),
+                            ],
+                          ],
                         ),
-                        if (levelIndex > 0) ...[
-                          _buildSpellSlotControls(levelIndex),
-                        ],
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 14),
+                      ..._buildSpellNames(levelIndex),
+                      const SizedBox(height: 8),
+                    ],
                   ),
-                  const SizedBox(height: 14),
-                  ..._buildSpellNames(levelIndex),
-                  const SizedBox(height: 8),
-                ],
-              ),
-            ),
-        ],
+                ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -315,7 +338,7 @@ class SpellManagementPageState extends State<SpellManagementPage> {
         }
 
         return IconButton(
-          icon: const Icon(Icons.remove),
+          icon: Icon(Icons.remove, color: AppColors.warningColor),
           onPressed: () {
             if (currentSlots > 0) {
               setState(() {
@@ -357,7 +380,7 @@ class SpellManagementPageState extends State<SpellManagementPage> {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.add),
+              icon: Icon(Icons.add, color: AppColors.currentHealth),
               onPressed: () {
                 if (currentSlots < totalSlots) {
                   setState(() {
@@ -408,7 +431,21 @@ class SpellManagementPageState extends State<SpellManagementPage> {
               decoration: BoxDecoration(
                 color: AppColors.cardColor,
                 borderRadius: BorderRadius.circular(10.0),
-                border: Border.all(color: AppColors.borderColor, width: 1.0),
+                border: Border.all(
+                  color: [
+                    AppColors.textColorDark,
+                    AppColors.accentPurple,
+                    AppColors.accentOrange,
+                    AppColors.accentTeal,
+                    AppColors.accentPink,
+                    AppColors.accentCyan,
+                    AppColors.accentYellow,
+                    AppColors.currentHealth,
+                    AppColors.tempHealth,
+                    AppColors.warningColor,
+                  ][levelIndex % 10],
+                  width: 2.0,
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withAlpha((0.2 * 255).toInt()),
@@ -438,16 +475,11 @@ class SpellManagementPageState extends State<SpellManagementPage> {
     }
 
     return [
-      Center(
-        child: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.7,
-          child: Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 8.0,
-            runSpacing: 8.0,
-            children: fields,
-          ),
-        ),
+      Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 8.0,
+        runSpacing: 8.0,
+        children: fields,
       ),
     ];
   }

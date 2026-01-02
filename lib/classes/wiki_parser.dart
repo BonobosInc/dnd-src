@@ -1,4 +1,5 @@
 import 'dart:isolate';
+import 'package:dnd/classes/wiki_database_manager.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
@@ -8,139 +9,248 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
 class WikiParser {
-  List<ClassData> classes = [];
-  List<RaceData> races = [];
-  List<BackgroundData> backgrounds = [];
-  List<FeatData> feats = [];
-  List<SpellData> spells = [];
-  List<Creature> creatures = [];
-  String? savedXmlFilePath;
+  final WikiDatabaseManager _dbManager = WikiDatabaseManager();
+
+  // Data is now loaded from database on-demand
+  Future<List<ClassData>> get classes async => _dbManager.getAllClasses();
+  Future<List<RaceData>> get races async => _dbManager.getAllRaces();
+  Future<List<BackgroundData>> get backgrounds async =>
+      _dbManager.getAllBackgrounds();
+  Future<List<FeatData>> get feats async => _dbManager.getAllFeats();
+  Future<List<SpellData>> get spells async => _dbManager.getAllSpells();
+  Future<List<Creature>> get creatures async => _dbManager.getAllCreatures();
 
   WikiParser();
 
-  bool isEmpty() {
-    return classes.isEmpty ||
-        races.isEmpty ||
-        backgrounds.isEmpty;
+  Future<bool> isEmpty() async {
+    final classesList = await classes;
+    final racesList = await races;
+    final backgroundsList = await backgrounds;
+    return classesList.isEmpty ||
+        racesList.isEmpty ||
+        backgroundsList.isEmpty;
   }
 
   Future<void> loadXml() async {
-    String savedFilePath;
+    // Initialize database
+    await _dbManager.database;
 
+    // Perform automatic migration from legacy XML if needed
+    await _performAutoMigration();
+  }
+
+  Future<void> _performAutoMigration() async {
+    try {
+      // Check if migration has already been done
+      final migrationStatus = await _dbManager.getMigrationStatus();
+
+      if (migrationStatus['migrated'] == true) {
+        if (kDebugMode) {
+          print('Wiki database already migrated.');
+        }
+        return;
+      }
+
+      // Check if database is empty (first time setup or fresh install)
+      // Use efficient COUNT query instead of loading all data
+      final isDatabaseEmpty = await _dbManager.isDatabaseEmpty();
+
+      if (!isDatabaseEmpty) {
+        // Database has data but migration flag not set, mark as migrated
+        await _dbManager.setMigrationStatus(migrated: true);
+        return;
+      }
+
+      // Try to find and import legacy XML file
+      String savedFilePath = await _getLegacyXmlPath();
+      File file = File(savedFilePath);
+
+      if (await file.exists()) {
+        if (kDebugMode) {
+          print('🔄 Found legacy XML file at: $savedFilePath');
+          print('🔄 Starting automatic migration to database...');
+        }
+
+        // Read and parse XML
+        String xmlData = await file.readAsString();
+
+        // Create backup of XML file before migration
+        await _createBackup(file);
+
+        // Import data into database
+        await importXmlData(xmlData);
+
+        // Mark migration as complete
+        await _dbManager.setMigrationStatus(
+          migrated: true,
+          migrationDate: DateTime.now().toIso8601String(),
+          sourceFile: savedFilePath,
+        );
+
+        if (kDebugMode) {
+          print('✅ Migration completed successfully!');
+          print('   - Legacy XML backed up');
+          print('   - Data imported to database');
+          print('   - Original XML preserved at: $savedFilePath');
+        }
+      } else {
+        if (kDebugMode) {
+          print('No legacy XML file found. Starting with empty database.');
+        }
+
+        // Mark as migrated even if no XML found (fresh install)
+        await _dbManager.setMigrationStatus(
+          migrated: true,
+          migrationDate: DateTime.now().toIso8601String(),
+          sourceFile: 'none',
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error during automatic migration: $e');
+      }
+      // Don't throw - allow app to continue with empty database
+    }
+  }
+
+  Future<void> _createBackup(File originalFile) async {
+    try {
+      final backupPath = '${originalFile.path}.backup';
+      final backupFile = File(backupPath);
+
+      // Only create backup if it doesn't exist
+      if (!await backupFile.exists()) {
+        await originalFile.copy(backupPath);
+        if (kDebugMode) {
+          print('📦 Created backup at: $backupPath');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('⚠️  Failed to create backup: $e');
+      }
+      // Continue even if backup fails
+    }
+  }
+
+  Future<String> _getLegacyXmlPath() async {
     if (Platform.isWindows) {
       bool isDebugMode = bool.fromEnvironment('dart.vm.product') == false;
-
       if (isDebugMode) {
-        savedFilePath = './temp/wiki.xml';
+        return './temp/wiki.xml';
       } else {
         Directory appSupportDir = await getApplicationSupportDirectory();
-        savedFilePath = '${appSupportDir.path}/wiki.xml';
+        return '${appSupportDir.path}/wiki.xml';
       }
     } else {
       Directory appSupportDir = await getApplicationSupportDirectory();
-      savedFilePath = '${appSupportDir.path}/wiki.xml';
-    }
-
-    File file = File(savedFilePath);
-
-    if (await file.exists()) {
-      savedXmlFilePath = savedFilePath;
-      String xmlData = await file.readAsString();
-      await parseXmlInIsolate(xmlData);
-    } else {
-      String initialXmlContent = '''<?xml version="1.0" encoding="UTF-8"?>
-<compendium version="5" auto_indent="NO">
-    <!-- Items -->
-    <!-- Races -->
-    <!-- Classes -->
-    <!-- Feats -->
-    <!-- Backgrounds -->
-    <!-- Spells -->
-    <!-- Monsters -->
-</compendium>''';
-      await file.writeAsString(initialXmlContent);
-      savedXmlFilePath = savedFilePath;
-      await parseXmlInIsolate(initialXmlContent);
+      return '${appSupportDir.path}/wiki.xml';
     }
   }
 
   Future<void> deleteXml() async {
-    String filePath;
-
-    if (Platform.isWindows) {
-      bool isDebugMode = bool.fromEnvironment('dart.vm.product') == false;
-
-      if (isDebugMode) {
-        filePath = './temp/wiki.xml';
-      } else {
-        Directory appSupportDir = await getApplicationSupportDirectory();
-        filePath = '${appSupportDir.path}/wiki.xml';
-      }
-    } else {
-      Directory appSupportDir = await getApplicationSupportDirectory();
-      filePath = '${appSupportDir.path}/wiki.xml';
-    }
-
-    File file = File(filePath);
-
-    String initialXmlContent = '''<?xml version="1.0" encoding="UTF-8"?>
-<compendium version="5" auto_indent="NO">
-    <!-- Items -->
-    <!-- Races -->
-    <!-- Classes -->
-    <!-- Feats -->
-    <!-- Backgrounds -->
-    <!-- Spells -->
-    <!-- Monsters -->
-</compendium>''';
-
-    await file.writeAsString(initialXmlContent);
-    savedXmlFilePath = filePath;
-    await parseXmlInIsolate(initialXmlContent);
-
-    classes.clear();
-    races.clear();
-    backgrounds.clear();
-    feats.clear();
-    spells.clear();
-    creatures.clear();
+    // Close DB, delete files, then recreate a fresh database
+    // Clear all wiki data but keep the DB file itself.
+    await _dbManager.clearDatabase();
+    await _dbManager.database; // reinitialize
   }
 
   Future<void> importXml(String sourceFilePath) async {
-    String destinationFilePath;
+    final sourceFile = File(sourceFilePath);
+    final xmlData = await sourceFile.readAsString();
+    await importXmlData(xmlData);
+  }
 
-    if (Platform.isWindows) {
-      bool isDebugMode = bool.fromEnvironment('dart.vm.product') == false;
-
-      if (isDebugMode) {
-        destinationFilePath = './temp/wiki.xml';
-      } else {
-        Directory appSupportDir = await getApplicationSupportDirectory();
-        destinationFilePath = '${appSupportDir.path}/wiki.xml';
-      }
-    } else {
-      Directory appSupportDir = await getApplicationSupportDirectory();
-      destinationFilePath = '${appSupportDir.path}/wiki.xml';
+  Future<void> importXmlData(String xmlData) async {
+    if (kDebugMode) {
+      print('📥 Starting XML import...');
+      print('   XML data length: ${xmlData.length} characters');
     }
 
-    final sourceFile = File(sourceFilePath);
-    final destinationFile = File(destinationFilePath);
-    await destinationFile.writeAsBytes(await sourceFile.readAsBytes());
-    await loadXml();
+    final parsedData = await _parseXmlInIsolate(xmlData);
+
+    if (kDebugMode) {
+      print('   Parsed data:');
+      print('   - Classes: ${(parsedData['classes'] as List).length}');
+      print('   - Races: ${(parsedData['races'] as List).length}');
+      print('   - Backgrounds: ${(parsedData['backgrounds'] as List).length}');
+      print('   - Feats: ${(parsedData['feats'] as List).length}');
+      print('   - Spells: ${(parsedData['spells'] as List).length}');
+      print('   - Creatures: ${(parsedData['creatures'] as List).length}');
+      print('   Importing all data in single transaction...');
+    }
+
+    // Use bulk import to handle everything in a single transaction
+    await _dbManager.bulkImport(
+      classes: parsedData['classes'] as List<ClassData>,
+      races: parsedData['races'] as List<RaceData>,
+      backgrounds: parsedData['backgrounds'] as List<BackgroundData>,
+      feats: parsedData['feats'] as List<FeatData>,
+      spells: parsedData['spells'] as List<SpellData>,
+      creatures: parsedData['creatures'] as List<Creature>,
+    );
+
+    if (kDebugMode) {
+      print('✅ Imported XML data to database successfully');
+    }
   }
 
   Future<void> exportXml() async {
-    if (savedXmlFilePath == null) {
-      throw Exception("No XML file has been loaded to export.");
-    }
-
     try {
-      final sourceFile = File(savedXmlFilePath!);
+      // Get all data from database
+      final classesData = await _dbManager.getAllClasses();
+      final racesData = await _dbManager.getAllRaces();
+      final backgroundsData = await _dbManager.getAllBackgrounds();
+      final featsData = await _dbManager.getAllFeats();
+      final spellsData = await _dbManager.getAllSpells();
+      final creaturesData = await _dbManager.getAllCreatures();
 
+      // Build XML document
+      final builder = xml.XmlBuilder();
+      builder.processing('xml', 'version="1.0" encoding="UTF-8"');
+      builder.element('compendium', attributes: {
+        'version': '5',
+        'auto_indent': 'NO',
+      }, nest: () {
+        builder.comment(' Items ');
+        builder.comment(' Races ');
+        for (var race in racesData) {
+          _buildRaceXml(builder, race);
+        }
+        builder.comment(' Classes ');
+        for (var classData in classesData) {
+          _buildClassXml(builder, classData);
+        }
+        builder.comment(' Feats ');
+        for (var feat in featsData) {
+          _buildFeatXml(builder, feat);
+        }
+        builder.comment(' Backgrounds ');
+        for (var background in backgroundsData) {
+          _buildBackgroundXml(builder, background);
+        }
+        builder.comment(' Spells ');
+        for (var spell in spellsData) {
+          _buildSpellXml(builder, spell);
+        }
+        builder.comment(' Monsters ');
+        for (var creature in creaturesData) {
+          _buildCreatureXml(builder, creature);
+        }
+      });
+
+      final xmlDocument = builder.buildDocument();
+      final xmlString = xmlDocument.toXmlString(pretty: true, indent: '  ');
+
+      // Export file
       if (Platform.isAndroid || Platform.isIOS) {
-        final shareFile = XFile(sourceFile.path);
-        await Share.shareXFiles([shareFile],
-            text: 'Hier ist der exportierte Wiki: wiki_export.xml');
+        // Create temp file for sharing
+        final tempDir = await getTemporaryDirectory();
+        final tempFile = File('${tempDir.path}/wiki_export.xml');
+        await tempFile.writeAsString(xmlString);
+
+        final shareFile = XFile(tempFile.path);
+        await Share.shareXFiles([shareFile], text: 'Exported Wiki');
 
         if (kDebugMode) {
           print("XML file shared.");
@@ -153,7 +263,7 @@ class WikiParser {
 
         if (destinationPath != null) {
           final destinationFile = File(destinationPath);
-          await destinationFile.writeAsBytes(await sourceFile.readAsBytes());
+          await destinationFile.writeAsString(xmlString);
           if (kDebugMode) {
             print("XML file saved at: $destinationPath");
           }
@@ -163,12 +273,159 @@ class WikiParser {
       }
     } catch (e) {
       if (kDebugMode) {
-        print("Error: $e");
+        print("Error exporting XML: $e");
       }
+      rethrow;
     }
   }
 
-  Future<void> parseXmlInIsolate(String xmlData) async {
+  void _buildClassXml(xml.XmlBuilder builder, ClassData classData) {
+    builder.element('class', nest: () {
+      builder.element('name', nest: classData.name);
+      builder.element('hd', nest: classData.hd);
+      builder.element('proficiency', nest: classData.proficiency);
+      builder.element('numSkills', nest: classData.numSkills);
+
+      for (final autolevel in classData.autolevels) {
+        builder.element('autolevel', attributes: {'level': autolevel.level},
+            nest: () {
+          for (final feature in autolevel.features ?? []) {
+            builder.element('feature', nest: () {
+              builder.element('name', nest: feature.name);
+              builder.element('text', nest: feature.description);
+            });
+          }
+          if (autolevel.slots != null) {
+            builder.element('slots', nest: autolevel.slots!.slots.join(','));
+          }
+        });
+      }
+    });
+  }
+
+  void _buildRaceXml(xml.XmlBuilder builder, RaceData raceData) {
+    builder.element('race', nest: () {
+      builder.element('name', nest: raceData.name);
+      builder.element('size', nest: raceData.size);
+      builder.element('speed', nest: raceData.speed.toString());
+      builder.element('ability', nest: raceData.ability);
+      builder.element('proficiency', nest: raceData.proficiency);
+      builder.element('spellAbility', nest: raceData.spellAbility);
+
+      for (final trait in raceData.traits) {
+        builder.element('trait', nest: () {
+          builder.element('name', nest: trait.name);
+          builder.element('text', nest: trait.description);
+        });
+      }
+    });
+  }
+
+  void _buildBackgroundXml(
+      xml.XmlBuilder builder, BackgroundData backgroundData) {
+    builder.element('background', nest: () {
+      builder.element('name', nest: backgroundData.name);
+      builder.element('proficiency', nest: backgroundData.proficiency);
+
+      for (final trait in backgroundData.traits) {
+        builder.element('trait', nest: () {
+          builder.element('name', nest: trait.name);
+          builder.element('text', nest: trait.description);
+        });
+      }
+    });
+  }
+
+  void _buildFeatXml(xml.XmlBuilder builder, FeatData featData) {
+    builder.element('feat', nest: () {
+      builder.element('name', nest: featData.name);
+      if (featData.prerequisite != null && featData.prerequisite!.isNotEmpty) {
+        builder.element('prerequisite', nest: featData.prerequisite);
+      }
+      builder.element('text', nest: featData.text);
+      if (featData.modifier != null && featData.modifier!.isNotEmpty) {
+        builder.element('modifier', nest: featData.modifier);
+      }
+    });
+  }
+
+  void _buildSpellXml(xml.XmlBuilder builder, SpellData spellData) {
+    builder.element('spell', nest: () {
+      builder.element('name', nest: spellData.name);
+      builder.element('level', nest: spellData.level);
+      builder.element('school', nest: spellData.school);
+      builder.element('ritual', nest: spellData.ritual);
+      builder.element('time', nest: spellData.time);
+      builder.element('range', nest: spellData.range);
+      builder.element('components', nest: spellData.components);
+      builder.element('duration', nest: spellData.duration);
+      builder.element('classes', nest: spellData.classes.join(', '));
+      builder.element('text', nest: spellData.text);
+    });
+  }
+
+  void _buildCreatureXml(xml.XmlBuilder builder, Creature creature) {
+    builder.element('monster', nest: () {
+      builder.element('name', nest: creature.name);
+      builder.element('size', nest: creature.size);
+      builder.element('type', nest: creature.type);
+      builder.element('alignment', nest: creature.alignment);
+      builder.element('ac', nest: creature.ac.toString());
+      builder.element('hp', nest: creature.maxHP.toString());
+      builder.element('speed', nest: creature.speed);
+      builder.element('str', nest: creature.str.toString());
+      builder.element('dex', nest: creature.dex.toString());
+      builder.element('con', nest: creature.con.toString());
+      builder.element('int', nest: creature.intScore.toString());
+      builder.element('wis', nest: creature.wis.toString());
+      builder.element('cha', nest: creature.cha.toString());
+
+      if (creature.saves.isNotEmpty)
+        builder.element('save', nest: creature.saves);
+      if (creature.skills.isNotEmpty)
+        builder.element('skill', nest: creature.skills);
+      if (creature.resistances.isNotEmpty)
+        builder.element('resist', nest: creature.resistances);
+      if (creature.vulnerabilities.isNotEmpty)
+        builder.element('vulnerable', nest: creature.vulnerabilities);
+      if (creature.immunities.isNotEmpty)
+        builder.element('immune', nest: creature.immunities);
+      if (creature.conditionImmunities.isNotEmpty)
+        builder.element('conditionImmune', nest: creature.conditionImmunities);
+      if (creature.senses.isNotEmpty)
+        builder.element('senses', nest: creature.senses);
+      builder.element('passive', nest: creature.passivePerception.toString());
+      if (creature.languages.isNotEmpty)
+        builder.element('languages', nest: creature.languages);
+      builder.element('cr', nest: creature.cr);
+
+      for (final trait in creature.traits) {
+        builder.element('trait', nest: () {
+          builder.element('name', nest: trait.name);
+          builder.element('text', nest: trait.description);
+        });
+      }
+
+      for (final action in creature.actions) {
+        builder.element('action', nest: () {
+          builder.element('name', nest: action.name);
+          builder.element('text', nest: action.description);
+          if (action.attack != null && action.attack!.isNotEmpty) {
+            builder.element('attack', nest: action.attack);
+          }
+        });
+      }
+
+      for (final legendary in creature.legendaryActions) {
+        builder.element('legendary', nest: () {
+          builder.element('name', nest: legendary.name);
+          builder.element('text', nest: legendary.description);
+        });
+      }
+    });
+  }
+
+  Future<Map<String, List<dynamic>>> _parseXmlInIsolate(String xmlData) async {
     final response = ReceivePort();
     await Isolate.spawn(_parseXml, response.sendPort);
 
@@ -176,14 +433,7 @@ class WikiParser {
     final result = ReceivePort();
     sendPort.send([xmlData, result.sendPort]);
 
-    final parsedData = await result.first as Map<String, List<dynamic>>;
-
-    classes = (parsedData['classes'] as List<ClassData>? ?? []);
-    races = (parsedData['races'] as List<RaceData>? ?? []);
-    backgrounds = (parsedData['backgrounds'] as List<BackgroundData>? ?? []);
-    feats = (parsedData['feats'] as List<FeatData>? ?? []);
-    spells = (parsedData['spells'] as List<SpellData>? ?? []);
-    creatures = (parsedData['creatures'] as List<Creature>? ?? []);
+    return await result.first as Map<String, List<dynamic>>;
   }
 
   static void _parseXml(SendPort sendPort) {
@@ -610,33 +860,88 @@ class WikiParser {
     }).toList();
   }
 
-  void addClassToXml(xml.XmlDocument document, ClassData classData) {
-    final builder = xml.XmlBuilder();
+  // CRUD operations - now using database
+  Future<void> addClass(ClassData classData) async {
+    await _dbManager.insertClass(classData);
+  }
 
-    builder.element('class', nest: () {
-      builder.element('name', nest: classData.name);
-      builder.element('hd', nest: classData.hd);
-      builder.element('proficiency', nest: classData.proficiency);
-      builder.element('numSkills', nest: classData.numSkills);
+  Future<void> deleteClassFromXml(
+      xml.XmlDocument document, String className) async {
+    await _dbManager.deleteClass(className);
+  }
 
-      builder.element('autolevels', nest: () {
-        for (final autolevel in classData.autolevels) {
-          builder.element('autolevel', attributes: {'level': autolevel.level},
-              nest: () {
-            for (final feature in autolevel.features) {
-              builder.element('feature', nest: () {
-                builder.element('name', nest: feature.name);
-                builder.element('text', nest: feature.description);
-              });
-            }
-            if (autolevel.slots != null) {
-              builder.element('slots', nest: autolevel.slots!.slots.join(', '));
-            }
-          });
-        }
-      });
-    });
+  Future<void> updateClassInXml(
+      xml.XmlDocument document, String oldName, ClassData classData) async {
+    await _dbManager.updateClass(oldName, classData);
+  }
 
-    document.rootElement.children.add(builder.buildFragment());
+  Future<void> addRace(RaceData raceData) async {
+    await _dbManager.insertRace(raceData);
+  }
+
+  Future<void> deleteRaceFromXml(
+      xml.XmlDocument document, String raceName) async {
+    await _dbManager.deleteRace(raceName);
+  }
+
+  Future<void> updateRaceInXml(
+      xml.XmlDocument document, String oldName, RaceData raceData) async {
+    await _dbManager.updateRace(oldName, raceData);
+  }
+
+  Future<void> addBackground(BackgroundData backgroundData) async {
+    await _dbManager.insertBackground(backgroundData);
+  }
+
+  Future<void> deleteBackgroundFromXml(
+      xml.XmlDocument document, String backgroundName) async {
+    await _dbManager.deleteBackground(backgroundName);
+  }
+
+  Future<void> updateBackgroundInXml(xml.XmlDocument document, String oldName,
+      BackgroundData backgroundData) async {
+    await _dbManager.updateBackground(oldName, backgroundData);
+  }
+
+  Future<void> addFeat(FeatData featData) async {
+    await _dbManager.insertFeat(featData);
+  }
+
+  Future<void> deleteFeatFromXml(
+      xml.XmlDocument document, String featName) async {
+    await _dbManager.deleteFeat(featName);
+  }
+
+  Future<void> updateFeatInXml(
+      xml.XmlDocument document, String oldName, FeatData featData) async {
+    await _dbManager.updateFeat(oldName, featData);
+  }
+
+  Future<void> addSpell(SpellData spellData) async {
+    await _dbManager.insertSpell(spellData);
+  }
+
+  Future<void> deleteSpellFromXml(
+      xml.XmlDocument document, String spellName) async {
+    await _dbManager.deleteSpell(spellName);
+  }
+
+  Future<void> updateSpellInXml(
+      xml.XmlDocument document, String oldName, SpellData spellData) async {
+    await _dbManager.updateSpell(oldName, spellData);
+  }
+
+  Future<void> addCreature(Creature creature) async {
+    await _dbManager.insertCreature(creature);
+  }
+
+  Future<void> deleteCreatureFromXml(
+      xml.XmlDocument document, String creatureName) async {
+    await _dbManager.deleteCreature(creatureName);
+  }
+
+  Future<void> updateCreatureInXml(
+      xml.XmlDocument document, String oldName, Creature creature) async {
+    await _dbManager.updateCreature(oldName, creature);
   }
 }

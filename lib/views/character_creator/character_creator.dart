@@ -43,11 +43,16 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
 
   @override
   void initState() {
-    races = widget.wikiParser.races;
-    classes = widget.wikiParser.classes;
-    backgrounds = widget.wikiParser.backgrounds;
-    feats = widget.wikiParser.feats;
+    _loadData();
     super.initState();
+  }
+
+  Future<void> _loadData() async {
+    races = await widget.wikiParser.races;
+    classes = await widget.wikiParser.classes;
+    backgrounds = await widget.wikiParser.backgrounds;
+    feats = await widget.wikiParser.feats;
+    setState(() {});
   }
 
   void _onCreateCharacter() {

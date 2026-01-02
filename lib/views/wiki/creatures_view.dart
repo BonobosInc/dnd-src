@@ -6,11 +6,15 @@ import 'package:dnd/l10n/app_localizations.dart';
 class AllCreaturesPage extends StatefulWidget {
   final List<Creature> creatures;
   final bool importCreature;
+  final Function(Creature)? onEdit;
+  final Function(Creature)? onDelete;
 
   const AllCreaturesPage({
     super.key,
     required this.creatures,
     this.importCreature = false,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -123,6 +127,12 @@ class AllCreaturesPageState extends State<AllCreaturesPage> {
         builder: (context) => CreatureDetailPage(
           creature: creature,
           importCreature: widget.importCreature,
+          onEdit: widget.onEdit,
+          onDelete: (name) async {
+            if (widget.onDelete != null) {
+              widget.onDelete!(creature);
+            }
+          },
         ),
       ),
     );
@@ -455,8 +465,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _acController,
-                      decoration: InputDecoration(
-                          labelText: loc.ac),
+                      decoration: InputDecoration(labelText: loc.ac),
                       keyboardType: TextInputType.number,
                     ),
                   ),
@@ -464,8 +473,7 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _hpController,
-                      decoration:
-                          InputDecoration(labelText: loc.hp),
+                      decoration: InputDecoration(labelText: loc.hp),
                       keyboardType: TextInputType.number,
                     ),
                   ),
@@ -477,16 +485,14 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _speedController,
-                      decoration:
-                          InputDecoration(labelText: loc.movement),
+                      decoration: InputDecoration(labelText: loc.movement),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: TextField(
                       controller: _crController,
-                      decoration: InputDecoration(
-                          labelText: loc.cr),
+                      decoration: InputDecoration(labelText: loc.cr),
                     ),
                   ),
                 ],
@@ -582,7 +588,8 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _vulnerabilitiesController,
-                      decoration: InputDecoration(labelText: loc.vulnerabilities),
+                      decoration:
+                          InputDecoration(labelText: loc.vulnerabilities),
                     ),
                   ),
                 ],
@@ -600,8 +607,8 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _conditionImmunitiesController,
-                      decoration: InputDecoration(
-                          labelText: loc.conditionImmunities),
+                      decoration:
+                          InputDecoration(labelText: loc.conditionImmunities),
                     ),
                   ),
                 ],
@@ -619,8 +626,8 @@ class CreateCreaturePageState extends State<CreateCreaturePage> {
                   Expanded(
                     child: TextField(
                       controller: _passivePerceptionController,
-                      decoration: InputDecoration(
-                          labelText: loc.passivePerception),
+                      decoration:
+                          InputDecoration(labelText: loc.passivePerception),
                       keyboardType: TextInputType.number,
                     ),
                   ),
@@ -1207,12 +1214,16 @@ class CreatureDetailPage extends StatelessWidget {
   final Creature creature;
   final bool importCreature;
   final bool statsMenu;
+  final Function(Creature)? onEdit;
+  final Function(String)? onDelete;
 
   const CreatureDetailPage({
     super.key,
     required this.creature,
     this.importCreature = false,
     this.statsMenu = false,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -1222,6 +1233,43 @@ class CreatureDetailPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(creature.name),
         actions: [
+          if (!statsMenu && !importCreature) ...[
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                if (onEdit != null) {
+                  Navigator.of(context).pop();
+                  onEdit!(creature);
+                }
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(loc.confirmdelete),
+                    content: Text('${loc.delete} "${creature.name}"?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: Text(loc.abort),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: Text(loc.delete),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed == true && onDelete != null) {
+                  Navigator.of(context).pop();
+                  onDelete!(creature.name);
+                }
+              },
+            ),
+          ],
           if (statsMenu)
             IconButton(
               icon: const Icon(Icons.edit),
@@ -1336,11 +1384,11 @@ class CreatureDetailPage extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('${loc.senses}: ${creature.senses.isNotEmpty ? creature.senses : 'None'}'),
+        Text(
+            '${loc.senses}: ${creature.senses.isNotEmpty ? creature.senses : 'None'}'),
         Text(
             '${loc.languages}: ${creature.languages.isNotEmpty ? creature.languages : 'None'}'),
-        Text(
-            '${loc.cr}: ${creature.cr.isNotEmpty ? creature.cr : 'N/A'}'),
+        Text('${loc.cr}: ${creature.cr.isNotEmpty ? creature.cr : 'N/A'}'),
       ],
     );
   }

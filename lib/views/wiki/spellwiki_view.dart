@@ -8,11 +8,15 @@ import 'package:dnd/l10n/app_localizations.dart';
 class SpellDetailPage extends StatelessWidget {
   final SpellData spellData;
   final bool importspell;
+  final Function(SpellData)? onEdit;
+  final Function(String)? onDelete;
 
   const SpellDetailPage({
     super.key,
     required this.spellData,
     this.importspell = false,
+    this.onEdit,
+    this.onDelete,
   });
 
   String getSchoolFullName(String abbreviation, BuildContext context) {
@@ -48,6 +52,45 @@ class SpellDetailPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(spellData.name),
+        actions: importspell
+            ? null
+            : [
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () {
+                    if (onEdit != null) {
+                      Navigator.of(context).pop();
+                      onEdit!(spellData);
+                    }
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(loc.confirmdelete),
+                        content: Text('${loc.delete} "${spellData.name}"?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: Text(loc.abort),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: Text(loc.delete),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true && onDelete != null) {
+                      Navigator.of(context).pop();
+                      onDelete!(spellData.name);
+                    }
+                  },
+                ),
+              ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(8.0),
@@ -60,7 +103,8 @@ class SpellDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text('${loc.level}: ${spellData.level}'),
-            Text('${loc.school}: ${getSchoolFullName(spellData.school, context)}'),
+            Text(
+                '${loc.school}: ${getSchoolFullName(spellData.school, context)}'),
             Text('${loc.castingtime}: ${spellData.time}'),
             Text('${loc.range}: ${spellData.range}'),
             Text('${loc.duration}: ${spellData.duration}'),
@@ -586,7 +630,8 @@ Widget _buildSpellDetailForm(
     Spell spell,
     TextEditingController descriptionController,
     TextEditingController reach,
-    TextEditingController duration, AppLocalizations loc) {
+    TextEditingController duration,
+    AppLocalizations loc) {
   return Column(
     mainAxisSize: MainAxisSize.min,
     children: [
@@ -610,7 +655,6 @@ Widget _buildSpellDetailForm(
 }
 
 Widget _buildStatusDropdown(Spell spell, AppLocalizations loc) {
-
   const List<String> statuses = [Defines.spellPrep, Defines.spellKnown];
 
   return DropdownButtonFormField<String>(

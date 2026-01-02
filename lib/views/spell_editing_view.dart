@@ -42,9 +42,13 @@ class SpellEditingPageState extends State<SpellEditingPage> {
       });
 
       _fetchSpells();
+      _loadSpells();
     });
+  }
 
-    spellsData = widget.wikiParser.spells;
+  Future<void> _loadSpells() async {
+    spellsData = await widget.wikiParser.spells;
+    if (mounted) setState(() {});
   }
 
   Future<void> _fetchSpells() async {
