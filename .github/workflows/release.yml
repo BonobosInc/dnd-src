@@ -29,6 +29,7 @@ jobs:
           workflow: build.yml
           name: release-apk
           path: ./artifacts
+          run_id: ${{ github.event.workflow_run.id }}
 
       - name: Download Windows Build Artifact
         uses: dawidd6/action-download-artifact@v6
@@ -36,6 +37,7 @@ jobs:
           workflow: build.yml
           name: release-windows
           path: ./artifacts
+          run_id: ${{ github.event.workflow_run.id }}
 
       - name: Download Linux Build Artifact
         uses: dawidd6/action-download-artifact@v6
@@ -43,6 +45,7 @@ jobs:
           workflow: build.yml
           name: release-linux
           path: ./artifacts
+          run_id: ${{ github.event.workflow_run.id }}
 
       - name: Rename artifacts
         run: |
