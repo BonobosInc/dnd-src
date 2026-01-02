@@ -26,7 +26,16 @@ jobs:
         with:
           version: '3.38.3'
           channel: 'stable'
-          cache: true
+          cache: false
+      - name: 'Checkout Flutter 3.38.3'
+        shell: bash
+        run: |
+          cd $FLUTTER_ROOT
+          git fetch --tags
+          git checkout 3.38.3
+          flutter --version
+          cd -
+      - run: flutter --version
       - run: flutter pub get
 
       - name: Decode and Save Keystore
