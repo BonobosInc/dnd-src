@@ -511,5 +511,39 @@
     "addBackground": "Add Background",
     "addClass": "Add Class",
     "addSpellWiki": "Add Spell",
-    "addTalent": "Add Talent"
+    "addTalent": "Add Talent",
+    "setHitPoints": "Set Hit Points",
+    "hitPoints": "Hit Points",
+    "hpMethod": "HP Method",
+    "rollHp": "Roll",
+    "medianHp": "Median",
+    "customHp": "Custom",
+    "hitDie": "Hit Die",
+    "constitutionModifier": "Constitution Modifier",
+    "reroll": "Reroll",
+    "levelHp": "Level {level}: {hp} HP",
+    "@levelHp": {
+        "description": "HP for a specific level",
+        "placeholders": {
+            "level": {},
+            "hp": {}
+        }
+    },
+    "maxLevel": "(Max)",
+    "totalHp": "Total HP",
+    "totalHpValue": "Total HP: {hp}",
+    "@totalHpValue": {
+        "description": "Total HP display",
+        "placeholders": {
+            "hp": {}
+        }
+    },
+    "pleaseSetValidHp": "Please set valid HP",
+    "hpDisplay": "HP: {hp}",
+    "@hpDisplay": {
+        "description": "HP display in character creator",
+        "placeholders": {
+            "hp": {}
+        }
+    }
 }

@@ -9,7 +9,8 @@ import 'package:flutter/material.dart';
 class CharacterCreatorPage extends StatefulWidget {
   final WikiParser wikiParser;
   final ProfileManager profileManager;
-  const CharacterCreatorPage({super.key, required this.wikiParser, required this.profileManager});
+  const CharacterCreatorPage(
+      {super.key, required this.wikiParser, required this.profileManager});
 
   @override
   State<CharacterCreatorPage> createState() => _CharacterCreatorPageState();
@@ -28,12 +29,15 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
   bool backgroundSelected = false;
   bool featSelected = false;
   bool abilityScoresSet = false;
+  bool hpSet = false;
 
   RaceData? _selectedRace;
   ClassData? _selectedClass;
   BackgroundData? _selectedBackground;
   FeatData? _selectedFeat;
   Map<String, int>? _selectedFinalScores;
+  int _selectedLevel = 1;
+  int? _selectedHP;
 
   @override
   void dispose() {
@@ -55,7 +59,7 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
     setState(() {});
   }
 
-  void _onCreateCharacter() {
+  Future<void> _onCreateCharacter() async {
     final loc = AppLocalizations.of(context)!;
     final String name = _nameController.text.trim();
     if (name.isEmpty) {
@@ -65,24 +69,30 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
       return;
     }
 
-    if (!(raceSelected && classSelected && backgroundSelected && abilityScoresSet)) {
+    if (!(raceSelected &&
+        classSelected &&
+        backgroundSelected &&
+        abilityScoresSet &&
+        hpSet)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(loc.completeallsteps)),
       );
       return;
     }
 
-    widget.profileManager.characterCreator(
-      _nameController.text,
-      _selectedRace!,
-      _selectedClass!,
-      _selectedBackground!,
-      _selectedFeat,
-      _selectedFinalScores!
+    await widget.profileManager.characterCreator(
+        _nameController.text,
+        _selectedRace!,
+        _selectedClass!,
+        _selectedBackground!,
+        _selectedFeat,
+        _selectedFinalScores!,
+        _selectedLevel,
+        _selectedHP!);
 
-    );
-
-    Navigator.of(context).pop();
+    if (context.mounted) {
+      Navigator.of(context).pop(true);
+    }
   }
 
   void _navigateTo<T>(Widget page, void Function(T? result) onReturn) {
@@ -103,35 +113,48 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
     return Card(
       color: enabled ? AppColors.cardColor : AppColors.appBarColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 2,
+      elevation: 4.0,
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 0),
       child: ListTile(
         enabled: enabled,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         title: Text(
           title,
           style: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textColorDark
+            fontWeight: FontWeight.bold,
+            color: enabled ? AppColors.textColorLight : AppColors.textColorDark,
           ),
         ),
         subtitle: subtitle != null && subtitle.isNotEmpty
             ? Text(
                 subtitle,
-                style: TextStyle(color: AppColors.textColorDark),
-              )
-            : null,
-        trailing: completed
-            ? Container(
-                width: 12,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.purple,
-                  borderRadius: BorderRadius.circular(4),
+                style: TextStyle(
+                  color: enabled
+                      ? AppColors.textColorLight.withOpacity(0.7)
+                      : AppColors.textColorDark.withOpacity(0.7),
                 ),
               )
             : null,
+        trailing: completed
+            ? Icon(
+                Icons.check_circle,
+                color: AppColors.accentTeal,
+                size: 24,
+              )
+            : Icon(
+                Icons.arrow_forward_ios,
+                color: enabled
+                    ? AppColors.textColorLight
+                    : AppColors.textColorDark.withOpacity(0.5),
+                size: 16,
+              ),
         onTap: enabled ? onTap : null,
+        tileColor: enabled ? AppColors.cardColor : AppColors.appBarColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
       ),
     );
   }
@@ -151,24 +174,80 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
       },
       child: Scaffold(
         appBar: AppBar(
+          title: Text(loc.characterCreator),
           actions: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: DropdownButton<int>(
+                value: _selectedLevel,
+                dropdownColor: AppColors.appBarColor,
+                underline: Container(),
+                icon: Icon(Icons.arrow_drop_down,
+                    color: AppColors.textColorLight),
+                items: List.generate(20, (index) => index + 1)
+                    .map((level) => DropdownMenuItem<int>(
+                          value: level,
+                          child: Text(
+                            'Level $level',
+                            style: TextStyle(
+                              color: AppColors.textColorLight,
+                            ),
+                          ),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _selectedLevel = value;
+                    });
+                  }
+                },
+                selectedItemBuilder: (BuildContext context) {
+                  return List.generate(20, (index) => index + 1)
+                      .map((level) => Center(
+                            child: Text(
+                              'Lvl $level',
+                              style: TextStyle(
+                                color: AppColors.textColorLight,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ))
+                      .toList();
+                },
+              ),
+            ),
             IconButton(
-              icon: const Icon(Icons.check),
+              icon: const Icon(Icons.save),
               onPressed: _onCreateCharacter,
             ),
           ],
         ),
-        body: Padding(
+        body: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: loc.name,
+              Card(
+                color: AppColors.cardColor,
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: loc.name,
+                      border: const OutlineInputBorder(),
+                      filled: true,
+                      fillColor: AppColors.primaryColor,
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Race Tile - always enabled
               _buildStepTile(
@@ -263,6 +342,31 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
                   },
                 ),
               ),
+
+              // HP Tile - enabled if ability scores set
+              _buildStepTile(
+                title: loc.setHitPoints,
+                subtitle: _selectedHP != null ? loc.hpDisplay(_selectedHP!) : null,
+                completed: hpSet,
+                enabled: abilityScoresSet && classSelected,
+                onTap: () => _navigateTo<int>(
+                  HPSelectionPage(
+                    classData: _selectedClass!,
+                    level: _selectedLevel,
+                    constitutionModifier: _selectedFinalScores != null
+                        ? ((_selectedFinalScores!['CON'] ?? 10) - 10) ~/ 2
+                        : 0,
+                  ),
+                  (hp) {
+                    if (hp != null) {
+                      setState(() {
+                        hpSet = true;
+                        _selectedHP = hp;
+                      });
+                    }
+                  },
+                ),
+              ),
             ],
           ),
         ),
@@ -273,21 +377,22 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
   Future<bool> _showExitConfirmationDialog(BuildContext context) async {
     final loc = AppLocalizations.of(context)!;
     return await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(loc.exitCharacterCreator),
-        content: Text(loc.exitConfirmationMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(loc.no),
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(loc.exitCharacterCreator),
+            content: Text(loc.exitConfirmationMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(loc.no),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text(loc.yes),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(loc.yes),
-          ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
   }
 }

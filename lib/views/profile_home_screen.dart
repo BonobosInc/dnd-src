@@ -51,8 +51,7 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
     if (kDebugMode) {
       print('Wiki isEmpty: $isEmpty');
     }
-    if (isEmpty)
-    {
+    if (isEmpty) {
       await _showBlankCharacterDialog();
       return;
     }
@@ -93,12 +92,18 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
   }
 
   Future<void> _navigateToCharacterCreator() async {
-    Navigator.push(
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CharacterCreatorPage(wikiParser: widget.wikiParser, profileManager: profileManager),
+        builder: (context) => CharacterCreatorPage(
+            wikiParser: widget.wikiParser, profileManager: profileManager),
       ),
     );
+
+    // Refresh the profile list if a character was created
+    if (result == true) {
+      await _initializeProfiles();
+    }
   }
 
   Future<void> _showBlankCharacterDialog() async {

@@ -543,69 +543,95 @@ class _AbilityScoresPageState extends State<AbilityScoresPage> {
   Widget buildBonusAssignment() {
     if (parsedBonuses.isEmpty) return const SizedBox();
 
-    final screenWidth = MediaQuery.of(context).size.width;
-    final contentWidth = screenWidth * 0.6;
     final loc = AppLocalizations.of(context)!;
 
-    return Center(
-      child: SizedBox(
-        width: contentWidth,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 16),
-            Text(
-              loc.assignRacialBonuses,
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            ...parsedBonuses.asMap().entries.map((entry) {
-              int index = entry.key;
-              int bonus = entry.value;
-
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: contentWidth * 0.15,
-                      child: Text(
-                        "+$bonus",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                        textAlign: TextAlign.right,
-                      ),
-                    ),
-                    SizedBox(width: contentWidth * 0.05),
-                    SizedBox(
-                      width: contentWidth * 0.4,
-                      child: DropdownButtonFormField<String>(
-                        dropdownColor: AppColors.cardColor,
-                        value: bonusAssignments[index],
-                        hint: Text(loc.bonus),
-                        isExpanded: true,
-                        items: abilities
-                            .map((a) =>
-                                DropdownMenuItem(value: a, child: Text(a)))
-                            .toList(),
-                        onChanged: (val) {
-                          if (val != null) {
-                            setState(() {
-                              bonusAssignments[index] = val;
-                            });
-                          }
-                        },
-                      ),
-                    ),
-                  ],
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Card(
+        color: AppColors.cardColor,
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                loc.assignRacialBonuses,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textColorLight,
                 ),
-              );
-            }),
-          ],
+              ),
+              const SizedBox(height: 16),
+              ...parsedBonuses.asMap().entries.map((entry) {
+                int index = entry.key;
+                int bonus = entry.value;
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 60,
+                        child: Text(
+                          "+$bonus",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: AppColors.textColorLight,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          dropdownColor: AppColors.cardColor,
+                          value: bonusAssignments[index],
+                          hint: Text(
+                            loc.bonus,
+                            style: TextStyle(
+                                color:
+                                    AppColors.textColorLight.withOpacity(0.7)),
+                          ),
+                          decoration: InputDecoration(
+                            border: const OutlineInputBorder(),
+                            filled: true,
+                            fillColor: AppColors.primaryColor,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            isDense: true,
+                          ),
+                          items: abilities
+                              .map((a) => DropdownMenuItem(
+                                    value: a,
+                                    child: Text(
+                                      a,
+                                      style: TextStyle(
+                                          color: AppColors.textColorLight),
+                                    ),
+                                  ))
+                              .toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() {
+                                bonusAssignments[index] = val;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
         ),
       ),
     );
@@ -693,46 +719,385 @@ class _AbilityScoresPageState extends State<AbilityScoresPage> {
         title: Text(loc.setabilityscores),
         actions: [
           IconButton(
-            icon: const Icon(Icons.check),
+            icon: const Icon(Icons.save),
             onPressed: confirmScores,
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: ListView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            DropdownButtonFormField<String>(
-              dropdownColor: AppColors.cardColor,
-              value: selectedMethod,
-              items: methods
-                  .map((m) => DropdownMenuItem(
-                        value: m,
-                        child: Text(getLocalizedMethodName(m)),
-                      ))
-                  .toList(),
-              onChanged: (val) => setState(() {
-                selectedMethod = val!;
-                if (selectedMethod == "Standard Array") {
-                  for (int i = 0; i < abilities.length; i++) {
-                    abilityScores[abilities[i]] = standardArray[i];
-                  }
-                }
-                if (selectedMethod == "Point Buy") {
-                  for (var ability in abilities) {
-                    pointBuyScores[ability] = 8;
-                  }
-                }
-                if (selectedMethod == "Custom" ||
-                    selectedMethod == "Roll 4d6 Drop Lowest") {
-                  abilityScores.clear();
-                }
-                bonusAssignments.clear();
-              }),
+            Card(
+              color: AppColors.cardColor,
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Method',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textColorLight,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      dropdownColor: AppColors.cardColor,
+                      value: selectedMethod,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: AppColors.primaryColor,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      items: methods
+                          .map((m) => DropdownMenuItem(
+                                value: m,
+                                child: Text(
+                                  getLocalizedMethodName(m),
+                                  style: TextStyle(
+                                      color: AppColors.textColorLight),
+                                ),
+                              ))
+                          .toList(),
+                      onChanged: (val) => setState(() {
+                        selectedMethod = val!;
+                        if (selectedMethod == "Standard Array") {
+                          for (int i = 0; i < abilities.length; i++) {
+                            abilityScores[abilities[i]] = standardArray[i];
+                          }
+                        }
+                        if (selectedMethod == "Point Buy") {
+                          for (var ability in abilities) {
+                            pointBuyScores[ability] = 8;
+                          }
+                        }
+                        if (selectedMethod == "Custom" ||
+                            selectedMethod == "Roll 4d6 Drop Lowest") {
+                          abilityScores.clear();
+                        }
+                        bonusAssignments.clear();
+                      }),
+                    ),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 16),
-            buildMethodWidget(),
+            Card(
+              color: AppColors.cardColor,
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Ability Scores',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textColorLight,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    buildMethodWidget(),
+                  ],
+                ),
+              ),
+            ),
             buildBonusAssignment(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class HPSelectionPage extends StatefulWidget {
+  final ClassData classData;
+  final int level;
+  final int constitutionModifier;
+
+  const HPSelectionPage({
+    super.key,
+    required this.classData,
+    required this.level,
+    required this.constitutionModifier,
+  });
+
+  @override
+  State<HPSelectionPage> createState() => _HPSelectionPageState();
+}
+
+class _HPSelectionPageState extends State<HPSelectionPage> {
+  String selectedMethod = "Median";
+  final List<String> methods = ["Roll", "Median", "Custom"];
+  List<int> rolledHP = [];
+  int customHP = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _calculateHP();
+  }
+
+  int _getHitDie() {
+    // Parse hit die from class data (e.g., "1d8" -> 8)
+    final hdMatch = RegExp(r'd(\d+)').firstMatch(widget.classData.hd);
+    return hdMatch != null ? int.parse(hdMatch.group(1)!) : 8;
+  }
+
+  void _calculateHP() {
+    final hitDie = _getHitDie();
+    final conMod = widget.constitutionModifier;
+
+    if (selectedMethod == "Roll") {
+      rolledHP.clear();
+      // First level is always max
+      rolledHP.add(hitDie + conMod);
+      // Roll for remaining levels
+      for (int i = 1; i < widget.level; i++) {
+        final roll = Random().nextInt(hitDie) + 1 + conMod;
+        rolledHP.add(roll);
+      }
+    } else if (selectedMethod == "Median") {
+      rolledHP.clear();
+      // First level is always max
+      rolledHP.add(hitDie + conMod);
+      // Use median for remaining levels
+      final median = ((hitDie / 2).ceil() + 1) + conMod;
+      for (int i = 1; i < widget.level; i++) {
+        rolledHP.add(median);
+      }
+    }
+    setState(() {});
+  }
+
+  int _getTotalHP() {
+    if (selectedMethod == "Custom") {
+      return customHP;
+    }
+    return rolledHP.isEmpty ? 0 : rolledHP.reduce((a, b) => a + b);
+  }
+
+  String _getLocalizedMethod(String method, AppLocalizations loc) {
+    switch (method) {
+      case "Roll":
+        return loc.rollHp;
+      case "Median":
+        return loc.medianHp;
+      case "Custom":
+        return loc.customHp;
+      default:
+        return method;
+    }
+  }
+
+  void _confirmHP() {
+    final loc = AppLocalizations.of(context)!;
+    final hp = _getTotalHP();
+    if (hp <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loc.pleaseSetValidHp)),
+      );
+      return;
+    }
+    Navigator.pop(context, hp);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    final hitDie = _getHitDie();
+    final totalHP = _getTotalHP();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(loc.setHitPoints),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
+            onPressed: _confirmHP,
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Card(
+              color: AppColors.cardColor,
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Method',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textColorLight,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      dropdownColor: AppColors.cardColor,
+                      value: selectedMethod,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: AppColors.primaryColor,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      items: methods
+                          .map((m) => DropdownMenuItem(
+                                value: m,
+                                child: Text(
+                                  m,
+                                  style: TextStyle(
+                                      color: AppColors.textColorLight),
+                                ),
+                              ))
+                          .toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          selectedMethod = val!;
+                          _calculateHP();
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              color: AppColors.cardColor,
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hit Points',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textColorLight,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    if (selectedMethod == "Roll" ||
+                        selectedMethod == "Median") ...[
+                      Text(
+                        'Hit Die: d$hitDie',
+                        style: TextStyle(
+                          color: AppColors.textColorLight,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Text(
+                        'Constitution Modifier: ${widget.constitutionModifier >= 0 ? '+' : ''}${widget.constitutionModifier}',
+                        style: TextStyle(
+                          color: AppColors.textColorLight,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      if (selectedMethod == "Roll")
+                        Row(
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: _calculateHP,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.accentTeal,
+                                foregroundColor: Colors.white,
+                              ),
+                              icon: const Icon(Icons.casino, size: 20),
+                              label: Text(loc.reroll),
+                            ),
+                          ],
+                        ),
+                      const SizedBox(height: 12),
+                      ...List.generate(widget.level, (index) {
+                        final hp =
+                            index < rolledHP.length ? rolledHP[index] : 0;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Text(
+                            'Level ${index + 1}: $hp HP${index == 0 ? ' (Max)' : ''}',
+                            style: TextStyle(
+                              color: AppColors.textColorLight,
+                              fontSize: 16,
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
+                    if (selectedMethod == "Custom")
+                      TextField(
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: loc.totalHp,
+                          border: const OutlineInputBorder(),
+                          filled: true,
+                          fillColor: AppColors.primaryColor,
+                        ),
+                        onChanged: (val) {
+                          setState(() {
+                            customHP = int.tryParse(val) ?? 0;
+                          });
+                        },
+                      ),
+                    const SizedBox(height: 16),
+                    Divider(color: AppColors.textColorLight.withOpacity(0.3)),
+                    const SizedBox(height: 16),
+                    Text(
+                      loc.totalHpValue(totalHP),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.accentTeal,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

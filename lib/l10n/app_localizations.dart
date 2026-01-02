@@ -2659,6 +2659,96 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Talent hinzufügen'**
   String get addTalent;
+
+  /// No description provided for @setHitPoints.
+  ///
+  /// In de, this message translates to:
+  /// **'Trefferpunkte festlegen'**
+  String get setHitPoints;
+
+  /// No description provided for @hitPoints.
+  ///
+  /// In de, this message translates to:
+  /// **'Trefferpunkte'**
+  String get hitPoints;
+
+  /// No description provided for @hpMethod.
+  ///
+  /// In de, this message translates to:
+  /// **'TP-Methode'**
+  String get hpMethod;
+
+  /// No description provided for @rollHp.
+  ///
+  /// In de, this message translates to:
+  /// **'Würfeln'**
+  String get rollHp;
+
+  /// No description provided for @medianHp.
+  ///
+  /// In de, this message translates to:
+  /// **'Median'**
+  String get medianHp;
+
+  /// No description provided for @customHp.
+  ///
+  /// In de, this message translates to:
+  /// **'Benutzerdefiniert'**
+  String get customHp;
+
+  /// No description provided for @hitDie.
+  ///
+  /// In de, this message translates to:
+  /// **'Trefferwürfel'**
+  String get hitDie;
+
+  /// No description provided for @constitutionModifier.
+  ///
+  /// In de, this message translates to:
+  /// **'Konstitutionsmodifikator'**
+  String get constitutionModifier;
+
+  /// No description provided for @reroll.
+  ///
+  /// In de, this message translates to:
+  /// **'Neu würfeln'**
+  String get reroll;
+
+  /// TP für eine bestimmte Stufe
+  ///
+  /// In de, this message translates to:
+  /// **'Stufe {level}: {hp} TP'**
+  String levelHp(Object level, Object hp);
+
+  /// No description provided for @maxLevel.
+  ///
+  /// In de, this message translates to:
+  /// **'(Max)'**
+  String get maxLevel;
+
+  /// No description provided for @totalHp.
+  ///
+  /// In de, this message translates to:
+  /// **'Gesamt-TP'**
+  String get totalHp;
+
+  /// Gesamt-TP Anzeige
+  ///
+  /// In de, this message translates to:
+  /// **'Gesamt-TP: {hp}'**
+  String totalHpValue(Object hp);
+
+  /// No description provided for @pleaseSetValidHp.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte gültige TP festlegen'**
+  String get pleaseSetValidHp;
+
+  /// TP Anzeige im Charakterersteller
+  ///
+  /// In de, this message translates to:
+  /// **'TP: {hp}'**
+  String hpDisplay(Object hp);
 }
 
 class _AppLocalizationsDelegate

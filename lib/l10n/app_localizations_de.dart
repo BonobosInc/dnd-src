@@ -1355,4 +1355,55 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get addTalent => 'Talent hinzufügen';
+
+  @override
+  String get setHitPoints => 'Trefferpunkte festlegen';
+
+  @override
+  String get hitPoints => 'Trefferpunkte';
+
+  @override
+  String get hpMethod => 'TP-Methode';
+
+  @override
+  String get rollHp => 'Würfeln';
+
+  @override
+  String get medianHp => 'Median';
+
+  @override
+  String get customHp => 'Benutzerdefiniert';
+
+  @override
+  String get hitDie => 'Trefferwürfel';
+
+  @override
+  String get constitutionModifier => 'Konstitutionsmodifikator';
+
+  @override
+  String get reroll => 'Neu würfeln';
+
+  @override
+  String levelHp(Object level, Object hp) {
+    return 'Stufe $level: $hp TP';
+  }
+
+  @override
+  String get maxLevel => '(Max)';
+
+  @override
+  String get totalHp => 'Gesamt-TP';
+
+  @override
+  String totalHpValue(Object hp) {
+    return 'Gesamt-TP: $hp';
+  }
+
+  @override
+  String get pleaseSetValidHp => 'Bitte gültige TP festlegen';
+
+  @override
+  String hpDisplay(Object hp) {
+    return 'TP: $hp';
+  }
 }

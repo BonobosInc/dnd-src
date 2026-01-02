@@ -511,5 +511,39 @@
     "addBackground": "Hintergrund hinzufügen",
     "addClass": "Klasse hinzufügen",
     "addSpellWiki": "Zauber hinzufügen",
-    "addTalent": "Talent hinzufügen"
+    "addTalent": "Talent hinzufügen",
+    "setHitPoints": "Trefferpunkte festlegen",
+    "hitPoints": "Trefferpunkte",
+    "hpMethod": "TP-Methode",
+    "rollHp": "Würfeln",
+    "medianHp": "Median",
+    "customHp": "Benutzerdefiniert",
+    "hitDie": "Trefferwürfel",
+    "constitutionModifier": "Konstitutionsmodifikator",
+    "reroll": "Neu würfeln",
+    "levelHp": "Stufe {level}: {hp} TP",
+    "@levelHp": {
+        "description": "TP für eine bestimmte Stufe",
+        "placeholders": {
+            "level": {},
+            "hp": {}
+        }
+    },
+    "maxLevel": "(Max)",
+    "totalHp": "Gesamt-TP",
+    "totalHpValue": "Gesamt-TP: {hp}",
+    "@totalHpValue": {
+        "description": "Gesamt-TP Anzeige",
+        "placeholders": {
+            "hp": {}
+        }
+    },
+    "pleaseSetValidHp": "Bitte gültige TP festlegen",
+    "hpDisplay": "TP: {hp}",
+    "@hpDisplay": {
+        "description": "TP Anzeige im Charakterersteller",
+        "placeholders": {
+            "hp": {}
+        }
+    }
 }

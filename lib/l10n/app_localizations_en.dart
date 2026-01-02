@@ -1348,4 +1348,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addTalent => 'Add Talent';
+
+  @override
+  String get setHitPoints => 'Set Hit Points';
+
+  @override
+  String get hitPoints => 'Hit Points';
+
+  @override
+  String get hpMethod => 'HP Method';
+
+  @override
+  String get rollHp => 'Roll';
+
+  @override
+  String get medianHp => 'Median';
+
+  @override
+  String get customHp => 'Custom';
+
+  @override
+  String get hitDie => 'Hit Die';
+
+  @override
+  String get constitutionModifier => 'Constitution Modifier';
+
+  @override
+  String get reroll => 'Reroll';
+
+  @override
+  String levelHp(Object level, Object hp) {
+    return 'Level $level: $hp HP';
+  }
+
+  @override
+  String get maxLevel => '(Max)';
+
+  @override
+  String get totalHp => 'Total HP';
+
+  @override
+  String totalHpValue(Object hp) {
+    return 'Total HP: $hp';
+  }
+
+  @override
+  String get pleaseSetValidHp => 'Please set valid HP';
+
+  @override
+  String hpDisplay(Object hp) {
+    return 'HP: $hp';
+  }
 }

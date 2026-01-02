@@ -550,6 +550,8 @@ class ProfileManager {
     BackgroundData background,
     FeatData? feat,
     Map<String, int> abilityScores,
+    int level,
+    int hp,
   ) async {
     final profileDbPath = await _getPath();
 
@@ -571,6 +573,9 @@ class ProfileManager {
     updateProfileInfo(field: Defines.infoRace, value: race.name);
     updateProfileInfo(field: Defines.infoClass, value: classData.name);
     updateProfileInfo(field: Defines.infoBackground, value: background.name);
+    updateStats(field: Defines.statLevel, value: level);
+    updateStats(field: Defines.statMaxHP, value: hp);
+    updateStats(field: Defines.statCurrentHP, value: hp);
 
     for (final trait in race.traits) {
       addFeat(
@@ -580,32 +585,37 @@ class ProfileManager {
       );
     }
 
-    final levelOne = classData.autolevels.firstWhere(
-      (entry) => int.tryParse(entry.level) == 1,
-      orElse: () => Autolevel(level: '1', features: [], slots: null),
-    );
+    // Apply features and spell slots for all levels up to selected level
+    for (int currentLevel = 1; currentLevel <= level; currentLevel++) {
+      final levelData = classData.autolevels.where(
+        (entry) => int.tryParse(entry.level) == currentLevel,
+      );
 
-    if (levelOne.features != null) {
-      for (final feature in levelOne.features!) {
-        addFeat(
-          featName: feature.name,
-          description: feature.description,
-          type: "Klasse",
-        );
-      }
-    }
+      for (final autolevel in levelData) {
+        // Add features for this level
+        if (autolevel.features != null) {
+          for (final feature in autolevel.features!) {
+            addFeat(
+              featName: feature.name,
+              description: feature.description,
+              type: "Klasse",
+            );
+          }
+        }
 
-    final slots = levelOne.slots?.slots ?? [];
-    for (int i = 0; i < slots.length; i++) {
-      if (slots[i] > 0) {
-        updateSpellSlots(spellslot: i.toString(), total: slots[i]);
+        // Update spell slots (only the last level's slots are kept)
+        if (currentLevel == level && autolevel.slots != null) {
+          final slots = autolevel.slots!.slots;
+          for (int i = 0; i < slots.length; i++) {
+            if (slots[i] > 0) {
+              updateSpellSlots(spellslot: i.toString(), total: slots[i]);
+            }
+          }
+        }
       }
     }
 
     parseRaceProficiencies(race.proficiency);
-
-
-
   }
 
   Map<String, int> parseRaceProficiencies(String? proficiencyString) {
