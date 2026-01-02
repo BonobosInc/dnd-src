@@ -47,11 +47,20 @@ jobs:
           path: ./artifacts
           run_id: ${{ github.event.workflow_run.id }}
 
+      - name: Download Linux AppImage Artifact
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: build.yml
+          name: release-linux-appimage
+          path: ./artifacts
+          run_id: ${{ github.event.workflow_run.id }}
+
       - name: Rename artifacts
         run: |
           mv ./artifacts/app-release.apk ./artifacts/BonoDND-${{ env.version }}.apk
           mv ./artifacts/bonodnd-windows.zip ./artifacts/BonoDND-${{ env.version }}-windows.zip
           mv ./artifacts/bonodnd-linux.zip ./artifacts/BonoDND-${{ env.version }}-linux.zip
+          mv ./artifacts/bonodnd-x86_64.AppImage ./artifacts/BonoDND-${{ env.version }}-x86_64.AppImage
 
       - name: Push to Release Repo
         uses: ncipollo/release-action@v1
@@ -60,6 +69,7 @@ jobs:
             ./artifacts/BonoDND-${{ env.version }}.apk
             ./artifacts/BonoDND-${{ env.version }}-windows.zip
             ./artifacts/BonoDND-${{ env.version }}-linux.zip
+            ./artifacts/BonoDND-${{ env.version }}-x86_64.AppImage
           token: ${{ secrets.RELEASE_PAT }}
           owner: BonobosInc
           repo: dnd
@@ -72,5 +82,6 @@ jobs:
             ./artifacts/BonoDND-${{ env.version }}.apk
             ./artifacts/BonoDND-${{ env.version }}-windows.zip
             ./artifacts/BonoDND-${{ env.version }}-linux.zip
+            ./artifacts/BonoDND-${{ env.version }}-x86_64.AppImage
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ env.version }}

@@ -111,7 +111,7 @@ jobs:
       - name: Install Linux dependencies
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y ninja-build libgtk-3-dev
+          sudo apt-get install -y ninja-build libgtk-3-dev libsqlite3-0
 
       - name: Install Flutter dependencies
         run: flutter pub get
@@ -119,12 +119,65 @@ jobs:
       - name: Build Linux
         run: flutter build linux --release
 
-      - name: Zip Linux Build
+      - name: Download appimagetool
+        run: |
+          wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+
+      - name: Create AppImage structure
+        run: |
+          mkdir -p AppDir/usr/bin
+          mkdir -p AppDir/usr/lib
+          cp -r build/linux/x64/release/bundle/* AppDir/usr/bin/
+
+          # Copy sqlite3 library
+          cp /usr/lib/x86_64-linux-gnu/libsqlite3.so.0* AppDir/usr/lib/
+
+          # Create symlink for libsqlite3.so
+          ln -s libsqlite3.so.0 AppDir/usr/lib/libsqlite3.so
+
+          # Create .desktop file
+          cat > AppDir/bonodnd.desktop << 'EOF'
+          [Desktop Entry]
+          Name=BonoDND
+          Exec=dnd
+          Icon=bonodnd
+          Type=Application
+          Categories=Utility;Game;
+          EOF
+
+          # Copy icon (adjust path if your icon is elsewhere)
+          if [ -f assets/icon/icon.png ]; then
+            cp assets/icon/icon.png AppDir/bonodnd.png
+          fi
+
+          # Create AppRun
+          cat > AppDir/AppRun << 'EOF'
+          #!/bin/bash
+          APPDIR="$(dirname "$(readlink -f "$0")")"
+          export LD_LIBRARY_PATH="$APPDIR/usr/lib:$APPDIR/usr/bin/lib:$LD_LIBRARY_PATH"
+          exec "$APPDIR/usr/bin/dnd" "$@"
+          EOF
+          chmod +x AppDir/AppRun
+
+      - name: Build AppImage
+        run: |
+          ARCH=x86_64 ./appimagetool-x86_64.AppImage AppDir bonodnd-x86_64.AppImage
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+
+      - name: Zip Linux Build (fallback)
         run: |
           cd build/linux/x64/release/bundle
           zip -r ../../../../../bonodnd-linux.zip .
 
-      - name: Upload Linux Artifact
+      - name: Upload AppImage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-linux-appimage
+          path: bonodnd-x86_64.AppImage
+
+      - name: Upload Linux Zip Artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-linux
