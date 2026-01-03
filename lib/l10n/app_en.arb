@@ -386,7 +386,29 @@
     "choosebackground": "Choose Background",
     "completeallsteps": "Please complete all steps before creating the character.",
     "choosefeat": "Choose Feat",
+    "chooseskills": "Choose Skills",
     "setabilityscores": "Set Ability Scores",
+    "selectSkillProficiencies": "Select Skill Proficiencies",
+    "selectSkillExpertise": "Select Skill Expertise",
+    "availableSkillChoices": "Available Skill Choices: {count}",
+    "@availableSkillChoices": {
+        "description": "Available skill choices remaining",
+        "placeholders": {
+            "count": {}
+        }
+    },
+    "selectUpToSkills": "Select up to {count} skills",
+    "@selectUpToSkills": {
+        "description": "Select up to X skills",
+        "placeholders": {
+            "count": {}
+        }
+    },    "fromBackground": "From Background",
+    "fromRace": "From Race",
+    "choosespells": "Choose Spells",
+    "maximumspelllevel": "Maximum Spell Level",
+    "nospellsavailable": "No spells available for this class and level.",
+    "done": "Done",
     "usedpoints": "Points Used: {used} / {pool}",
     "@usedpoints": {
         "description": "Used points",

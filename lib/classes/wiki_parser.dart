@@ -482,6 +482,9 @@ class WikiParser {
       final proficiency = classElement.findElements('proficiency').isNotEmpty
           ? classElement.findElements('proficiency').first.innerText
           : 'N/A';
+      final spellAbility = classElement.findElements('spellAbility').isNotEmpty
+          ? classElement.findElements('spellAbility').first.innerText
+          : '';
       final numSkills = classElement.findElements('numSkills').isNotEmpty
           ? classElement.findElements('numSkills').first.innerText
           : 'N/A';
@@ -519,6 +522,7 @@ class WikiParser {
         name: name,
         hd: hd,
         proficiency: proficiency,
+        spellAbility: spellAbility,
         numSkills: numSkills,
         autolevels: autolevels,
       );

@@ -2,6 +2,7 @@ import 'package:dnd/configs/colours.dart';
 import 'package:flutter/material.dart';
 import 'package:dnd/classes/wiki_classes.dart';
 import 'package:dnd/l10n/app_localizations.dart';
+import 'package:dnd/views/wiki/wiki_editor/race_editor_view.dart';
 
 class AddBackgroundPage extends StatefulWidget {
   final Future<void> Function(BackgroundData) onSave;
@@ -18,6 +19,14 @@ class AddBackgroundPageState extends State<AddBackgroundPage> {
   final _proficiencyController = TextEditingController();
   final List<FeatureData> _traits = [];
 
+  final List<String> _allSkills = [
+    'Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception',
+    'History', 'Insight', 'Intimidation', 'Investigation', 'Medicine',
+    'Nature', 'Perception', 'Performance', 'Persuasion', 'Religion',
+    'Sleight of Hand', 'Stealth', 'Survival'
+  ];
+  Set<String> _selectedProficiencies = {};
+
   @override
   void initState() {
     super.initState();
@@ -31,6 +40,15 @@ class AddBackgroundPageState extends State<AddBackgroundPage> {
     _nameController.text = bg.name;
     _proficiencyController.text = bg.proficiency;
     _traits.addAll(bg.traits);
+
+    // Parse proficiencies
+    if (bg.proficiency.isNotEmpty) {
+      _selectedProficiencies = bg.proficiency
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toSet();
+    }
   }
 
   @override
@@ -62,10 +80,26 @@ class AddBackgroundPageState extends State<AddBackgroundPage> {
     }
   }
 
+  void _showProficiencySelector() async {
+    final selected = await showDialog<Set<String>>(
+      context: context,
+      builder: (context) => ProficiencySelector(
+        allSkills: _allSkills,
+        selectedSkills: Set.from(_selectedProficiencies),
+      ),
+    );
+
+    if (selected != null) {
+      setState(() {
+        _selectedProficiencies = selected;
+      });
+    }
+  }
+
   Future<void> _saveBackground() async {
     final backgroundData = BackgroundData(
       name: _nameController.text.trim(),
-      proficiency: _proficiencyController.text.trim(),
+      proficiency: _selectedProficiencies.join(', '),
       traits: _traits,
     );
 
@@ -121,13 +155,25 @@ class AddBackgroundPageState extends State<AddBackgroundPage> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    TextField(
-                      controller: _proficiencyController,
-                      decoration: InputDecoration(
-                        labelText: loc.abilities,
-                        border: const OutlineInputBorder(),
-                        filled: true,
-                        fillColor: AppColors.primaryColor,
+                    InkWell(
+                      onTap: () => _showProficiencySelector(),
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: loc.abilities,
+                          border: const OutlineInputBorder(),
+                          filled: true,
+                          fillColor: AppColors.primaryColor,
+                        ),
+                        child: Text(
+                          _selectedProficiencies.isEmpty
+                              ? 'Select proficiencies...'
+                              : _selectedProficiencies.join(', '),
+                          style: TextStyle(
+                            color: _selectedProficiencies.isEmpty
+                                ? AppColors.textColorDark
+                                : AppColors.textColorLight,
+                          ),
+                        ),
                       ),
                     ),
                   ],

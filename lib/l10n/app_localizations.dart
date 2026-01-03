@@ -2192,11 +2192,77 @@ abstract class AppLocalizations {
   /// **'Wähle eine Fertigkeit'**
   String get choosefeat;
 
+  /// No description provided for @chooseskills.
+  ///
+  /// In de, this message translates to:
+  /// **'Wähle Fertigkeiten'**
+  String get chooseskills;
+
   /// No description provided for @setabilityscores.
   ///
   /// In de, this message translates to:
   /// **'Attributswerte festlegen'**
   String get setabilityscores;
+
+  /// No description provided for @selectSkillProficiencies.
+  ///
+  /// In de, this message translates to:
+  /// **'Wähle Fertigkeitsübungen'**
+  String get selectSkillProficiencies;
+
+  /// No description provided for @selectSkillExpertise.
+  ///
+  /// In de, this message translates to:
+  /// **'Wähle Fertigkeitsexpertisen'**
+  String get selectSkillExpertise;
+
+  /// Available skill choices remaining
+  ///
+  /// In de, this message translates to:
+  /// **'Verfügbare Fertigkeitsauswahlen: {count}'**
+  String availableSkillChoices(Object count);
+
+  /// Select up to X skills
+  ///
+  /// In de, this message translates to:
+  /// **'Wähle bis zu {count} Fertigkeiten'**
+  String selectUpToSkills(Object count);
+
+  /// No description provided for @fromBackground.
+  ///
+  /// In de, this message translates to:
+  /// **'Vom Hintergrund'**
+  String get fromBackground;
+
+  /// No description provided for @fromRace.
+  ///
+  /// In de, this message translates to:
+  /// **'Vom Volk'**
+  String get fromRace;
+
+  /// No description provided for @choosespells.
+  ///
+  /// In de, this message translates to:
+  /// **'Zauber wählen'**
+  String get choosespells;
+
+  /// No description provided for @maximumspelllevel.
+  ///
+  /// In de, this message translates to:
+  /// **'Maximales Zauberstufe'**
+  String get maximumspelllevel;
+
+  /// No description provided for @nospellsavailable.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine Zauber für diese Klasse und Stufe verfügbar.'**
+  String get nospellsavailable;
+
+  /// No description provided for @done.
+  ///
+  /// In de, this message translates to:
+  /// **'Fertig'**
+  String get done;
 
   /// Used points
   ///

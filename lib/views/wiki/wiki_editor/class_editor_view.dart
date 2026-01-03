@@ -17,10 +17,21 @@ class AddClassPageState extends State<AddClassPage> {
   final _nameController = TextEditingController();
   final _hdController = TextEditingController();
   final _proficiencyController = TextEditingController();
+  final _spellAbilityController = TextEditingController();
   final _numSkillsController = TextEditingController();
   final Map<int, List<FeatureData>> _featuresByLevel = {};
   final Map<int, Slots> _slotsByLevel = {};
-  String? _originalName;
+
+  final List<String> _savingThrows = [
+    'Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'
+  ];
+  final List<String> _allSkills = [
+    'Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception',
+    'History', 'Insight', 'Intimidation', 'Investigation', 'Medicine',
+    'Nature', 'Perception', 'Performance', 'Persuasion', 'Religion',
+    'Sleight of Hand', 'Stealth', 'Survival'
+  ];
+  Set<String> _selectedProficiencies = {};
 
   @override
   void initState() {
@@ -32,11 +43,20 @@ class AddClassPageState extends State<AddClassPage> {
 
   void _loadExistingClass() {
     final classData = widget.existingClass!;
-    _originalName = classData.name;
     _nameController.text = classData.name;
     _hdController.text = classData.hd;
     _proficiencyController.text = classData.proficiency;
+    _spellAbilityController.text = classData.spellAbility;
     _numSkillsController.text = classData.numSkills;
+
+    // Parse proficiencies
+    if (classData.proficiency.isNotEmpty) {
+      _selectedProficiencies = classData.proficiency
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toSet();
+    }
 
     for (final autolevel in classData.autolevels) {
       final level = int.tryParse(autolevel.level) ?? 1;
@@ -69,6 +89,23 @@ class AddClassPageState extends State<AddClassPage> {
     }
   }
 
+  void _showProficiencySelector() async {
+    final selected = await showDialog<Set<String>>(
+      context: context,
+      builder: (context) => ClassProficiencySelector(
+        savingThrows: _savingThrows,
+        allSkills: _allSkills,
+        selectedProficiencies: Set.from(_selectedProficiencies),
+      ),
+    );
+
+    if (selected != null) {
+      setState(() {
+        _selectedProficiencies = selected;
+      });
+    }
+  }
+
   Future<void> _saveClass() async {
     final List<Autolevel> autolevels = [];
 
@@ -93,7 +130,8 @@ class AddClassPageState extends State<AddClassPage> {
     final classData = ClassData(
       name: _nameController.text,
       hd: _hdController.text,
-      proficiency: _proficiencyController.text,
+      proficiency: _selectedProficiencies.join(', '),
+      spellAbility: _spellAbilityController.text,
       numSkills: _numSkillsController.text,
       autolevels: autolevels,
     );
@@ -211,6 +249,23 @@ class AddClassPageState extends State<AddClassPage> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: TextField(
+                            controller: _spellAbilityController,
+                            decoration: InputDecoration(
+                              labelText: 'Spell Ability',
+                              hintText: 'e.g., Charisma, Intelligence',
+                              border: const OutlineInputBorder(),
+                              filled: true,
+                              fillColor: AppColors.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
                             controller: _numSkillsController,
                             decoration: InputDecoration(
                               labelText: loc.numskills,
@@ -223,13 +278,25 @@ class AddClassPageState extends State<AddClassPage> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    TextField(
-                      controller: _proficiencyController,
-                      decoration: InputDecoration(
-                        labelText: loc.abilities,
-                        border: const OutlineInputBorder(),
-                        filled: true,
-                        fillColor: AppColors.primaryColor,
+                    InkWell(
+                      onTap: () => _showProficiencySelector(),
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: loc.abilities,
+                          border: const OutlineInputBorder(),
+                          filled: true,
+                          fillColor: AppColors.primaryColor,
+                        ),
+                        child: Text(
+                          _selectedProficiencies.isEmpty
+                              ? 'Select saving throws and skills...'
+                              : _selectedProficiencies.join(', '),
+                          style: TextStyle(
+                            color: _selectedProficiencies.isEmpty
+                                ? AppColors.textColorDark
+                                : AppColors.textColorLight,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -570,6 +637,106 @@ class _FeatureEditDialogState extends State<FeatureEditDialog> {
             backgroundColor: AppColors.accentTeal,
             foregroundColor: Colors.white,
           ),
+          child: Text(loc.save),
+        ),
+      ],
+    );
+  }
+}
+
+class ClassProficiencySelector extends StatefulWidget {
+  final List<String> savingThrows;
+  final List<String> allSkills;
+  final Set<String> selectedProficiencies;
+
+  const ClassProficiencySelector({
+    super.key,
+    required this.savingThrows,
+    required this.allSkills,
+    required this.selectedProficiencies,
+  });
+
+  @override
+  State<ClassProficiencySelector> createState() => _ClassProficiencySelectorState();
+}
+
+class _ClassProficiencySelectorState extends State<ClassProficiencySelector> {
+  late Set<String> selected;
+
+  @override
+  void initState() {
+    super.initState();
+    selected = Set.from(widget.selectedProficiencies);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
+    return AlertDialog(
+      title: const Text('Select Saving Throws & Skills'),
+      content: SizedBox(
+        width: double.maxFinite,
+        height: 500,
+        child: ListView(
+          children: [
+            Text(
+              'Saving Throws',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: AppColors.accentTeal,
+              ),
+            ),
+            ...widget.savingThrows.map((savingThrow) {
+              return CheckboxListTile(
+                title: Text(savingThrow),
+                value: selected.contains(savingThrow),
+                onChanged: (checked) {
+                  setState(() {
+                    if (checked == true) {
+                      selected.add(savingThrow);
+                    } else {
+                      selected.remove(savingThrow);
+                    }
+                  });
+                },
+              );
+            }),
+            const SizedBox(height: 16),
+            Text(
+              'Skills',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: AppColors.accentTeal,
+              ),
+            ),
+            ...widget.allSkills.map((skill) {
+              return CheckboxListTile(
+                title: Text(skill),
+                value: selected.contains(skill),
+                onChanged: (checked) {
+                  setState(() {
+                    if (checked == true) {
+                      selected.add(skill);
+                    } else {
+                      selected.remove(skill);
+                    }
+                  });
+                },
+              );
+            }),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(loc.abort),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, selected),
           child: Text(loc.save),
         ),
       ],

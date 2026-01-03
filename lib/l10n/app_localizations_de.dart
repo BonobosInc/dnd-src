@@ -1102,7 +1102,45 @@ class AppLocalizationsDe extends AppLocalizations {
   String get choosefeat => 'Wähle eine Fertigkeit';
 
   @override
+  String get chooseskills => 'Wähle Fertigkeiten';
+
+  @override
   String get setabilityscores => 'Attributswerte festlegen';
+
+  @override
+  String get selectSkillProficiencies => 'Wähle Fertigkeitsübungen';
+
+  @override
+  String get selectSkillExpertise => 'Wähle Fertigkeitsexpertisen';
+
+  @override
+  String availableSkillChoices(Object count) {
+    return 'Verfügbare Fertigkeitsauswahlen: $count';
+  }
+
+  @override
+  String selectUpToSkills(Object count) {
+    return 'Wähle bis zu $count Fertigkeiten';
+  }
+
+  @override
+  String get fromBackground => 'Vom Hintergrund';
+
+  @override
+  String get fromRace => 'Vom Volk';
+
+  @override
+  String get choosespells => 'Zauber wählen';
+
+  @override
+  String get maximumspelllevel => 'Maximales Zauberstufe';
+
+  @override
+  String get nospellsavailable =>
+      'Keine Zauber für diese Klasse und Stufe verfügbar.';
+
+  @override
+  String get done => 'Fertig';
 
   @override
   String usedpoints(Object used, Object pool) {

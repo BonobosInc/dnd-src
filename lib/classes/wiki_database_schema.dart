@@ -21,6 +21,7 @@ class WikiDatabaseSchema {
     'name': 'TEXT NOT NULL',
     'hd': 'TEXT',
     'proficiency': 'TEXT',
+    'spellAbility': 'TEXT',
     'numSkills': 'TEXT',
   };
 

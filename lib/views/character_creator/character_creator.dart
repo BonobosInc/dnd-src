@@ -23,12 +23,15 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
   List<ClassData> classes = [];
   List<BackgroundData> backgrounds = [];
   List<FeatData> feats = [];
+  List<SpellData> spells = [];
 
   bool raceSelected = false;
   bool classSelected = false;
   bool backgroundSelected = false;
   bool featSelected = false;
+  bool skillsSelected = false;
   bool abilityScoresSet = false;
+  bool spellsSelected = false;
   bool hpSet = false;
 
   RaceData? _selectedRace;
@@ -36,6 +39,10 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
   BackgroundData? _selectedBackground;
   FeatData? _selectedFeat;
   Map<String, int>? _selectedFinalScores;
+  Map<String, bool>? _selectedProficiencies;
+  Map<String, bool>? _selectedExpertise;
+  List<String>? _selectedSavingThrows;
+  List<SpellData> _selectedSpells = [];
   int _selectedLevel = 1;
   int? _selectedHP;
 
@@ -56,7 +63,16 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
     classes = await widget.wikiParser.classes;
     backgrounds = await widget.wikiParser.backgrounds;
     feats = await widget.wikiParser.feats;
+    spells = await widget.wikiParser.spells;
     setState(() {});
+  }
+
+  bool _hasSpells() {
+    if (_selectedClass == null) return false;
+    // Check if class has spellcasting ability defined
+    if (_selectedClass!.spellAbility.isNotEmpty) return true;
+    // Fallback: check if any autolevel has slots defined
+    return _selectedClass!.autolevels.any((al) => al.slots != null && al.slots!.slots.isNotEmpty);
   }
 
   Future<void> _onCreateCharacter() async {
@@ -69,11 +85,16 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
       return;
     }
 
-    if (!(raceSelected &&
+    // Check required steps including spell selection for spellcasting classes
+    bool allStepsComplete = raceSelected &&
         classSelected &&
         backgroundSelected &&
+        skillsSelected &&
         abilityScoresSet &&
-        hpSet)) {
+        (_hasSpells() ? spellsSelected : true) &&
+        hpSet;
+
+    if (!allStepsComplete) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(loc.completeallsteps)),
       );
@@ -88,7 +109,10 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
         _selectedFeat,
         _selectedFinalScores!,
         _selectedLevel,
-        _selectedHP!);
+        _selectedHP!,
+        _selectedProficiencies,
+        _selectedExpertise,
+        _selectedSavingThrows);
 
     if (context.mounted) {
       Navigator.of(context).pop(true);
@@ -309,7 +333,9 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
               // Feat Tile - enabled if background selected
               _buildStepTile(
                 title: loc.choosefeat,
-                subtitle: _selectedFeat?.name,
+                subtitle: _selectedFeat != null
+                    ? '${_selectedFeat!.name}${_selectedFeat!.modifier != null && _selectedFeat!.modifier!.isNotEmpty ? ' (${_selectedFeat!.modifier})' : ''}'
+                    : null,
                 completed: featSelected,
                 enabled: classSelected,
                 onTap: () => _navigateTo<FeatData>(
@@ -325,11 +351,42 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
                 ),
               ),
 
-              // Ability Scores Tile - enabled if feat selected
+              // Skill Selection Tile - enabled if class selected
+              _buildStepTile(
+                title: loc.chooseskills,
+                subtitle: skillsSelected
+                    ? '${_selectedProficiencies?.values.where((v) => v).length ?? 0} proficiencies'
+                    : null,
+                completed: skillsSelected,
+                enabled: classSelected,
+                onTap: () => _navigateTo<Map<String, dynamic>>(
+                  SkillSelectionPage(
+                    classData: _selectedClass!,
+                    featData: _selectedFeat,
+                    backgroundData: _selectedBackground,
+                    raceData: _selectedRace,
+                  ),
+                  (result) {
+                    if (result != null) {
+                      setState(() {
+                        skillsSelected = true;
+                        _selectedProficiencies =
+                            result['proficiencies'] as Map<String, bool>?;
+                        _selectedExpertise =
+                            result['expertise'] as Map<String, bool>?;
+                        _selectedSavingThrows =
+                            result['savingThrows'] as List<String>?;
+                      });
+                    }
+                  },
+                ),
+              ),
+
+              // Ability Scores Tile - enabled if skills selected
               _buildStepTile(
                 title: loc.setabilityscores,
                 completed: abilityScoresSet,
-                enabled: classSelected,
+                enabled: skillsSelected,
                 onTap: () => _navigateTo<Map<String, int>>(
                   AbilityScoresPage(bonusInput: _selectedRace?.ability ?? ""),
                   (finalScores) {
@@ -343,12 +400,39 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
                 ),
               ),
 
-              // HP Tile - enabled if ability scores set
+              // Spells Tile - enabled if ability scores set (only for spellcasting classes)
+              if (_hasSpells())
+                _buildStepTile(
+                  title: loc.choosespells,
+                  subtitle: _selectedSpells.isNotEmpty
+                      ? '${_selectedSpells.length} ${loc.spells.toLowerCase()}'
+                      : null,
+                  completed: spellsSelected,
+                  enabled: abilityScoresSet && classSelected,
+                  onTap: () => _navigateTo<List<SpellData>>(
+                    SpellSelectionPage(
+                      allSpells: spells,
+                      classData: _selectedClass!,
+                      characterLevel: _selectedLevel,
+                      initialSelection: _selectedSpells,
+                    ),
+                    (selectedSpells) {
+                      if (selectedSpells != null) {
+                        setState(() {
+                          spellsSelected = true;
+                          _selectedSpells = selectedSpells;
+                        });
+                      }
+                    },
+                  ),
+                ),
+
+              // HP Tile - enabled if ability scores set (and spells if applicable)
               _buildStepTile(
                 title: loc.setHitPoints,
                 subtitle: _selectedHP != null ? loc.hpDisplay(_selectedHP!) : null,
                 completed: hpSet,
-                enabled: abilityScoresSet && classSelected,
+                enabled: (_hasSpells() ? spellsSelected : abilityScoresSet) && classSelected,
                 onTap: () => _navigateTo<int>(
                   HPSelectionPage(
                     classData: _selectedClass!,

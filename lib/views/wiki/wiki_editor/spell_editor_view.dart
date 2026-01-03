@@ -26,6 +26,8 @@ class AddSpellPageState extends State<AddSpellPage> {
   final List<String> _classes = [];
   final _classInputController = TextEditingController();
 
+  String _selectedLevel = '0';
+
   @override
   void initState() {
     super.initState();
@@ -38,6 +40,7 @@ class AddSpellPageState extends State<AddSpellPage> {
     final spell = widget.existingSpell!;
     _nameController.text = spell.name;
     _levelController.text = spell.level;
+    _selectedLevel = spell.level;
     _schoolController.text = spell.school;
     _ritualController.text = spell.ritual;
     _timeController.text = spell.time;
@@ -77,7 +80,7 @@ class AddSpellPageState extends State<AddSpellPage> {
     final spellData = SpellData(
       name: _nameController.text.trim(),
       classes: _classes,
-      level: _levelController.text.trim(),
+      level: _selectedLevel,
       school: _schoolController.text.trim(),
       ritual: _ritualController.text.trim(),
       time: _timeController.text.trim(),
@@ -142,14 +145,32 @@ class AddSpellPageState extends State<AddSpellPage> {
                     Row(
                       children: [
                         Expanded(
-                          child: TextField(
-                            controller: _levelController,
+                          child: DropdownButtonFormField<String>(
+                            value: _selectedLevel,
+                            isExpanded: true,
                             decoration: InputDecoration(
                               labelText: loc.level,
                               border: const OutlineInputBorder(),
                               filled: true,
                               fillColor: AppColors.primaryColor,
                             ),
+                            items: [
+                              DropdownMenuItem(value: '0', child: Text('0 (${loc.cantrip})')),
+                              DropdownMenuItem(value: '1', child: Text('1')),
+                              DropdownMenuItem(value: '2', child: Text('2')),
+                              DropdownMenuItem(value: '3', child: Text('3')),
+                              DropdownMenuItem(value: '4', child: Text('4')),
+                              DropdownMenuItem(value: '5', child: Text('5')),
+                              DropdownMenuItem(value: '6', child: Text('6')),
+                              DropdownMenuItem(value: '7', child: Text('7')),
+                              DropdownMenuItem(value: '8', child: Text('8')),
+                              DropdownMenuItem(value: '9', child: Text('9')),
+                            ],
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedLevel = value ?? '0';
+                              });
+                            },
                           ),
                         ),
                         const SizedBox(width: 12),

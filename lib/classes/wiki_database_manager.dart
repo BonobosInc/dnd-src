@@ -5,6 +5,7 @@ import 'package:dnd/classes/wiki_database_schema.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:xml/xml.dart' as xml;
 
 class WikiDatabaseManager {
   Database? _db;
@@ -29,8 +30,9 @@ class WikiDatabaseManager {
     final path = await _getPath();
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -41,6 +43,79 @@ class WikiDatabaseManager {
     // Initialize version
     await db
         .insert('wiki_version', {'versionNumber': WikiDatabaseSchema.version});
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Add spellAbility column to wiki_classes table
+      await db.execute('ALTER TABLE wiki_classes ADD COLUMN spellAbility TEXT');
+
+      // Populate spellAbility from existing XML data
+      await _populateSpellAbilityFromXml(db);
+    }
+  }
+
+  Future<void> _populateSpellAbilityFromXml(Database db) async {
+    try {
+      // Find the XML file
+      String xmlPath = await _getXmlPath();
+      File xmlFile = File(xmlPath);
+
+      if (!await xmlFile.exists()) {
+        if (kDebugMode) {
+          print('XML file not found at $xmlPath, skipping spellAbility population');
+        }
+        return;
+      }
+
+      // Read and parse XML
+      String xmlData = await xmlFile.readAsString();
+      final document = xml.XmlDocument.parse(xmlData);
+      final classElements = document.findAllElements('class');
+
+      // Update each class with its spellAbility
+      for (var classElement in classElements) {
+        final name = classElement.findElements('name').isNotEmpty
+            ? classElement.findElements('name').first.innerText
+            : null;
+        final spellAbility = classElement.findElements('spellAbility').isNotEmpty
+            ? classElement.findElements('spellAbility').first.innerText
+            : '';
+
+        if (name != null) {
+          await db.update(
+            'wiki_classes',
+            {'spellAbility': spellAbility},
+            where: 'name = ?',
+            whereArgs: [name],
+          );
+        }
+      }
+
+      if (kDebugMode) {
+        print('✅ Successfully populated spellAbility for all classes from XML');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error populating spellAbility: $e');
+      }
+      // Don't throw - migration can continue even if this fails
+    }
+  }
+
+  Future<String> _getXmlPath() async {
+    if (Platform.isWindows) {
+      bool isDebugMode = bool.fromEnvironment('dart.vm.product') == false;
+      if (isDebugMode) {
+        return './temp/wiki.xml';
+      } else {
+        Directory appSupportDir = await getApplicationSupportDirectory();
+        return '${appSupportDir.path}/wiki.xml';
+      }
+    } else {
+      Directory appSupportDir = await getApplicationSupportDirectory();
+      return '${appSupportDir.path}/wiki.xml';
+    }
   }
 
   Future<void> clearDatabase() async {
@@ -204,6 +279,7 @@ class WikiDatabaseManager {
       'name': classData.name,
       'hd': classData.hd,
       'proficiency': classData.proficiency,
+      'spellAbility': classData.spellAbility,
       'numSkills': classData.numSkills,
     });
 
@@ -379,6 +455,7 @@ class WikiDatabaseManager {
         'name': classData.name,
         'hd': classData.hd,
         'proficiency': classData.proficiency,
+        'spellAbility': classData.spellAbility,
         'numSkills': classData.numSkills,
       });
 
@@ -537,6 +614,7 @@ class WikiDatabaseManager {
         name: classMap['name'] as String,
         hd: classMap['hd'] as String? ?? '',
         proficiency: classMap['proficiency'] as String? ?? '',
+        spellAbility: classMap['spellAbility'] as String? ?? '',
         numSkills: classMap['numSkills'] as String? ?? '',
         autolevels: autolevels,
       ));

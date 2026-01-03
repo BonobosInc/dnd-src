@@ -146,12 +146,16 @@ class ClassSpellsPage extends StatefulWidget {
   final String className;
   final List<SpellData> spells;
   final bool importspell;
+  final Function(SpellData)? onEdit;
+  final Function(String)? onDelete;
 
   const ClassSpellsPage({
     super.key,
     required this.className,
     required this.spells,
     this.importspell = false,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -251,6 +255,8 @@ class ClassSpellsPageState extends State<ClassSpellsPage> {
         widget.importspell,
         _selectedSpells,
         _onSpellSelected,
+        widget.onEdit,
+        widget.onDelete,
       ),
     );
   }
@@ -259,11 +265,15 @@ class ClassSpellsPageState extends State<ClassSpellsPage> {
 class AllSpellsPage extends StatefulWidget {
   final List<SpellData> spells;
   final bool importspell;
+  final Function(SpellData)? onEdit;
+  final Function(String)? onDelete;
 
   const AllSpellsPage({
     super.key,
     required this.spells,
     this.importspell = false,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -363,6 +373,8 @@ class AllSpellsPageState extends State<AllSpellsPage> {
         widget.importspell,
         _selectedSpells,
         _onSpellSelected,
+        widget.onEdit,
+        widget.onDelete,
       ),
     );
   }
@@ -374,6 +386,8 @@ Widget buildSpellCollapsibleSections(
   bool importSpell,
   Set<SpellData> selectedSpells,
   void Function(SpellData spell, bool isSelected) onSpellSelected,
+  Function(SpellData)? onEdit,
+  Function(String)? onDelete,
 ) {
   final groupedSpells = <String, List<SpellData>>{};
 
@@ -407,6 +421,8 @@ Widget buildSpellCollapsibleSections(
         importSpell,
         selectedSpells,
         onSpellSelected,
+        onEdit,
+        onDelete,
       );
     }).toList(),
   );
@@ -419,6 +435,8 @@ Widget buildCollapsibleSectionForSpells(
   bool importSpell,
   Set<SpellData> selectedSpells,
   void Function(SpellData spell, bool isSelected) onSpellSelected,
+  Function(SpellData)? onEdit,
+  Function(String)? onDelete,
 ) {
   final loc = AppLocalizations.of(context)!;
   return Column(
@@ -457,6 +475,8 @@ Widget buildCollapsibleSectionForSpells(
                       builder: (context) => SpellDetailPage(
                         spellData: spell,
                         importspell: importSpell,
+                        onEdit: onEdit,
+                        onDelete: onDelete,
                       ),
                     ),
                   );

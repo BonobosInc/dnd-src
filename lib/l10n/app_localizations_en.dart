@@ -1095,7 +1095,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get choosefeat => 'Choose Feat';
 
   @override
+  String get chooseskills => 'Choose Skills';
+
+  @override
   String get setabilityscores => 'Set Ability Scores';
+
+  @override
+  String get selectSkillProficiencies => 'Select Skill Proficiencies';
+
+  @override
+  String get selectSkillExpertise => 'Select Skill Expertise';
+
+  @override
+  String availableSkillChoices(Object count) {
+    return 'Available Skill Choices: $count';
+  }
+
+  @override
+  String selectUpToSkills(Object count) {
+    return 'Select up to $count skills';
+  }
+
+  @override
+  String get fromBackground => 'From Background';
+
+  @override
+  String get fromRace => 'From Race';
+
+  @override
+  String get choosespells => 'Choose Spells';
+
+  @override
+  String get maximumspelllevel => 'Maximum Spell Level';
+
+  @override
+  String get nospellsavailable =>
+      'No spells available for this class and level.';
+
+  @override
+  String get done => 'Done';
 
   @override
   String usedpoints(Object used, Object pool) {

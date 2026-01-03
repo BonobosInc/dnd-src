@@ -386,7 +386,29 @@
     "choosebackground": "Hintergrund auswählen",
     "completeallsteps": "Bitte schließe alle Schritte ab, bevor du den Charakter erstellst.",
     "choosefeat": "Wähle eine Fertigkeit",
+    "chooseskills": "Wähle Fertigkeiten",
     "setabilityscores": "Attributswerte festlegen",
+    "selectSkillProficiencies": "Wähle Fertigkeitsübungen",
+    "selectSkillExpertise": "Wähle Fertigkeitsexpertisen",
+    "availableSkillChoices": "Verfügbare Fertigkeitsauswahlen: {count}",
+    "@availableSkillChoices": {
+        "description": "Available skill choices remaining",
+        "placeholders": {
+            "count": {}
+        }
+    },
+    "selectUpToSkills": "Wähle bis zu {count} Fertigkeiten",
+    "@selectUpToSkills": {
+        "description": "Select up to X skills",
+        "placeholders": {
+            "count": {}
+        }
+    },    "fromBackground": "Vom Hintergrund",
+    "fromRace": "Vom Volk",
+    "choosespells": "Zauber wählen",
+    "maximumspelllevel": "Maximales Zauberstufe",
+    "nospellsavailable": "Keine Zauber für diese Klasse und Stufe verfügbar.",
+    "done": "Fertig",
     "usedpoints": "Verwendete Punkte: {used} / {pool}",
     "@usedpoints": {
         "description": "Used points",

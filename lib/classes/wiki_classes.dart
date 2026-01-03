@@ -3,6 +3,7 @@ class ClassData implements Nameable {
   final String name;
   final String hd;
   final String proficiency;
+  final String spellAbility;
   final String numSkills;
   final List<Autolevel> autolevels;
 
@@ -10,6 +11,7 @@ class ClassData implements Nameable {
     required this.name,
     required this.hd,
     required this.proficiency,
+    required this.spellAbility,
     required this.numSkills,
     required this.autolevels,
   });

@@ -19,6 +19,12 @@ class AddFeatPageState extends State<AddFeatPage> {
   final _textController = TextEditingController();
   final _modifierController = TextEditingController();
 
+  final List<String> _abilities = [
+    'Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'
+  ];
+  String? _selectedAbility;
+  int _modifierValue = 1;
+
   @override
   void initState() {
     super.initState();
@@ -33,6 +39,21 @@ class AddFeatPageState extends State<AddFeatPage> {
     _prerequisiteController.text = feat.prerequisite ?? '';
     _textController.text = feat.text;
     _modifierController.text = feat.modifier ?? '';
+
+    // Parse modifier (e.g., "Dexterity +1")
+    if (feat.modifier != null && feat.modifier!.isNotEmpty) {
+      final parts = feat.modifier!.trim().split(' ');
+      if (parts.length == 2) {
+        final ability = parts[0];
+        if (_abilities.contains(ability)) {
+          _selectedAbility = ability;
+          final value = int.tryParse(parts[1].replaceAll('+', ''));
+          if (value != null) {
+            _modifierValue = value;
+          }
+        }
+      }
+    }
   }
 
   @override
@@ -45,15 +66,18 @@ class AddFeatPageState extends State<AddFeatPage> {
   }
 
   Future<void> _saveFeat() async {
+    String? modifier;
+    if (_selectedAbility != null) {
+      modifier = '$_selectedAbility +$_modifierValue';
+    }
+
     final featData = FeatData(
       name: _nameController.text.trim(),
       prerequisite: _prerequisiteController.text.trim().isEmpty
           ? null
           : _prerequisiteController.text.trim(),
       text: _textController.text.trim(),
-      modifier: _modifierController.text.trim().isEmpty
-          ? null
-          : _modifierController.text.trim(),
+      modifier: modifier,
     );
 
     await widget.onSave(featData);
@@ -129,14 +153,64 @@ class AddFeatPageState extends State<AddFeatPage> {
                       maxLines: 8,
                     ),
                     const SizedBox(height: 16),
-                    TextField(
-                      controller: _modifierController,
-                      decoration: InputDecoration(
-                        labelText: '${loc.modifier} (optional)',
-                        border: const OutlineInputBorder(),
-                        filled: true,
-                        fillColor: AppColors.primaryColor,
+                    Text(
+                      '${loc.modifier} (optional)',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textColorLight,
                       ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: DropdownButtonFormField<String>(
+                            value: _selectedAbility,
+                            decoration: InputDecoration(
+                              labelText: 'Ability',
+                              border: const OutlineInputBorder(),
+                              filled: true,
+                              fillColor: AppColors.primaryColor,
+                            ),
+                            items: _abilities.map((ability) {
+                              return DropdownMenuItem(
+                                value: ability,
+                                child: Text(ability),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedAbility = value;
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: DropdownButtonFormField<int>(
+                            value: _modifierValue,
+                            decoration: InputDecoration(
+                              labelText: 'Value',
+                              border: const OutlineInputBorder(),
+                              filled: true,
+                              fillColor: AppColors.primaryColor,
+                            ),
+                            items: [1, 2].map((value) {
+                              return DropdownMenuItem(
+                                value: value,
+                                child: Text('+$value'),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _modifierValue = value ?? 1;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

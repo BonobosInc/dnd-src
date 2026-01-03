@@ -789,7 +789,14 @@ class WikiPageState extends State<WikiPage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => AllSpellsPage(spells: spells),
+                builder: (context) => AllSpellsPage(
+                  spells: spells,
+                  onEdit: _editSpell,
+                  onDelete: (name) async {
+                    await _deleteFromXml(
+                        name, widget.wikiParser.deleteSpellFromXml);
+                  },
+                ),
               ),
             );
           },
@@ -808,8 +815,14 @@ class WikiPageState extends State<WikiPage> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => ClassSpellsPage(
-                          className: className,
-                          spells: groupedSpells[className]!),
+                        className: className,
+                        spells: groupedSpells[className]!,
+                        onEdit: _editSpell,
+                        onDelete: (name) async {
+                          await _deleteFromXml(
+                              name, widget.wikiParser.deleteSpellFromXml);
+                        },
+                      ),
                     ),
                   );
                 },

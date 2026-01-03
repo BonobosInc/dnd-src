@@ -1104,3 +1104,665 @@ class _HPSelectionPageState extends State<HPSelectionPage> {
     );
   }
 }
+
+class SkillSelectionPage extends StatefulWidget {
+  final ClassData classData;
+  final FeatData? featData;
+  final BackgroundData? backgroundData;
+  final RaceData? raceData;
+
+  const SkillSelectionPage({
+    super.key,
+    required this.classData,
+    this.featData,
+    this.backgroundData,
+    this.raceData,
+  });
+
+  @override
+  State<SkillSelectionPage> createState() => _SkillSelectionPageState();
+}
+
+class _SkillSelectionPageState extends State<SkillSelectionPage> {
+  final Map<String, bool> selectedSkills = {};
+  final Map<String, bool> selectedExpertise = {};
+  int maxSkillChoices = 0;
+  int maxExpertiseChoices = 0;
+  List<Map<String, String>> availableSkills = [];
+  List<String> allowedSavingThrows = [];
+  Set<String> backgroundSkills = {};
+  Set<String> raceSkills = {};
+
+  final List<Map<String, String>> allSkills = [
+    {'name': 'Acrobatics', 'define': 'acrobatics'},
+    {'name': 'Animal Handling', 'define': 'animal_handling'},
+    {'name': 'Arcana', 'define': 'arcana'},
+    {'name': 'Athletics', 'define': 'athletics'},
+    {'name': 'Deception', 'define': 'deception'},
+    {'name': 'History', 'define': 'history'},
+    {'name': 'Insight', 'define': 'insight'},
+    {'name': 'Intimidation', 'define': 'intimidation'},
+    {'name': 'Investigation', 'define': 'investigation'},
+    {'name': 'Medicine', 'define': 'medicine'},
+    {'name': 'Nature', 'define': 'nature'},
+    {'name': 'Perception', 'define': 'perception'},
+    {'name': 'Performance', 'define': 'performance'},
+    {'name': 'Persuasion', 'define': 'persuasion'},
+    {'name': 'Religion', 'define': 'religion'},
+    {'name': 'Sleight of Hand', 'define': 'sleight_of_hand'},
+    {'name': 'Stealth', 'define': 'stealth'},
+    {'name': 'Survival', 'define': 'survival'},
+  ];
+
+  final List<String> savingThrowAbilities = [
+    'Strength',
+    'Dexterity',
+    'Constitution',
+    'Intelligence',
+    'Wisdom',
+    'Charisma'
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Parse background proficiencies to gray them out
+    _parseBackgroundProficiencies();
+
+    // Parse race proficiencies to gray them out
+    _parseRaceProficiencies();
+
+    // Parse proficiency string to get allowed skills and saving throws
+    _parseProficiencies();
+
+    // Parse the number of skills from class
+    final numSkillsStr = widget.classData.numSkills.trim();
+    maxSkillChoices = int.tryParse(numSkillsStr) ?? 0;
+
+    // Check if feat provides expertise (e.g., Rogue's Expertise feature)
+    if (widget.featData != null) {
+      // Parse feat for additional proficiencies or expertise
+      if (widget.featData!.name.toLowerCase().contains('expertise')) {
+        maxExpertiseChoices = 2; // Typical expertise grants 2 skills
+      }
+    }
+
+    // Initialize available skills as unselected
+    for (var skill in availableSkills) {
+      selectedSkills[skill['define']!] = false;
+      selectedExpertise[skill['define']!] = false;
+    }
+  }
+
+  void _parseBackgroundProficiencies() {
+    if (widget.backgroundData == null) return;
+
+    final proficiencyStr = widget.backgroundData!.proficiency;
+    if (proficiencyStr.isEmpty) return;
+
+    // Split by comma and trim
+    final proficiencies = proficiencyStr
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+
+    // Add background skills to the set
+    for (final prof in proficiencies) {
+      final skill = allSkills.firstWhere(
+        (s) => s['name'] == prof,
+        orElse: () => {'name': '', 'define': ''},
+      );
+      if (skill['name']!.isNotEmpty) {
+        backgroundSkills.add(skill['define']!);
+      }
+    }
+  }
+
+  void _parseRaceProficiencies() {
+    if (widget.raceData == null) return;
+
+    final proficiencyStr = widget.raceData!.proficiency;
+    if (proficiencyStr.isEmpty) return;
+
+    // Split by comma and trim
+    final proficiencies = proficiencyStr
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+
+    // Add race skills to the set
+    for (final prof in proficiencies) {
+      final skill = allSkills.firstWhere(
+        (s) => s['name'] == prof,
+        orElse: () => {'name': '', 'define': ''},
+      );
+      if (skill['name']!.isNotEmpty) {
+        raceSkills.add(skill['define']!);
+      }
+    }
+  }
+
+  void _parseProficiencies() {
+    final proficiencyStr = widget.classData.proficiency;
+
+    if (proficiencyStr.isEmpty) {
+      availableSkills = List.from(allSkills);
+      return;
+    }
+
+    // Split by comma and trim
+    final proficiencies = proficiencyStr
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+
+    // Separate saving throws from skills
+    for (final prof in proficiencies) {
+      if (savingThrowAbilities.contains(prof)) {
+        allowedSavingThrows.add(prof);
+      } else {
+        // This is a skill - find it in allSkills
+        final skill = allSkills.firstWhere(
+          (s) => s['name'] == prof,
+          orElse: () => {'name': '', 'define': ''},
+        );
+        if (skill['name']!.isNotEmpty) {
+          availableSkills.add(skill);
+        }
+      }
+    }
+
+    // If no skills were found in proficiency string, allow all skills
+    if (availableSkills.isEmpty) {
+      availableSkills = List.from(allSkills);
+    }
+  }
+
+  String getLocalizedSkillName(String skillName) {
+    final loc = AppLocalizations.of(context)!;
+    switch (skillName) {
+      case 'Acrobatics':
+        return loc.skillAcrobatics;
+      case 'Animal Handling':
+        return loc.skillAnimalHandling;
+      case 'Arcana':
+        return loc.skillArcana;
+      case 'Athletics':
+        return loc.skillAthletics;
+      case 'Deception':
+        return loc.skillDeception;
+      case 'History':
+        return loc.skillHistory;
+      case 'Insight':
+        return loc.skillInsight;
+      case 'Intimidation':
+        return loc.skillIntimidation;
+      case 'Investigation':
+        return loc.skillInvestigation;
+      case 'Medicine':
+        return loc.skillMedicine;
+      case 'Nature':
+        return loc.skillNature;
+      case 'Perception':
+        return loc.skillPerception;
+      case 'Performance':
+        return loc.skillPerformance;
+      case 'Persuasion':
+        return loc.skillPersuasion;
+      case 'Religion':
+        return loc.skillReligion;
+      case 'Sleight of Hand':
+        return loc.skillSleightOfHand;
+      case 'Stealth':
+        return loc.skillStealth;
+      case 'Survival':
+        return loc.skillSurvival;
+      default:
+        return skillName;
+    }
+  }
+
+  int get selectedProficiencyCount =>
+      selectedSkills.values.where((selected) => selected).length;
+
+  int get selectedExpertiseCount =>
+      selectedExpertise.values.where((selected) => selected).length;
+
+  bool canSelectMoreProficiencies() =>
+      selectedProficiencyCount < maxSkillChoices;
+
+  bool canSelectMoreExpertise() =>
+      selectedExpertiseCount < maxExpertiseChoices;
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(loc.chooseskills),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.check),
+            onPressed: () {
+              // Return the selected skills, expertise, and saving throws
+              Navigator.of(context).pop({
+                'proficiencies': Map<String, bool>.from(selectedSkills),
+                'expertise': Map<String, bool>.from(selectedExpertise),
+                'savingThrows': List<String>.from(allowedSavingThrows),
+              });
+            },
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (maxSkillChoices > 0) ...[
+              Card(
+                color: AppColors.cardColor,
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        loc.selectSkillProficiencies,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textColorLight,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        loc.selectUpToSkills(maxSkillChoices),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textColorLight.withOpacity(0.7),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        loc.availableSkillChoices(
+                            maxSkillChoices - selectedProficiencyCount),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: selectedProficiencyCount >= maxSkillChoices
+                              ? AppColors.warningColor
+                              : AppColors.accentTeal,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ...availableSkills.map((skill) {
+                final skillDefine = skill['define']!;
+                final skillName = skill['name']!;
+                final isSelected = selectedSkills[skillDefine] ?? false;
+                final isFromBackground = backgroundSkills.contains(skillDefine);
+                final isFromRace = raceSkills.contains(skillDefine);
+                final isAutoGranted = isFromBackground || isFromRace;
+
+                String? sourceLabel;
+                if (isFromBackground) {
+                  sourceLabel = loc.fromBackground;
+                } else if (isFromRace) {
+                  sourceLabel = loc.fromRace;
+                }
+
+                return Card(
+                  color: isAutoGranted
+                      ? AppColors.appBarColor.withOpacity(0.5)
+                      : isSelected
+                          ? AppColors.accentTeal.withOpacity(0.2)
+                          : AppColors.cardColor,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: CheckboxListTile(
+                    title: Text(
+                      getLocalizedSkillName(skillName),
+                      style: TextStyle(
+                        color: isAutoGranted
+                            ? AppColors.textColorDark
+                            : AppColors.textColorLight,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                    subtitle: sourceLabel != null
+                        ? Text(
+                            sourceLabel,
+                            style: TextStyle(
+                              color: AppColors.textColorDark,
+                              fontSize: 12,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          )
+                        : null,
+                    value: isAutoGranted ? true : isSelected,
+                    onChanged: isAutoGranted
+                        ? null
+                        : (value) {
+                            setState(() {
+                              if (value == true) {
+                                if (canSelectMoreProficiencies()) {
+                                  selectedSkills[skillDefine] = true;
+                                }
+                              } else {
+                                selectedSkills[skillDefine] = false;
+                                // If removing proficiency, also remove expertise
+                                selectedExpertise[skillDefine] = false;
+                              }
+                            });
+                          },
+                    activeColor: isAutoGranted
+                        ? AppColors.textColorDark
+                        : AppColors.accentTeal,
+                  ),
+                );
+              }).toList(),
+            ],
+            if (maxExpertiseChoices > 0) ...[
+              const SizedBox(height: 24),
+              Card(
+                color: AppColors.cardColor,
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        loc.selectSkillExpertise,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textColorLight,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        loc.selectUpToSkills(maxExpertiseChoices),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textColorLight.withOpacity(0.7),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        loc.availableSkillChoices(
+                            maxExpertiseChoices - selectedExpertiseCount),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: selectedExpertiseCount >= maxExpertiseChoices
+                              ? AppColors.warningColor
+                              : AppColors.accentPurple,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ...availableSkills.map((skill) {
+                final skillDefine = skill['define']!;
+                final skillName = skill['name']!;
+                final isProficient = selectedSkills[skillDefine] ?? false;
+                final hasExpertise = selectedExpertise[skillDefine] ?? false;
+
+                return Card(
+                  color: hasExpertise
+                      ? AppColors.accentPurple.withOpacity(0.2)
+                      : AppColors.cardColor,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: CheckboxListTile(
+                    title: Text(
+                      getLocalizedSkillName(skillName),
+                      style: TextStyle(
+                        color: isProficient
+                            ? AppColors.textColorLight
+                            : AppColors.textColorDark,
+                        fontWeight:
+                            hasExpertise ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                    subtitle: !isProficient
+                        ? Text(
+                            loc.proficiency,
+                            style: TextStyle(
+                              color: AppColors.textColorDark,
+                              fontSize: 12,
+                            ),
+                          )
+                        : null,
+                    value: hasExpertise,
+                    onChanged: isProficient
+                        ? (value) {
+                            setState(() {
+                              if (value == true) {
+                                if (canSelectMoreExpertise()) {
+                                  selectedExpertise[skillDefine] = true;
+                                }
+                              } else {
+                                selectedExpertise[skillDefine] = false;
+                              }
+                            });
+                          }
+                        : null,
+                    activeColor: AppColors.accentPurple,
+                  ),
+                );
+              }).toList(),
+            ],
+            if (maxSkillChoices == 0 && maxExpertiseChoices == 0)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Text(
+                    'No skill selections available for this class.',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.textColorLight.withOpacity(0.6),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SpellSelectionPage extends StatefulWidget {
+  final List<SpellData> allSpells;
+  final ClassData classData;
+  final int characterLevel;
+  final List<SpellData> initialSelection;
+
+  const SpellSelectionPage({
+    super.key,
+    required this.allSpells,
+    required this.classData,
+    required this.characterLevel,
+    this.initialSelection = const [],
+  });
+
+  @override
+  State<SpellSelectionPage> createState() => _SpellSelectionPageState();
+}
+
+class _SpellSelectionPageState extends State<SpellSelectionPage> {
+  late Map<String, bool> selectedSpells;
+  late int maxSpellLevel;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedSpells = {
+      for (var spell in widget.initialSelection) spell.name: true
+    };
+    maxSpellLevel = _calculateMaxSpellLevel();
+  }
+
+  int _calculateMaxSpellLevel() {
+    // Find the autolevel entry with slots for the character's level
+    final autolevel = widget.classData.autolevels.firstWhere(
+      (al) => int.parse(al.level) == widget.characterLevel && al.slots != null,
+      orElse: () => widget.classData.autolevels.firstWhere(
+        (al) => al.slots != null,
+        orElse: () => widget.classData.autolevels.first,
+      ),
+    );
+
+    // Get slots
+    final slotsObj = autolevel.slots;
+    if (slotsObj == null || slotsObj.slots.isEmpty) return -1;
+
+    final slots = slotsObj.slots;
+
+    // Find the highest spell level with available slots
+    int maxLevel = -1;
+    for (int i = 0; i < slots.length; i++) {
+      if (slots[i] > 0) {
+        maxLevel = i;
+      }
+    }
+
+    return maxLevel;
+  }
+
+  List<SpellData> _getFilteredSpells() {
+    // Filter spells by class and level
+    return widget.allSpells.where((spell) {
+      // Check if spell is available to this class
+      if (!spell.classes.contains(widget.classData.name)) {
+        return false;
+      }
+
+      // Check spell level
+      final spellLevel = int.tryParse(spell.level) ?? 0;
+      return spellLevel <= maxSpellLevel;
+    }).toList()
+      ..sort((a, b) {
+        // Sort by level first, then by name
+        final levelCompare = int.parse(a.level).compareTo(int.parse(b.level));
+        if (levelCompare != 0) return levelCompare;
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
+  }
+
+  List<SpellData> _getSelectedSpells() {
+    return widget.allSpells
+        .where((spell) => selectedSpells[spell.name] == true)
+        .toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    final filteredSpells = _getFilteredSpells();
+
+    // Group spells by level
+    final Map<int, List<SpellData>> spellsByLevel = {};
+    for (var spell in filteredSpells) {
+      final level = int.parse(spell.level);
+      spellsByLevel.putIfAbsent(level, () => []).add(spell);
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(loc.choosespells),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(_getSelectedSpells());
+            },
+            child: Text(
+              loc.done,
+              style: const TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ),
+        ],
+      ),
+      body: filteredSpells.isEmpty
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Text(
+                  loc.nospellsavailable,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textColorLight.withOpacity(0.6),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            )
+          : ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Text(
+                    '${loc.maximumspelllevel}: $maxSpellLevel',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                ...spellsByLevel.entries.map((entry) {
+                  final level = entry.key;
+                  final spells = entry.value;
+                  final levelText = level == 0 ? loc.cantrip : '${loc.level} $level';
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Text(
+                          levelText,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.accentPurple,
+                          ),
+                        ),
+                      ),
+                      ...spells.map((spell) {
+                        final isSelected = selectedSpells[spell.name] == true;
+                        return CheckboxListTile(
+                          title: Text(spell.name),
+                          subtitle: Text('${spell.school} • ${spell.time}'),
+                          value: isSelected,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedSpells[spell.name] = value ?? false;
+                            });
+                          },
+                          activeColor: AppColors.accentPurple,
+                        );
+                      }).toList(),
+                      const Divider(),
+                    ],
+                  );
+                }).toList(),
+              ],
+            ),
+    );
+  }
+}
