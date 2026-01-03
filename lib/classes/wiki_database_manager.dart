@@ -30,9 +30,10 @@ class WikiDatabaseManager {
     final path = await _getPath();
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
+      onOpen: _onOpen,
     );
   }
 
@@ -45,13 +46,154 @@ class WikiDatabaseManager {
         .insert('wiki_version', {'versionNumber': WikiDatabaseSchema.version});
   }
 
+  Future<void> _onOpen(Database db) async {
+    // Check for missing tables and create them
+    await _ensureAllTablesExist(db);
+  }
+
+  Future<void> _ensureAllTablesExist(Database db) async {
+    // Get list of existing tables
+    final tables = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table'",
+    );
+    final existingTableNames = tables.map((t) => t['name'] as String).toSet();
+
+    // Expected tables from schema
+    final expectedTables = {
+      'wiki_version',
+      'wiki_migration',
+      'wiki_classes',
+      'wiki_class_autolevels',
+      'wiki_class_features',
+      'wiki_class_slots',
+      'wiki_races',
+      'wiki_race_traits',
+      'wiki_backgrounds',
+      'wiki_background_traits',
+      'wiki_feats',
+      'wiki_spells',
+      'wiki_spell_classes',
+      'wiki_creatures',
+      'wiki_creature_traits',
+      'wiki_creature_actions',
+      'wiki_creature_legendary',
+      'wiki_items',
+    };
+
+    // Create missing tables
+    final missingTables = expectedTables.difference(existingTableNames);
+
+    if (missingTables.isNotEmpty) {
+      if (kDebugMode) {
+        print('Creating missing wiki tables: $missingTables');
+      }
+
+      for (final tableName in missingTables) {
+        String? createStatement;
+
+        switch (tableName) {
+          case 'wiki_version':
+            createStatement = WikiDatabaseSchema.createVersionTable();
+            break;
+          case 'wiki_migration':
+            createStatement = WikiDatabaseSchema.createMigrationTable();
+            break;
+          case 'wiki_classes':
+            createStatement = WikiDatabaseSchema.createClassesTable();
+            break;
+          case 'wiki_class_autolevels':
+            createStatement = WikiDatabaseSchema.createClassAutolevelsTable();
+            break;
+          case 'wiki_class_features':
+            createStatement = WikiDatabaseSchema.createClassFeaturesTable();
+            break;
+          case 'wiki_class_slots':
+            createStatement = WikiDatabaseSchema.createClassSlotsTable();
+            break;
+          case 'wiki_races':
+            createStatement = WikiDatabaseSchema.createRacesTable();
+            break;
+          case 'wiki_race_traits':
+            createStatement = WikiDatabaseSchema.createRaceTraitsTable();
+            break;
+          case 'wiki_backgrounds':
+            createStatement = WikiDatabaseSchema.createBackgroundsTable();
+            break;
+          case 'wiki_background_traits':
+            createStatement = WikiDatabaseSchema.createBackgroundTraitsTable();
+            break;
+          case 'wiki_feats':
+            createStatement = WikiDatabaseSchema.createFeatsTable();
+            break;
+          case 'wiki_spells':
+            createStatement = WikiDatabaseSchema.createSpellsTable();
+            break;
+          case 'wiki_spell_classes':
+            createStatement = WikiDatabaseSchema.createSpellClassesTable();
+            break;
+          case 'wiki_creatures':
+            createStatement = WikiDatabaseSchema.createCreaturesTable();
+            break;
+          case 'wiki_creature_traits':
+            createStatement = WikiDatabaseSchema.createCreatureTraitsTable();
+            break;
+          case 'wiki_creature_actions':
+            createStatement = WikiDatabaseSchema.createCreatureActionsTable();
+            break;
+          case 'wiki_creature_legendary':
+            createStatement = WikiDatabaseSchema.createCreatureLegendaryTable();
+            break;
+          case 'wiki_items':
+            createStatement = WikiDatabaseSchema.createItemsTable();
+            break;
+        }
+
+        if (createStatement != null) {
+          await db.execute(createStatement);
+          if (kDebugMode) {
+            print('✅ Created table: $tableName');
+          }
+        }
+      }
+    }
+
+    // Also check for missing columns in existing tables
+    await _ensureMissingColumns(db);
+  }
+
+  Future<void> _ensureMissingColumns(Database db) async {
+    // Check if wiki_classes has spellAbility column
+    final classesInfo = await db.rawQuery('PRAGMA table_info(wiki_classes)');
+    final classesColumns = classesInfo.map((c) => c['name'] as String).toSet();
+
+    if (!classesColumns.contains('spellAbility')) {
+      if (kDebugMode) {
+        print('Adding spellAbility column to wiki_classes');
+      }
+      await db.execute('ALTER TABLE wiki_classes ADD COLUMN spellAbility TEXT');
+      await _populateSpellAbilityFromXml(db);
+    }
+  }
+
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       // Add spellAbility column to wiki_classes table
-      await db.execute('ALTER TABLE wiki_classes ADD COLUMN spellAbility TEXT');
+      try {
+        await db.execute('ALTER TABLE wiki_classes ADD COLUMN spellAbility TEXT');
+        // Populate spellAbility from existing XML data
+        await _populateSpellAbilityFromXml(db);
+      } catch (e) {
+        if (kDebugMode) {
+          print('Note: spellAbility column may already exist: $e');
+        }
+      }
+    }
 
-      // Populate spellAbility from existing XML data
-      await _populateSpellAbilityFromXml(db);
+    if (oldVersion < 3) {
+      // Version 3 adds items table - will be created by _ensureAllTablesExist in onOpen
+      if (kDebugMode) {
+        print('Upgrading to version 3 - items table will be created');
+      }
     }
   }
 
@@ -211,6 +353,7 @@ class WikiDatabaseManager {
     required List<FeatData> feats,
     required List<SpellData> spells,
     required List<Creature> creatures,
+    required List<ItemData> items,
   }) async {
     final db = await database;
 
@@ -254,6 +397,11 @@ class WikiDatabaseManager {
           // Insert all creatures
           for (var creature in creatures) {
             await _insertCreatureWithTxn(txn, creature);
+          }
+
+          // Insert all items
+          for (var item in items) {
+            await _insertItemWithTxn(txn, item);
           }
         });
         break; // success
@@ -444,6 +592,16 @@ class WikiDatabaseManager {
     }
 
     return creatureId;
+  }
+
+  Future<int> _insertItemWithTxn(Transaction txn, ItemData item) async {
+    return await txn.insert('wiki_items', {
+      'name': item.name,
+      'type': item.type,
+      'weight': item.weight,
+      'value': item.value,
+      'text': item.text,
+    });
   }
 
   // ==================== CLASSES ====================
@@ -1163,6 +1321,44 @@ class WikiDatabaseManager {
   Future<void> updateCreature(String oldName, Creature newData) async {
     await deleteCreature(oldName);
     await insertCreature(newData);
+  }
+
+  // ==================== ITEMS ====================
+
+  Future<int> insertItem(ItemData itemData) async {
+    final db = await database;
+    return await db.insert('wiki_items', {
+      'name': itemData.name,
+      'type': itemData.type,
+      'weight': itemData.weight,
+      'value': itemData.value,
+      'text': itemData.text,
+    });
+  }
+
+  Future<List<ItemData>> getAllItems() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('wiki_items');
+
+    return maps
+        .map((itemMap) => ItemData(
+              name: itemMap['name'] as String,
+              type: itemMap['type'] as String? ?? '',
+              weight: itemMap['weight'] as String? ?? '0',
+              value: itemMap['value'] as String? ?? '0',
+              text: itemMap['text'] as String? ?? '',
+            ))
+        .toList();
+  }
+
+  Future<void> deleteItem(String itemName) async {
+    final db = await database;
+    await db.delete('wiki_items', where: 'name = ?', whereArgs: [itemName]);
+  }
+
+  Future<void> updateItem(String oldName, ItemData newData) async {
+    await deleteItem(oldName);
+    await insertItem(newData);
   }
 
   Future<void> close() async {

@@ -33,6 +33,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get edititem => 'Gegenstand bearbeiten';
 
   @override
+  String get importitem => 'Aus Wiki importieren';
+
+  @override
   String get item => 'Gegenstand';
 
   @override
@@ -87,6 +90,72 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get type => 'Typ';
+
+  @override
+  String get itemdetails => 'Gegenstandsdetails';
+
+  @override
+  String get allitems => 'Alle Gegenstände';
+
+  @override
+  String get items => 'Gegenstände';
+
+  @override
+  String get sortbytype => 'Nach Typ sortieren';
+
+  @override
+  String get edit => 'Bearbeite';
+
+  @override
+  String get itemTypeCurrency => 'Währung';
+
+  @override
+  String get itemTypeAmmunition => 'Munition';
+
+  @override
+  String get itemTypeLightArmor => 'Leichte Rüstung';
+
+  @override
+  String get itemTypeMediumArmor => 'Mittlere Rüstung';
+
+  @override
+  String get itemTypeHeavyArmor => 'Schwere Rüstung';
+
+  @override
+  String get itemTypeMeleeWeapon => 'Nahkampfwaffe';
+
+  @override
+  String get itemTypePotion => 'Trank';
+
+  @override
+  String get itemTypeRangedWeapon => 'Fernkampfwaffe';
+
+  @override
+  String get itemTypeRod => 'Stab';
+
+  @override
+  String get itemTypeRing => 'Ring';
+
+  @override
+  String get itemTypeScroll => 'Schriftrolle';
+
+  @override
+  String get itemTypeShield => 'Schild';
+
+  @override
+  String get itemTypeWondrousItem => 'Wundersamer Gegenstand';
+
+  @override
+  String get itemTypeAdventuringGear => 'Abenteuerausrüstung';
+
+  @override
+  String get itemTypeTools => 'Werkzeuge';
+
+  @override
+  String get itemTypeArtisanFocus => 'Handwerkerfokus';
+
+  @override
+  String get itemTypeTradeGoods => 'Handelswaren';
 
   @override
   String get manageItemTypes => 'Gegenstands-Typen verwalten';
@@ -808,9 +877,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get deletestatuseffect => 'Status-Effekt löschen';
-
-  @override
-  String get edit => 'Bearbeite';
 
   @override
   String get add => 'Hinzufügen';

@@ -7,6 +7,7 @@ import 'package:dnd/views/wiki/creatures_view.dart';
 import 'package:dnd/views/wiki/feat_view.dart';
 import 'package:dnd/views/wiki/races_view.dart';
 import 'package:dnd/views/wiki/spellwiki_view.dart';
+import 'package:dnd/views/wiki/items_view.dart';
 import 'package:dnd/classes/wiki_parser.dart';
 import 'package:dnd/views/wiki/wiki_editor/class_editor_view.dart';
 import 'package:dnd/views/wiki/wiki_editor/race_editor_view.dart';
@@ -14,6 +15,7 @@ import 'package:dnd/views/wiki/wiki_editor/background_editor_view.dart';
 import 'package:dnd/views/wiki/wiki_editor/feat_editor_view.dart';
 import 'package:dnd/views/wiki/wiki_editor/spell_editor_view.dart';
 import 'package:dnd/views/wiki/wiki_editor/creature_editor_view.dart';
+import 'package:dnd/views/wiki/wiki_editor/item_editor_view.dart';
 import 'package:flutter/material.dart';
 import 'package:dnd/classes/wiki_classes.dart';
 import 'package:file_picker/file_picker.dart';
@@ -39,6 +41,7 @@ class WikiPageState extends State<WikiPage> {
   List<FeatData> feats = [];
   List<SpellData> spells = [];
   List<Creature> creatures = [];
+  List<ItemData> items = [];
 
   bool isLoading = true;
   String searchQuery = '';
@@ -91,6 +94,7 @@ class WikiPageState extends State<WikiPage> {
       final featsData = await widget.wikiParser.feats;
       final spellsData = await widget.wikiParser.spells;
       final creaturesData = await widget.wikiParser.creatures;
+      final itemsData = await widget.wikiParser.items;
 
       if (!mounted) return;
 
@@ -101,6 +105,7 @@ class WikiPageState extends State<WikiPage> {
         feats = featsData;
         spells = spellsData;
         creatures = creaturesData;
+        items = itemsData;
         isLoading = false;
       });
     } catch (e) {
@@ -229,6 +234,21 @@ class WikiPageState extends State<WikiPage> {
     await loadDataFromParser();
   }
 
+  void _addItem() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddItemPage(
+          onSave: (newItem) async {
+            await _saveToXml(newItem, widget.wikiParser.addItem);
+          },
+        ),
+      ),
+    );
+    // Reload after returning from the add page
+    await loadDataFromParser();
+  }
+
   void _editClass(ClassData classData) async {
     await Navigator.push(
       context,
@@ -331,6 +351,23 @@ class WikiPageState extends State<WikiPage> {
     await loadDataFromParser();
   }
 
+  void _editItem(ItemData item) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddItemPage(
+          existingItem: item,
+          onSave: (updatedItem) async {
+            await _updateInXml(item.name, updatedItem,
+                widget.wikiParser.updateItemInXml);
+          },
+        ),
+      ),
+    );
+    // Reload after returning from the edit page
+    await loadDataFromParser();
+  }
+
   void _showAddMenu() {
     final loc = AppLocalizations.of(context)!;
     showModalBottomSheet(
@@ -386,6 +423,14 @@ class WikiPageState extends State<WikiPage> {
               onTap: () {
                 Navigator.pop(context);
                 _addCreature();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.inventory, color: AppColors.accentTeal),
+              title: const Text('Item'),
+              onTap: () {
+                Navigator.pop(context);
+                _addItem();
               },
             ),
           ],
@@ -481,6 +526,8 @@ class WikiPageState extends State<WikiPage> {
       filteredItems.addAll(feats.where((item) =>
           item.name.toLowerCase().contains(searchQuery.toLowerCase())));
       filteredItems.addAll(spells.where((item) =>
+          item.name.toLowerCase().contains(searchQuery.toLowerCase())));
+      filteredItems.addAll(items.where((item) =>
           item.name.toLowerCase().contains(searchQuery.toLowerCase())));
     }
 
@@ -641,6 +688,8 @@ class WikiPageState extends State<WikiPage> {
                       buildCreatureCollapsibleSection(loc.monster, creatures),
                       if (widget.importFeat == false)
                         buildSpellCollapsibleSection(loc.spells, spells),
+                      if (widget.importFeat == false)
+                        buildItemCollapsibleSection(loc.items, items),
                     ],
             ),
     );
@@ -772,65 +821,69 @@ class WikiPageState extends State<WikiPage> {
     final sortedClassNames =
         groupedSpells.keys.where((name) => name.isNotEmpty).toList()..sort();
 
-    return ExpansionTile(
-      shape: const Border(),
-      title: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Text(
-          title,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-      ),
+    return Column(
       children: [
-        const Divider(),
-        ListTile(
-          title: Text(loc.allspells),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AllSpellsPage(
-                  spells: spells,
-                  onEdit: _editSpell,
-                  onDelete: (name) async {
-                    await _deleteFromXml(
-                        name, widget.wikiParser.deleteSpellFromXml);
-                  },
-                ),
-              ),
-            );
-          },
-        ),
-        ...sortedClassNames.asMap().entries.map((entry) {
-          int index = entry.key;
-          String className = entry.value;
-
-          return Column(
-            children: [
-              if (index == 0) const Divider(),
-              ListTile(
-                title: Text(className),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ClassSpellsPage(
-                        className: className,
-                        spells: groupedSpells[className]!,
-                        onEdit: _editSpell,
-                        onDelete: (name) async {
-                          await _deleteFromXml(
-                              name, widget.wikiParser.deleteSpellFromXml);
-                        },
-                      ),
+        ExpansionTile(
+          shape: const Border(),
+          title: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Text(
+              title,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ),
+          children: [
+            const Divider(),
+            ListTile(
+              title: Text(loc.allspells),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AllSpellsPage(
+                      spells: spells,
+                      onEdit: _editSpell,
+                      onDelete: (name) async {
+                        await _deleteFromXml(
+                            name, widget.wikiParser.deleteSpellFromXml);
+                      },
                     ),
-                  );
-                },
-              ),
-              if (index < sortedClassNames.length - 1) const Divider(),
-            ],
-          );
-        }),
+                  ),
+                );
+              },
+            ),
+            ...sortedClassNames.asMap().entries.map((entry) {
+              int index = entry.key;
+              String className = entry.value;
+
+              return Column(
+                children: [
+                  if (index == 0) const Divider(),
+                  ListTile(
+                    title: Text(className),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ClassSpellsPage(
+                            className: className,
+                            spells: groupedSpells[className]!,
+                            onEdit: _editSpell,
+                            onDelete: (name) async {
+                              await _deleteFromXml(
+                                  name, widget.wikiParser.deleteSpellFromXml);
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  if (index < sortedClassNames.length - 1) const Divider(),
+                ],
+              );
+            }),
+          ],
+        ),
         const Divider(),
       ],
     );
@@ -865,6 +918,46 @@ class WikiPageState extends State<WikiPage> {
                       onDelete: (creature) async {
                         await _deleteFromXml(creature.name,
                             widget.wikiParser.deleteCreatureFromXml);
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        const Divider(),
+      ],
+    );
+  }
+
+  Widget buildItemCollapsibleSection(String title, List<ItemData> items) {
+    final loc = AppLocalizations.of(context)!;
+    return Column(
+      children: [
+        ExpansionTile(
+          shape: const Border(),
+          title: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Text(
+              title,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ),
+          children: [
+            const Divider(),
+            ListTile(
+              title: Text(loc.allitems),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AllItemsPage(
+                      items: items,
+                      onEdit: _editItem,
+                      onDelete: (item) async {
+                        await _deleteFromXml(item.name,
+                            widget.wikiParser.deleteItemFromXml);
                       },
                     ),
                   ),

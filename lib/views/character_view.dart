@@ -824,6 +824,7 @@ class CharacterViewState extends State<CharacterView> {
                               MaterialPageRoute(
                                 builder: (context) => BagPage(
                                   profileManager: widget.profileManager,
+                                  wikiParser: widget.wikiParser,
                                 ),
                               ),
                             );

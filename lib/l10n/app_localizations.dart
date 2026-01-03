@@ -146,6 +146,12 @@ abstract class AppLocalizations {
   /// **'Gegenstand bearbeiten'**
   String get edititem;
 
+  /// No description provided for @importitem.
+  ///
+  /// In de, this message translates to:
+  /// **'Aus Wiki importieren'**
+  String get importitem;
+
   /// No description provided for @item.
   ///
   /// In de, this message translates to:
@@ -253,6 +259,138 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Typ'**
   String get type;
+
+  /// No description provided for @itemdetails.
+  ///
+  /// In de, this message translates to:
+  /// **'Gegenstandsdetails'**
+  String get itemdetails;
+
+  /// No description provided for @allitems.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Gegenstände'**
+  String get allitems;
+
+  /// No description provided for @items.
+  ///
+  /// In de, this message translates to:
+  /// **'Gegenstände'**
+  String get items;
+
+  /// No description provided for @sortbytype.
+  ///
+  /// In de, this message translates to:
+  /// **'Nach Typ sortieren'**
+  String get sortbytype;
+
+  /// No description provided for @edit.
+  ///
+  /// In de, this message translates to:
+  /// **'Bearbeite'**
+  String get edit;
+
+  /// No description provided for @itemTypeCurrency.
+  ///
+  /// In de, this message translates to:
+  /// **'Währung'**
+  String get itemTypeCurrency;
+
+  /// No description provided for @itemTypeAmmunition.
+  ///
+  /// In de, this message translates to:
+  /// **'Munition'**
+  String get itemTypeAmmunition;
+
+  /// No description provided for @itemTypeLightArmor.
+  ///
+  /// In de, this message translates to:
+  /// **'Leichte Rüstung'**
+  String get itemTypeLightArmor;
+
+  /// No description provided for @itemTypeMediumArmor.
+  ///
+  /// In de, this message translates to:
+  /// **'Mittlere Rüstung'**
+  String get itemTypeMediumArmor;
+
+  /// No description provided for @itemTypeHeavyArmor.
+  ///
+  /// In de, this message translates to:
+  /// **'Schwere Rüstung'**
+  String get itemTypeHeavyArmor;
+
+  /// No description provided for @itemTypeMeleeWeapon.
+  ///
+  /// In de, this message translates to:
+  /// **'Nahkampfwaffe'**
+  String get itemTypeMeleeWeapon;
+
+  /// No description provided for @itemTypePotion.
+  ///
+  /// In de, this message translates to:
+  /// **'Trank'**
+  String get itemTypePotion;
+
+  /// No description provided for @itemTypeRangedWeapon.
+  ///
+  /// In de, this message translates to:
+  /// **'Fernkampfwaffe'**
+  String get itemTypeRangedWeapon;
+
+  /// No description provided for @itemTypeRod.
+  ///
+  /// In de, this message translates to:
+  /// **'Stab'**
+  String get itemTypeRod;
+
+  /// No description provided for @itemTypeRing.
+  ///
+  /// In de, this message translates to:
+  /// **'Ring'**
+  String get itemTypeRing;
+
+  /// No description provided for @itemTypeScroll.
+  ///
+  /// In de, this message translates to:
+  /// **'Schriftrolle'**
+  String get itemTypeScroll;
+
+  /// No description provided for @itemTypeShield.
+  ///
+  /// In de, this message translates to:
+  /// **'Schild'**
+  String get itemTypeShield;
+
+  /// No description provided for @itemTypeWondrousItem.
+  ///
+  /// In de, this message translates to:
+  /// **'Wundersamer Gegenstand'**
+  String get itemTypeWondrousItem;
+
+  /// No description provided for @itemTypeAdventuringGear.
+  ///
+  /// In de, this message translates to:
+  /// **'Abenteuerausrüstung'**
+  String get itemTypeAdventuringGear;
+
+  /// No description provided for @itemTypeTools.
+  ///
+  /// In de, this message translates to:
+  /// **'Werkzeuge'**
+  String get itemTypeTools;
+
+  /// No description provided for @itemTypeArtisanFocus.
+  ///
+  /// In de, this message translates to:
+  /// **'Handwerkerfokus'**
+  String get itemTypeArtisanFocus;
+
+  /// No description provided for @itemTypeTradeGoods.
+  ///
+  /// In de, this message translates to:
+  /// **'Handelswaren'**
+  String get itemTypeTradeGoods;
 
   /// No description provided for @manageItemTypes.
   ///
@@ -1669,12 +1807,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Status-Effekt löschen'**
   String get deletestatuseffect;
-
-  /// No description provided for @edit.
-  ///
-  /// In de, this message translates to:
-  /// **'Bearbeite'**
-  String get edit;
 
   /// No description provided for @add.
   ///

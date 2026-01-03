@@ -1766,3 +1766,148 @@ class _SpellSelectionPageState extends State<SpellSelectionPage> {
     );
   }
 }
+
+class ItemSelectionPage extends StatefulWidget {
+  final List<ItemData> allItems;
+  final List<ItemData> initialSelection;
+
+  const ItemSelectionPage({
+    super.key,
+    required this.allItems,
+    this.initialSelection = const [],
+  });
+
+  @override
+  State<ItemSelectionPage> createState() => _ItemSelectionPageState();
+}
+
+class _ItemSelectionPageState extends State<ItemSelectionPage> {
+  late Map<String, bool> selectedItems;
+  String searchQuery = '';
+  String typeFilter = 'All';
+
+  @override
+  void initState() {
+    super.initState();
+    selectedItems = {
+      for (var item in widget.initialSelection) item.name: true
+    };
+  }
+
+  List<ItemData> _getSelectedItems() {
+    return widget.allItems
+        .where((item) => selectedItems[item.name] == true)
+        .toList();
+  }
+
+  List<String> _getItemTypes() {
+    final types = widget.allItems.map((item) => item.type).toSet().toList();
+    types.sort();
+    return ['All', ...types];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
+    // Filter items by search query and type
+    final filteredItems = widget.allItems.where((item) {
+      final matchesSearch = searchQuery.isEmpty ||
+          item.name.toLowerCase().contains(searchQuery.toLowerCase());
+      final matchesType = typeFilter == 'All' || item.type == typeFilter;
+      return matchesSearch && matchesType;
+    }).toList();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Choose Items'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(_getSelectedItems());
+            },
+            child: Text(
+              loc.done,
+              style: const TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search items...',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        searchQuery = value;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                DropdownButton<String>(
+                  value: typeFilter,
+                  items: _getItemTypes()
+                      .map((type) => DropdownMenuItem(
+                            value: type,
+                            child: Text(type),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        typeFilter = value;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: filteredItems.isEmpty
+                ? Center(
+                    child: Text(
+                      'No items found',
+                      style: TextStyle(
+                        color: AppColors.textColorLight,
+                        fontSize: 16,
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: filteredItems.length,
+                    itemBuilder: (context, index) {
+                      final item = filteredItems[index];
+                      final isSelected = selectedItems[item.name] ?? false;
+
+                      return CheckboxListTile(
+                        title: Text(item.name),
+                        subtitle: Text('${item.type} • ${item.weight} lb • ${item.value} gp'),
+                        value: isSelected,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedItems[item.name] = value ?? false;
+                          });
+                        },
+                        activeColor: AppColors.accentPurple,
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}

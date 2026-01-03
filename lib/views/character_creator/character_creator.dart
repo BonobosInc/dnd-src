@@ -24,6 +24,7 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
   List<BackgroundData> backgrounds = [];
   List<FeatData> feats = [];
   List<SpellData> spells = [];
+  List<ItemData> items = [];
 
   bool raceSelected = false;
   bool classSelected = false;
@@ -32,6 +33,7 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
   bool skillsSelected = false;
   bool abilityScoresSet = false;
   bool spellsSelected = false;
+  bool itemsSelected = false;
   bool hpSet = false;
 
   RaceData? _selectedRace;
@@ -43,6 +45,7 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
   Map<String, bool>? _selectedExpertise;
   List<String>? _selectedSavingThrows;
   List<SpellData> _selectedSpells = [];
+  List<ItemData> _selectedItems = [];
   int _selectedLevel = 1;
   int? _selectedHP;
 
@@ -64,6 +67,7 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
     backgrounds = await widget.wikiParser.backgrounds;
     feats = await widget.wikiParser.feats;
     spells = await widget.wikiParser.spells;
+    items = await widget.wikiParser.items;
     setState(() {});
   }
 
@@ -427,12 +431,36 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
                   ),
                 ),
 
-              // HP Tile - enabled if ability scores set (and spells if applicable)
+              // Items Tile - enabled if ability scores set (or spells if applicable)
+              _buildStepTile(
+                title: 'Choose Items',
+                subtitle: _selectedItems.isNotEmpty
+                    ? '${_selectedItems.length} items'
+                    : null,
+                completed: itemsSelected,
+                enabled: (_hasSpells() ? spellsSelected : abilityScoresSet),
+                onTap: () => _navigateTo<List<ItemData>>(
+                  ItemSelectionPage(
+                    allItems: items,
+                    initialSelection: _selectedItems,
+                  ),
+                  (selectedItems) {
+                    if (selectedItems != null) {
+                      setState(() {
+                        itemsSelected = true;
+                        _selectedItems = selectedItems;
+                      });
+                    }
+                  },
+                ),
+              ),
+
+              // HP Tile - enabled if items selected
               _buildStepTile(
                 title: loc.setHitPoints,
                 subtitle: _selectedHP != null ? loc.hpDisplay(_selectedHP!) : null,
                 completed: hpSet,
-                enabled: (_hasSpells() ? spellsSelected : abilityScoresSet) && classSelected,
+                enabled: itemsSelected && classSelected,
                 onTap: () => _navigateTo<int>(
                   HPSelectionPage(
                     classData: _selectedClass!,

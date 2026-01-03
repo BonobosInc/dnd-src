@@ -581,6 +581,7 @@ class ProfileManager {
     updateProfileInfo(field: Defines.infoRace, value: race.name);
     updateProfileInfo(field: Defines.infoClass, value: classData.name);
     updateProfileInfo(field: Defines.infoBackground, value: background.name);
+    updateProfileInfo(field: Defines.infoSize, value: race.size);
     updateStats(field: Defines.statLevel, value: level);
     updateStats(field: Defines.statMaxHP, value: hp);
     updateStats(field: Defines.statCurrentHP, value: hp);
@@ -593,10 +594,28 @@ class ProfileManager {
     // Set speed from race
     updateStats(field: Defines.statMovement, value: race.speed.toString());
 
-    // Add class proficiencies to notes
+    // Collect languages from race and background
+    List<String> languages = [];
+    if (race.proficiency.isNotEmpty) {
+      final raceProficiencies = race.proficiency.split(',').map((s) => s.trim()).toList();
+      // Filter for languages (Common, Elvish, etc.) - assume anything not a skill is a language
+      languages.addAll(raceProficiencies.where((p) => !p.contains('Handling') && !p.contains('Acrobatics') && !p.contains('Animal') && !p.contains('Arcana') && !p.contains('Athletics') && !p.contains('Deception') && !p.contains('History') && !p.contains('Insight') && !p.contains('Intimidation') && !p.contains('Investigation') && !p.contains('Medicine') && !p.contains('Nature') && !p.contains('Perception') && !p.contains('Performance') && !p.contains('Persuasion') && !p.contains('Religion') && !p.contains('Sleight') && !p.contains('Stealth') && !p.contains('Survival')));
+    }
+    if (background.proficiency.isNotEmpty) {
+      final bgProficiencies = background.proficiency.split(',').map((s) => s.trim()).toList();
+      languages.addAll(bgProficiencies.where((p) => !p.contains('Handling') && !p.contains('Acrobatics') && !p.contains('Animal') && !p.contains('Arcana') && !p.contains('Athletics') && !p.contains('Deception') && !p.contains('History') && !p.contains('Insight') && !p.contains('Intimidation') && !p.contains('Investigation') && !p.contains('Medicine') && !p.contains('Nature') && !p.contains('Perception') && !p.contains('Performance') && !p.contains('Persuasion') && !p.contains('Religion') && !p.contains('Sleight') && !p.contains('Stealth') && !p.contains('Survival')));
+    }
+
+    // Build notes with class proficiencies and languages
+    final List<String> noteParts = [];
     if (classData.proficiency.isNotEmpty) {
-      final proficiencyNote = 'Class Proficiencies:\n${classData.proficiency}';
-      updateProfileInfo(field: Defines.infoNotes, value: proficiencyNote);
+      noteParts.add('Class Proficiencies:\n${classData.proficiency}');
+    }
+    if (languages.isNotEmpty) {
+      noteParts.add('\nLanguages:\n${languages.join(', ')}');
+    }
+    if (noteParts.isNotEmpty) {
+      updateProfileInfo(field: Defines.infoNotes, value: noteParts.join('\n'));
     }
 
     // Apply ability scores
@@ -642,7 +661,7 @@ class ProfileManager {
       updateStats(field: statField, value: value);
     }
 
-    // Calculate and set AC
+    // Calculate and set AC and Initiative
     final dexScore = finalAbilityScores['DEX'] ?? 10;
     final conScore = finalAbilityScores['CON'] ?? 10;
     final dexModifier = ((dexScore - 10) / 2).floor();
@@ -657,6 +676,9 @@ class ProfileManager {
       armorClass = 10 + dexModifier;
     }
     updateStats(field: Defines.statArmor, value: armorClass);
+
+    // Set initiative to DEX modifier
+    updateStats(field: Defines.statInitiative, value: dexModifier);
 
     // Apply skill proficiencies and expertise
     if (skillProficiencies != null) {

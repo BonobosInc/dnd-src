@@ -117,6 +117,23 @@ class Legendary {
   });
 }
 
+class ItemData implements Nameable {
+  @override
+  final String name;
+  final String type;
+  final String weight;
+  final String value;
+  final String text;
+
+  ItemData({
+    required this.name,
+    required this.type,
+    required this.weight,
+    required this.value,
+    required this.text,
+  });
+}
+
 class Creature {
   int uuid;
   String name;

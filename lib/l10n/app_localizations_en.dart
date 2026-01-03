@@ -33,6 +33,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get edititem => 'Edit Item';
 
   @override
+  String get importitem => 'Import from Wiki';
+
+  @override
   String get item => 'Item';
 
   @override
@@ -87,6 +90,72 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get type => 'Type';
+
+  @override
+  String get itemdetails => 'Item Details';
+
+  @override
+  String get allitems => 'All Items';
+
+  @override
+  String get items => 'Items';
+
+  @override
+  String get sortbytype => 'Sort by Type';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get itemTypeCurrency => 'Currency';
+
+  @override
+  String get itemTypeAmmunition => 'Ammunition';
+
+  @override
+  String get itemTypeLightArmor => 'Light Armor';
+
+  @override
+  String get itemTypeMediumArmor => 'Medium Armor';
+
+  @override
+  String get itemTypeHeavyArmor => 'Heavy Armor';
+
+  @override
+  String get itemTypeMeleeWeapon => 'Melee Weapon';
+
+  @override
+  String get itemTypePotion => 'Potion';
+
+  @override
+  String get itemTypeRangedWeapon => 'Ranged Weapon';
+
+  @override
+  String get itemTypeRod => 'Rod';
+
+  @override
+  String get itemTypeRing => 'Ring';
+
+  @override
+  String get itemTypeScroll => 'Scroll';
+
+  @override
+  String get itemTypeShield => 'Shield';
+
+  @override
+  String get itemTypeWondrousItem => 'Wondrous Item';
+
+  @override
+  String get itemTypeAdventuringGear => 'Adventuring Gear';
+
+  @override
+  String get itemTypeTools => 'Tools';
+
+  @override
+  String get itemTypeArtisanFocus => 'Artisan Focus';
+
+  @override
+  String get itemTypeTradeGoods => 'Trade Goods';
 
   @override
   String get manageItemTypes => 'Manage Item Types';
@@ -804,9 +873,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deletestatuseffect => 'Delete Status Effect';
-
-  @override
-  String get edit => 'Edit';
 
   @override
   String get add => 'Add';

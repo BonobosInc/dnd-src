@@ -1,5 +1,5 @@
 class WikiDatabaseSchema {
-  static const String version = '1.0.0';
+  static const String version = '2.0.0';
 
   // Version table
   static const Map<String, String> versionTable = {
@@ -164,6 +164,16 @@ class WikiDatabaseSchema {
     'description': 'TEXT',
   };
 
+  // Items table
+  static const Map<String, String> itemsTable = {
+    'id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
+    'name': 'TEXT NOT NULL',
+    'type': 'TEXT',
+    'weight': 'TEXT',
+    'value': 'TEXT',
+    'text': 'TEXT',
+  };
+
   // Helper methods to generate CREATE TABLE statements
   static String _createTableSql(String tableName, Map<String, String> columns) {
     final columnDefinitions =
@@ -203,6 +213,8 @@ class WikiDatabaseSchema {
       _createTableSql('wiki_creature_actions', creatureActionsTable);
   static String createCreatureLegendaryTable() =>
       _createTableSql('wiki_creature_legendary', creatureLegendaryTable);
+  static String createItemsTable() =>
+      _createTableSql('wiki_items', itemsTable);
 
   // Get all table creation statements
   static List<String> get allTableStatements => [
@@ -223,5 +235,6 @@ class WikiDatabaseSchema {
         createCreatureTraitsTable(),
         createCreatureActionsTable(),
         createCreatureLegendaryTable(),
+        createItemsTable(),
       ];
 }
