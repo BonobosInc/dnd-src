@@ -116,7 +116,9 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
         _selectedHP!,
         _selectedProficiencies,
         _selectedExpertise,
-        _selectedSavingThrows);
+        _selectedSavingThrows,
+        _selectedSpells,
+        _selectedItems);
 
     if (context.mounted) {
       Navigator.of(context).pop(true);

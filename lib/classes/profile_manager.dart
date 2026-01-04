@@ -560,6 +560,8 @@ class ProfileManager {
     Map<String, bool>? skillProficiencies,
     Map<String, bool>? skillExpertise,
     List<String>? savingThrowProficiencies,
+    List<SpellData>? selectedSpells,
+    List<ItemData>? selectedItems,
   ) async {
     final profileDbPath = await _getPath();
 
@@ -997,6 +999,33 @@ class ProfileManager {
     }
 
     parseRaceProficiencies(race.proficiency);
+
+    // Add selected spells to character
+    if (selectedSpells != null && selectedSpells.isNotEmpty) {
+      for (final spell in selectedSpells) {
+        await addSpell(
+          spellName: spell.name,
+          status: Defines.spellKnown,
+          level: int.tryParse(spell.level) ?? 0,
+          description: spell.text,
+          reach: spell.range,
+          duration: spell.duration,
+        );
+      }
+    }
+
+    // Add selected items to character
+    if (selectedItems != null && selectedItems.isNotEmpty) {
+      for (final item in selectedItems) {
+        // Add the item to the character's inventory
+        await addItem(
+          itemname: item.name,
+          type: item.type,
+          description: item.text,
+          amount: 1,
+        );
+      }
+    }
   }
 
   String _mapSkillDefineToConstant(String skillDefine) {
