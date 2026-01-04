@@ -5,6 +5,7 @@ import 'package:dnd/l10n/app_localizations.dart';
 class BackgroundDetailPage extends StatefulWidget {
   final BackgroundData backgroundData;
   final bool importFeat;
+  final bool characterCreator;
   final Function(BackgroundData)? onEdit;
   final Function(String)? onDelete;
 
@@ -12,6 +13,7 @@ class BackgroundDetailPage extends StatefulWidget {
     super.key,
     required this.backgroundData,
     this.importFeat = false,
+    this.characterCreator = false,
     this.onEdit,
     this.onDelete,
   });
@@ -38,44 +40,54 @@ class BackgroundDetailPageState extends State<BackgroundDetailPage> {
                   },
                 ),
               ]
-            : [
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () {
-                    if (widget.onEdit != null) {
-                      Navigator.of(context).pop();
-                      widget.onEdit!(widget.backgroundData);
-                    }
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () async {
-                    final loc = AppLocalizations.of(context)!;
-                    final confirmed = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text(loc.confirmdelete),
-                        content: Text('${loc.delete} "${widget.backgroundData.name}"?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: Text(loc.abort),
+            : widget.characterCreator
+                ? [
+                    IconButton(
+                      icon: const Icon(Icons.check),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop(widget.backgroundData);
+                      },
+                    ),
+                  ]
+                : [
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () {
+                        if (widget.onEdit != null) {
+                          Navigator.of(context).pop();
+                          widget.onEdit!(widget.backgroundData);
+                        }
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () async {
+                        final loc = AppLocalizations.of(context)!;
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text(loc.confirmdelete),
+                            content: Text('${loc.delete} "${widget.backgroundData.name}"?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: Text(loc.abort),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: Text(loc.delete),
+                              ),
+                            ],
                           ),
-                          ElevatedButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            child: Text(loc.delete),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (confirmed == true && widget.onDelete != null) {
-                      Navigator.of(context).pop();
-                      widget.onDelete!(widget.backgroundData.name);
-                    }
-                  },
-                ),
-              ],
+                        );
+                        if (confirmed == true && widget.onDelete != null) {
+                          Navigator.of(context).pop();
+                          widget.onDelete!(widget.backgroundData.name);
+                        }
+                      },
+                    ),
+                  ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(8.0),
@@ -106,7 +118,6 @@ class BackgroundDetailPageState extends State<BackgroundDetailPage> {
   Widget _buildTraitsSection(BuildContext context) {
     return Column(
       children: [
-
         ...widget.backgroundData.traits.map((trait) {
           return ListTile(
             title: Text(

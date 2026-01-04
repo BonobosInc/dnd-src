@@ -146,6 +146,12 @@ abstract class AppLocalizations {
   /// **'Gegenstand bearbeiten'**
   String get edititem;
 
+  /// No description provided for @importitem.
+  ///
+  /// In de, this message translates to:
+  /// **'Aus Wiki importieren'**
+  String get importitem;
+
   /// No description provided for @item.
   ///
   /// In de, this message translates to:
@@ -253,6 +259,138 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Typ'**
   String get type;
+
+  /// No description provided for @itemdetails.
+  ///
+  /// In de, this message translates to:
+  /// **'Gegenstandsdetails'**
+  String get itemdetails;
+
+  /// No description provided for @allitems.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Gegenstände'**
+  String get allitems;
+
+  /// No description provided for @items.
+  ///
+  /// In de, this message translates to:
+  /// **'Gegenstände'**
+  String get items;
+
+  /// No description provided for @sortbytype.
+  ///
+  /// In de, this message translates to:
+  /// **'Nach Typ sortieren'**
+  String get sortbytype;
+
+  /// No description provided for @edit.
+  ///
+  /// In de, this message translates to:
+  /// **'Bearbeite'**
+  String get edit;
+
+  /// No description provided for @itemTypeCurrency.
+  ///
+  /// In de, this message translates to:
+  /// **'Währung'**
+  String get itemTypeCurrency;
+
+  /// No description provided for @itemTypeAmmunition.
+  ///
+  /// In de, this message translates to:
+  /// **'Munition'**
+  String get itemTypeAmmunition;
+
+  /// No description provided for @itemTypeLightArmor.
+  ///
+  /// In de, this message translates to:
+  /// **'Leichte Rüstung'**
+  String get itemTypeLightArmor;
+
+  /// No description provided for @itemTypeMediumArmor.
+  ///
+  /// In de, this message translates to:
+  /// **'Mittlere Rüstung'**
+  String get itemTypeMediumArmor;
+
+  /// No description provided for @itemTypeHeavyArmor.
+  ///
+  /// In de, this message translates to:
+  /// **'Schwere Rüstung'**
+  String get itemTypeHeavyArmor;
+
+  /// No description provided for @itemTypeMeleeWeapon.
+  ///
+  /// In de, this message translates to:
+  /// **'Nahkampfwaffe'**
+  String get itemTypeMeleeWeapon;
+
+  /// No description provided for @itemTypePotion.
+  ///
+  /// In de, this message translates to:
+  /// **'Trank'**
+  String get itemTypePotion;
+
+  /// No description provided for @itemTypeRangedWeapon.
+  ///
+  /// In de, this message translates to:
+  /// **'Fernkampfwaffe'**
+  String get itemTypeRangedWeapon;
+
+  /// No description provided for @itemTypeRod.
+  ///
+  /// In de, this message translates to:
+  /// **'Stab'**
+  String get itemTypeRod;
+
+  /// No description provided for @itemTypeRing.
+  ///
+  /// In de, this message translates to:
+  /// **'Ring'**
+  String get itemTypeRing;
+
+  /// No description provided for @itemTypeScroll.
+  ///
+  /// In de, this message translates to:
+  /// **'Schriftrolle'**
+  String get itemTypeScroll;
+
+  /// No description provided for @itemTypeShield.
+  ///
+  /// In de, this message translates to:
+  /// **'Schild'**
+  String get itemTypeShield;
+
+  /// No description provided for @itemTypeWondrousItem.
+  ///
+  /// In de, this message translates to:
+  /// **'Wundersamer Gegenstand'**
+  String get itemTypeWondrousItem;
+
+  /// No description provided for @itemTypeAdventuringGear.
+  ///
+  /// In de, this message translates to:
+  /// **'Abenteuerausrüstung'**
+  String get itemTypeAdventuringGear;
+
+  /// No description provided for @itemTypeTools.
+  ///
+  /// In de, this message translates to:
+  /// **'Werkzeuge'**
+  String get itemTypeTools;
+
+  /// No description provided for @itemTypeArtisanFocus.
+  ///
+  /// In de, this message translates to:
+  /// **'Handwerkerfokus'**
+  String get itemTypeArtisanFocus;
+
+  /// No description provided for @itemTypeTradeGoods.
+  ///
+  /// In de, this message translates to:
+  /// **'Handelswaren'**
+  String get itemTypeTradeGoods;
 
   /// No description provided for @manageItemTypes.
   ///
@@ -1670,12 +1808,6 @@ abstract class AppLocalizations {
   /// **'Status-Effekt löschen'**
   String get deletestatuseffect;
 
-  /// No description provided for @edit.
-  ///
-  /// In de, this message translates to:
-  /// **'Bearbeite'**
-  String get edit;
-
   /// No description provided for @add.
   ///
   /// In de, this message translates to:
@@ -2053,6 +2185,246 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Spüre Kreaturen auf, jage nach Nahrung, finde Unterschlupf und navigiere in rauer Natur.'**
   String get skillSurvivalDescription;
+
+  /// No description provided for @chooseCreationMethod.
+  ///
+  /// In de, this message translates to:
+  /// **'Wähle, wie du deinen Charakter erstellen möchtest:'**
+  String get chooseCreationMethod;
+
+  /// No description provided for @blankCharacter.
+  ///
+  /// In de, this message translates to:
+  /// **'Leerer Charakterbogen'**
+  String get blankCharacter;
+
+  /// No description provided for @characterCreator.
+  ///
+  /// In de, this message translates to:
+  /// **'Charaktererstellung'**
+  String get characterCreator;
+
+  /// No description provided for @confirmTooltip.
+  ///
+  /// In de, this message translates to:
+  /// **'Bestätigen'**
+  String get confirmTooltip;
+
+  /// No description provided for @selectMethodHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Methode auswählen'**
+  String get selectMethodHint;
+
+  /// No description provided for @standardArray.
+  ///
+  /// In de, this message translates to:
+  /// **'Standardwerte'**
+  String get standardArray;
+
+  /// No description provided for @pointBuy.
+  ///
+  /// In de, this message translates to:
+  /// **'Punktekauf'**
+  String get pointBuy;
+
+  /// No description provided for @roll4d6.
+  ///
+  /// In de, this message translates to:
+  /// **'4d6 würfeln, niedrigsten verwerfen'**
+  String get roll4d6;
+
+  /// No description provided for @custom.
+  ///
+  /// In de, this message translates to:
+  /// **'Benutzerdefiniert'**
+  String get custom;
+
+  /// No description provided for @assignRacialBonuses.
+  ///
+  /// In de, this message translates to:
+  /// **'Volksbonus zuweisen:'**
+  String get assignRacialBonuses;
+
+  /// No description provided for @assignBonusHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Bonus zuweisen'**
+  String get assignBonusHint;
+
+  /// No description provided for @selectValue.
+  ///
+  /// In de, this message translates to:
+  /// **'Wert auswählen'**
+  String get selectValue;
+
+  /// No description provided for @selectRoll.
+  ///
+  /// In de, this message translates to:
+  /// **'Wurf auswählen'**
+  String get selectRoll;
+
+  /// No description provided for @roll.
+  ///
+  /// In de, this message translates to:
+  /// **'Wurf'**
+  String get roll;
+
+  /// No description provided for @pointsUsed.
+  ///
+  /// In de, this message translates to:
+  /// **'Punkte verwendet: {used} / {pool}'**
+  String pointsUsed(Object pool, Object used);
+
+  /// No description provided for @pleaseAssignAll.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte weisen Sie alle sechs Fähigkeitswerte zu.'**
+  String get pleaseAssignAll;
+
+  /// No description provided for @rolledValuesLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Gewürfelte Werte: {values}'**
+  String rolledValuesLabel(Object values);
+
+  /// No description provided for @assignRolledValues.
+  ///
+  /// In de, this message translates to:
+  /// **'Gewürfelte Werte den Fähigkeiten zuweisen:'**
+  String get assignRolledValues;
+
+  /// No description provided for @rollAllTooltip.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle würfeln'**
+  String get rollAllTooltip;
+
+  /// No description provided for @chooserace.
+  ///
+  /// In de, this message translates to:
+  /// **'Volk auswählen'**
+  String get chooserace;
+
+  /// No description provided for @choosebackground.
+  ///
+  /// In de, this message translates to:
+  /// **'Hintergrund auswählen'**
+  String get choosebackground;
+
+  /// No description provided for @completeallsteps.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte schließe alle Schritte ab, bevor du den Charakter erstellst.'**
+  String get completeallsteps;
+
+  /// No description provided for @choosefeat.
+  ///
+  /// In de, this message translates to:
+  /// **'Wähle eine Fertigkeit'**
+  String get choosefeat;
+
+  /// No description provided for @chooseskills.
+  ///
+  /// In de, this message translates to:
+  /// **'Wähle Fertigkeiten'**
+  String get chooseskills;
+
+  /// No description provided for @setabilityscores.
+  ///
+  /// In de, this message translates to:
+  /// **'Attributswerte festlegen'**
+  String get setabilityscores;
+
+  /// No description provided for @selectSkillProficiencies.
+  ///
+  /// In de, this message translates to:
+  /// **'Wähle Fertigkeitsübungen'**
+  String get selectSkillProficiencies;
+
+  /// No description provided for @selectSkillExpertise.
+  ///
+  /// In de, this message translates to:
+  /// **'Wähle Fertigkeitsexpertisen'**
+  String get selectSkillExpertise;
+
+  /// Available skill choices remaining
+  ///
+  /// In de, this message translates to:
+  /// **'Verfügbare Fertigkeitsauswahlen: {count}'**
+  String availableSkillChoices(Object count);
+
+  /// Select up to X skills
+  ///
+  /// In de, this message translates to:
+  /// **'Wähle bis zu {count} Fertigkeiten'**
+  String selectUpToSkills(Object count);
+
+  /// No description provided for @fromBackground.
+  ///
+  /// In de, this message translates to:
+  /// **'Vom Hintergrund'**
+  String get fromBackground;
+
+  /// No description provided for @fromRace.
+  ///
+  /// In de, this message translates to:
+  /// **'Vom Volk'**
+  String get fromRace;
+
+  /// No description provided for @choosespells.
+  ///
+  /// In de, this message translates to:
+  /// **'Zauber wählen'**
+  String get choosespells;
+
+  /// No description provided for @maximumspelllevel.
+  ///
+  /// In de, this message translates to:
+  /// **'Maximales Zauberstufe'**
+  String get maximumspelllevel;
+
+  /// No description provided for @nospellsavailable.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine Zauber für diese Klasse und Stufe verfügbar.'**
+  String get nospellsavailable;
+
+  /// No description provided for @done.
+  ///
+  /// In de, this message translates to:
+  /// **'Fertig'**
+  String get done;
+
+  /// Used points
+  ///
+  /// In de, this message translates to:
+  /// **'Verwendete Punkte: {used} / {pool}'**
+  String usedpoints(Object used, Object pool);
+
+  /// Rolled values
+  ///
+  /// In de, this message translates to:
+  /// **'Gewürfelte Werte: {values}'**
+  String rolledstats(Object values);
+
+  /// No description provided for @notrolledyet.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch nicht gewürfelt'**
+  String get notrolledyet;
+
+  /// No description provided for @exitConfirmationMessage.
+  ///
+  /// In de, this message translates to:
+  /// **'Bist du sicher, dass du abbrechen möchtest? Dein Fortschritt geht verloren.'**
+  String get exitConfirmationMessage;
+
+  /// No description provided for @exitCharacterCreator.
+  ///
+  /// In de, this message translates to:
+  /// **'Charaktererstellung beenden'**
+  String get exitCharacterCreator;
 
   /// No description provided for @session.
   ///
@@ -2485,6 +2857,96 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Talent hinzufügen'**
   String get addTalent;
+
+  /// No description provided for @setHitPoints.
+  ///
+  /// In de, this message translates to:
+  /// **'Trefferpunkte festlegen'**
+  String get setHitPoints;
+
+  /// No description provided for @hitPoints.
+  ///
+  /// In de, this message translates to:
+  /// **'Trefferpunkte'**
+  String get hitPoints;
+
+  /// No description provided for @hpMethod.
+  ///
+  /// In de, this message translates to:
+  /// **'TP-Methode'**
+  String get hpMethod;
+
+  /// No description provided for @rollHp.
+  ///
+  /// In de, this message translates to:
+  /// **'Würfeln'**
+  String get rollHp;
+
+  /// No description provided for @medianHp.
+  ///
+  /// In de, this message translates to:
+  /// **'Median'**
+  String get medianHp;
+
+  /// No description provided for @customHp.
+  ///
+  /// In de, this message translates to:
+  /// **'Benutzerdefiniert'**
+  String get customHp;
+
+  /// No description provided for @hitDie.
+  ///
+  /// In de, this message translates to:
+  /// **'Trefferwürfel'**
+  String get hitDie;
+
+  /// No description provided for @constitutionModifier.
+  ///
+  /// In de, this message translates to:
+  /// **'Konstitutionsmodifikator'**
+  String get constitutionModifier;
+
+  /// No description provided for @reroll.
+  ///
+  /// In de, this message translates to:
+  /// **'Neu würfeln'**
+  String get reroll;
+
+  /// TP für eine bestimmte Stufe
+  ///
+  /// In de, this message translates to:
+  /// **'Stufe {level}: {hp} TP'**
+  String levelHp(Object level, Object hp);
+
+  /// No description provided for @maxLevel.
+  ///
+  /// In de, this message translates to:
+  /// **'(Max)'**
+  String get maxLevel;
+
+  /// No description provided for @totalHp.
+  ///
+  /// In de, this message translates to:
+  /// **'Gesamt-TP'**
+  String get totalHp;
+
+  /// Gesamt-TP Anzeige
+  ///
+  /// In de, this message translates to:
+  /// **'Gesamt-TP: {hp}'**
+  String totalHpValue(Object hp);
+
+  /// No description provided for @pleaseSetValidHp.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte gültige TP festlegen'**
+  String get pleaseSetValidHp;
+
+  /// TP Anzeige im Charakterersteller
+  ///
+  /// In de, this message translates to:
+  /// **'TP: {hp}'**
+  String hpDisplay(Object hp);
 }
 
 class _AppLocalizationsDelegate

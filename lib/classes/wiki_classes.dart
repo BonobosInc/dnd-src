@@ -3,6 +3,7 @@ class ClassData implements Nameable {
   final String name;
   final String hd;
   final String proficiency;
+  final String spellAbility;
   final String numSkills;
   final List<Autolevel> autolevels;
 
@@ -10,6 +11,7 @@ class ClassData implements Nameable {
     required this.name,
     required this.hd,
     required this.proficiency,
+    required this.spellAbility,
     required this.numSkills,
     required this.autolevels,
   });
@@ -112,6 +114,23 @@ class Legendary {
   Legendary({
     required this.name,
     required this.description,
+  });
+}
+
+class ItemData implements Nameable {
+  @override
+  final String name;
+  final String type;
+  final String weight;
+  final String value;
+  final String text;
+
+  ItemData({
+    required this.name,
+    required this.type,
+    required this.weight,
+    required this.value,
+    required this.text,
   });
 }
 

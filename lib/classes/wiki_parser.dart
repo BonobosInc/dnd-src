@@ -19,8 +19,18 @@ class WikiParser {
   Future<List<FeatData>> get feats async => _dbManager.getAllFeats();
   Future<List<SpellData>> get spells async => _dbManager.getAllSpells();
   Future<List<Creature>> get creatures async => _dbManager.getAllCreatures();
+  Future<List<ItemData>> get items async => _dbManager.getAllItems();
 
   WikiParser();
+
+  Future<bool> isEmpty() async {
+    final classesList = await classes;
+    final racesList = await races;
+    final backgroundsList = await backgrounds;
+    return classesList.isEmpty ||
+        racesList.isEmpty ||
+        backgroundsList.isEmpty;
+  }
 
   Future<void> loadXml() async {
     // Initialize database
@@ -179,6 +189,7 @@ class WikiParser {
       feats: parsedData['feats'] as List<FeatData>,
       spells: parsedData['spells'] as List<SpellData>,
       creatures: parsedData['creatures'] as List<Creature>,
+      items: parsedData['items'] as List<ItemData>,
     );
 
     if (kDebugMode) {
@@ -449,6 +460,7 @@ class WikiParser {
     List<FeatData> feats = parseFeats(document);
     List<SpellData> spells = parseSpells(document);
     List<Creature> creatures = parseCreatures(document);
+    List<ItemData> items = parseItems(document);
 
     return {
       'classes': classes,
@@ -457,6 +469,7 @@ class WikiParser {
       'feats': feats,
       'spells': spells,
       'creatures': creatures,
+      'items': items,
     };
   }
 
@@ -473,6 +486,9 @@ class WikiParser {
       final proficiency = classElement.findElements('proficiency').isNotEmpty
           ? classElement.findElements('proficiency').first.innerText
           : 'N/A';
+      final spellAbility = classElement.findElements('spellAbility').isNotEmpty
+          ? classElement.findElements('spellAbility').first.innerText
+          : '';
       final numSkills = classElement.findElements('numSkills').isNotEmpty
           ? classElement.findElements('numSkills').first.innerText
           : 'N/A';
@@ -510,12 +526,42 @@ class WikiParser {
         name: name,
         hd: hd,
         proficiency: proficiency,
+        spellAbility: spellAbility,
         numSkills: numSkills,
         autolevels: autolevels,
       );
     }).toList();
   }
+  static List<ItemData> parseItems(xml.XmlDocument document) {
+    final itemElements = document.findAllElements('item');
 
+    return itemElements.map((itemElement) {
+      final name = itemElement.findElements('name').isNotEmpty
+          ? itemElement.findElements('name').first.innerText
+          : 'N/A';
+      final type = itemElement.findElements('type').isNotEmpty
+          ? itemElement.findElements('type').first.innerText
+          : '';
+      final weight = itemElement.findElements('weight').isNotEmpty
+          ? itemElement.findElements('weight').first.innerText
+          : '0';
+      final value = itemElement.findElements('value').isNotEmpty
+          ? itemElement.findElements('value').first.innerText
+          : '0';
+      final text = itemElement
+          .findAllElements('text')
+          .map((textElement) => textElement.innerText)
+          .join('\n');
+
+      return ItemData(
+        name: name,
+        type: type,
+        weight: weight,
+        value: value,
+        text: text,
+      );
+    }).toList();
+  }
   static List<RaceData> parseRaces(xml.XmlDocument document) {
     final raceElements = document.findAllElements('race');
 
@@ -934,5 +980,19 @@ class WikiParser {
   Future<void> updateCreatureInXml(
       xml.XmlDocument document, String oldName, Creature creature) async {
     await _dbManager.updateCreature(oldName, creature);
+  }
+
+  Future<void> addItem(ItemData item) async {
+    await _dbManager.insertItem(item);
+  }
+
+  Future<void> deleteItemFromXml(
+      xml.XmlDocument document, String itemName) async {
+    await _dbManager.deleteItem(itemName);
+  }
+
+  Future<void> updateItemInXml(
+      xml.XmlDocument document, String oldName, ItemData item) async {
+    await _dbManager.updateItem(oldName, item);
   }
 }

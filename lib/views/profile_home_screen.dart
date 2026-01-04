@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:dnd/views/character_creator/character_creator.dart';
 import 'package:dnd/classes/session_manager.dart';
 import 'package:dnd/views/session/client_view.dart';
 import 'package:dnd/views/session/host.dart';
@@ -46,8 +47,68 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
   }
 
   Future<void> _addNewProfile() async {
-    TextEditingController controller = TextEditingController();
+    final isEmpty = await widget.wikiParser.isEmpty();
+    if (kDebugMode) {
+      print('Wiki isEmpty: $isEmpty');
+    }
+    if (isEmpty) {
+      await _showBlankCharacterDialog();
+      return;
+    }
+
+    final String? creationChoice = await _askCreationMethod();
+    if (kDebugMode) {
+      print('Creation choice: $creationChoice');
+    }
+    if (creationChoice == 'creator') {
+      await _navigateToCharacterCreator();
+    } else if (creationChoice == 'blank') {
+      await _showBlankCharacterDialog();
+    }
+  }
+
+  Future<String?> _askCreationMethod() async {
     final loc = AppLocalizations.of(context)!;
+
+    return showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(loc.newchar),
+          content: Text(loc.chooseCreationMethod),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop('blank'),
+              child: Text(loc.blankCharacter),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop('creator'),
+              child: Text(loc.characterCreator),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _navigateToCharacterCreator() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CharacterCreatorPage(
+            wikiParser: widget.wikiParser, profileManager: profileManager),
+      ),
+    );
+
+    // Refresh the profile list if a character was created
+    if (result == true) {
+      await _initializeProfiles();
+    }
+  }
+
+  Future<void> _showBlankCharacterDialog() async {
+    final loc = AppLocalizations.of(context)!;
+    TextEditingController controller = TextEditingController();
 
     await showDialog(
       context: context,
@@ -71,46 +132,39 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
                   onPressed: isCreatingProfile
                       ? null
                       : () async {
-                          String profileName = controller.text;
-                          if (profileName.isNotEmpty) {
-                            String lowerCaseProfileName =
-                                profileName.toLowerCase();
+                          String profileName = controller.text.trim();
+                          if (profileName.isEmpty) return;
 
-                            bool profileExists = profileManager.profiles
-                                .map((profile) => profile.name.toLowerCase())
-                                .contains(lowerCaseProfileName);
+                          String lower = profileName.toLowerCase();
+                          bool exists = profileManager.profiles
+                              .map((p) => p.name.toLowerCase())
+                              .contains(lower);
 
-                            if (profileExists) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    AppLocalizations.of(context)!
-                                        .characterExists(profileName),
-                                    style: TextStyle(
-                                        color: AppColors.textColorLight),
-                                  ),
-                                  backgroundColor: AppColors.warningColor,
+                          if (exists) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  loc.characterExists(profileName),
+                                  style: TextStyle(
+                                      color: AppColors.textColorLight),
                                 ),
+                                backgroundColor: AppColors.warningColor,
+                              ),
+                            );
+                            return;
+                          }
+
+                          setState(() => isCreatingProfile = true);
+                          await profileManager.createProfile(profileName);
+                          setState(() => isCreatingProfile = false);
+
+                          await _initializeProfiles();
+                          if (context.mounted) {
+                            Navigator.of(context).pop();
+                            if (profileName.contains("69")) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Nice!')),
                               );
-                            } else {
-                              setState(() {
-                                isCreatingProfile = true;
-                              });
-
-                              await profileManager.createProfile(profileName);
-
-                              setState(() {
-                                isCreatingProfile = false;
-                              });
-                              await _initializeProfiles();
-                              if (context.mounted) {
-                                Navigator.of(context).pop();
-                                if (profileName.contains("69")) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Nice!')),
-                                  );
-                                }
-                              }
                             }
                           }
                         },
@@ -402,14 +456,19 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await _addNewProfile();
+        },
+        child: const Icon(Icons.group_add),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       appBar: AppBar(
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: (value) async {
-              if (value == 'create') {
-                await _addNewProfile();
-              } else if (value == 'clear') {
+              if (value == 'clear') {
                 await _clearDatabase();
               } else if (value == 'import') {
                 await _importProfileFromXmlFile();
@@ -476,10 +535,6 @@ class ProfileHomeScreenState extends State<ProfileHomeScreen> {
             },
             itemBuilder: (BuildContext context) {
               return [
-                PopupMenuItem<String>(
-                  value: 'create',
-                  child: Text(loc.createnewchar),
-                ),
                 PopupMenuItem<String>(
                   value: 'import',
                   child: Text(loc.importchar),

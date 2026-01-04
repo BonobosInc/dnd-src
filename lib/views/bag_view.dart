@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dnd/classes/profile_manager.dart';
+import 'package:dnd/classes/wiki_parser.dart';
+import 'package:dnd/classes/wiki_classes.dart';
+import 'package:dnd/views/wiki/items_view.dart';
 import 'package:dnd/configs/defines.dart';
 import 'package:dnd/configs/colours.dart';
 import 'dart:math';
@@ -8,10 +11,12 @@ import 'package:dnd/l10n/app_localizations.dart';
 
 class BagPage extends StatefulWidget {
   final ProfileManager profileManager;
+  final WikiParser? wikiParser;
 
   const BagPage({
     super.key,
     required this.profileManager,
+    this.wikiParser,
   });
 
   @override
@@ -130,6 +135,11 @@ class BagPageState extends State<BagPage> {
         title: Text(loc.equipments),
         backgroundColor: AppColors.appBarColor,
         actions: [
+          IconButton(
+            icon: Icon(Icons.file_download, color: AppColors.accentYellow),
+            onPressed: _importItemsFromWiki,
+            tooltip: loc.importitem,
+          ),
           IconButton(
             icon: Icon(Icons.category, color: AppColors.accentYellow),
             onPressed: _showManageTypesDialog,
@@ -330,6 +340,54 @@ class BagPageState extends State<BagPage> {
         );
       },
     );
+  }
+
+  Future<void> _importItemsFromWiki() async {
+    final loc = AppLocalizations.of(context)!;
+    
+    if (widget.wikiParser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Wiki not available')),
+      );
+      return;
+    }
+
+    // Load items from wiki
+    final wikiItems = await widget.wikiParser!.items;
+
+    final selectedItems = await Navigator.push<List<ItemData>>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AllItemsPage(
+          items: wikiItems,
+          importItem: true,
+        ),
+      ),
+    );
+
+    if (selectedItems != null && selectedItems.isNotEmpty && mounted) {
+      for (var wikiItem in selectedItems) {
+        // Add item to bag
+        await widget.profileManager.addItem(
+          itemname: wikiItem.name,
+          description: wikiItem.text,
+          type: 'Sonstige', // Default type
+          amount: 1,
+          attunement: 0,
+        );
+      }
+      
+      // Refresh items list
+      await _fetchItems();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${selectedItems.length} ${selectedItems.length == 1 ? loc.item : loc.items} imported'),
+          ),
+        );
+      }
+    }
   }
 
   void _showAddItemDialog() {

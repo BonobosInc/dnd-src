@@ -8,6 +8,7 @@
     "equipments": "Equipment/Items",
     "additem": "Add Item",
     "edititem": "Edit Item",
+    "importitem": "Import from Wiki",
     "item": "Item",
     "equipment": "Equipment",
     "other": "Other",
@@ -32,6 +33,28 @@
         }
     },
     "type": "Type",
+    "itemdetails": "Item Details",
+    "allitems": "All Items",
+    "items": "Items",
+    "sortbytype": "Sort by Type",
+    "edit": "Edit",
+    "itemTypeCurrency": "Currency",
+    "itemTypeAmmunition": "Ammunition",
+    "itemTypeLightArmor": "Light Armor",
+    "itemTypeMediumArmor": "Medium Armor",
+    "itemTypeHeavyArmor": "Heavy Armor",
+    "itemTypeMeleeWeapon": "Melee Weapon",
+    "itemTypePotion": "Potion",
+    "itemTypeRangedWeapon": "Ranged Weapon",
+    "itemTypeRod": "Rod",
+    "itemTypeRing": "Ring",
+    "itemTypeScroll": "Scroll",
+    "itemTypeShield": "Shield",
+    "itemTypeWondrousItem": "Wondrous Item",
+    "itemTypeAdventuringGear": "Adventuring Gear",
+    "itemTypeTools": "Tools",
+    "itemTypeArtisanFocus": "Artisan Focus",
+    "itemTypeTradeGoods": "Trade Goods",
     "manageItemTypes": "Manage Item Types",
     "newTypeName": "New Type Name",
     "defaultType": "Default",
@@ -363,6 +386,70 @@
     "skillSleightOfHandDescription": "Perform quick, precise, or concealed manual tricks, such as picking pockets or performing magic.",
     "skillStealthDescription": "Move silently and remain unseen to avoid detection.",
     "skillSurvivalDescription": "Track creatures, hunt for food, find shelter, and navigate harsh natural environments.",
+    "chooseCreationMethod": "Choose how to create your character:",
+    "blankCharacter": "Blank Character",
+    "characterCreator": "Character Creator",
+    "confirmTooltip": "Confirm",
+    "selectMethodHint": "Select Method",
+    "standardArray": "Standard Array",
+    "pointBuy": "Point Buy",
+    "roll4d6": "Roll 4d6 Drop Lowest",
+    "custom": "Custom",
+    "assignRacialBonuses": "Assign Racial Bonuses:",
+    "assignBonusHint": "Assign bonus",
+    "selectValue": "Select value",
+    "selectRoll": "Select roll",
+    "roll": "Roll",
+    "pointsUsed": "Points Used: {used} / {pool}",
+    "pleaseAssignAll": "Please assign all six ability scores.",
+    "rolledValuesLabel": "Rolled values: {values}",
+    "assignRolledValues": "Assign rolled values to abilities:",
+    "rollAllTooltip": "Roll All",
+    "chooserace": "Choose Race",
+    "choosebackground": "Choose Background",
+    "completeallsteps": "Please complete all steps before creating the character.",
+    "choosefeat": "Choose Feat",
+    "chooseskills": "Choose Skills",
+    "setabilityscores": "Set Ability Scores",
+    "selectSkillProficiencies": "Select Skill Proficiencies",
+    "selectSkillExpertise": "Select Skill Expertise",
+    "availableSkillChoices": "Available Skill Choices: {count}",
+    "@availableSkillChoices": {
+        "description": "Available skill choices remaining",
+        "placeholders": {
+            "count": {}
+        }
+    },
+    "selectUpToSkills": "Select up to {count} skills",
+    "@selectUpToSkills": {
+        "description": "Select up to X skills",
+        "placeholders": {
+            "count": {}
+        }
+    },    "fromBackground": "From Background",
+    "fromRace": "From Race",
+    "choosespells": "Choose Spells",
+    "maximumspelllevel": "Maximum Spell Level",
+    "nospellsavailable": "No spells available for this class and level.",
+    "done": "Done",
+    "usedpoints": "Points Used: {used} / {pool}",
+    "@usedpoints": {
+        "description": "Used points",
+        "placeholders": {
+            "used": {},
+            "pool": {}
+        }
+    },
+    "rolledstats": "Rolled values: {values}",
+    "@rolledstats": {
+        "description": "Rolled values",
+        "placeholders": {
+            "values": {}
+        }
+    },
+    "notrolledyet" : "Not rolled yet",
+    "exitConfirmationMessage": "Are you sure you want to leave? Your progress will be lost.",
+    "exitCharacterCreator": "Exit Character Creator",
     "session": "Session",
     "hostSession": "Host Session",
     "joinedSession": "Joined Session",
@@ -469,5 +556,39 @@
     "addBackground": "Add Background",
     "addClass": "Add Class",
     "addSpellWiki": "Add Spell",
-    "addTalent": "Add Talent"
+    "addTalent": "Add Talent",
+    "setHitPoints": "Set Hit Points",
+    "hitPoints": "Hit Points",
+    "hpMethod": "HP Method",
+    "rollHp": "Roll",
+    "medianHp": "Median",
+    "customHp": "Custom",
+    "hitDie": "Hit Die",
+    "constitutionModifier": "Constitution Modifier",
+    "reroll": "Reroll",
+    "levelHp": "Level {level}: {hp} HP",
+    "@levelHp": {
+        "description": "HP for a specific level",
+        "placeholders": {
+            "level": {},
+            "hp": {}
+        }
+    },
+    "maxLevel": "(Max)",
+    "totalHp": "Total HP",
+    "totalHpValue": "Total HP: {hp}",
+    "@totalHpValue": {
+        "description": "Total HP display",
+        "placeholders": {
+            "hp": {}
+        }
+    },
+    "pleaseSetValidHp": "Please set valid HP",
+    "hpDisplay": "HP: {hp}",
+    "@hpDisplay": {
+        "description": "HP display in character creator",
+        "placeholders": {
+            "hp": {}
+        }
+    }
 }

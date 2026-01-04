@@ -33,6 +33,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get edititem => 'Gegenstand bearbeiten';
 
   @override
+  String get importitem => 'Aus Wiki importieren';
+
+  @override
   String get item => 'Gegenstand';
 
   @override
@@ -87,6 +90,72 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get type => 'Typ';
+
+  @override
+  String get itemdetails => 'Gegenstandsdetails';
+
+  @override
+  String get allitems => 'Alle Gegenstände';
+
+  @override
+  String get items => 'Gegenstände';
+
+  @override
+  String get sortbytype => 'Nach Typ sortieren';
+
+  @override
+  String get edit => 'Bearbeite';
+
+  @override
+  String get itemTypeCurrency => 'Währung';
+
+  @override
+  String get itemTypeAmmunition => 'Munition';
+
+  @override
+  String get itemTypeLightArmor => 'Leichte Rüstung';
+
+  @override
+  String get itemTypeMediumArmor => 'Mittlere Rüstung';
+
+  @override
+  String get itemTypeHeavyArmor => 'Schwere Rüstung';
+
+  @override
+  String get itemTypeMeleeWeapon => 'Nahkampfwaffe';
+
+  @override
+  String get itemTypePotion => 'Trank';
+
+  @override
+  String get itemTypeRangedWeapon => 'Fernkampfwaffe';
+
+  @override
+  String get itemTypeRod => 'Stab';
+
+  @override
+  String get itemTypeRing => 'Ring';
+
+  @override
+  String get itemTypeScroll => 'Schriftrolle';
+
+  @override
+  String get itemTypeShield => 'Schild';
+
+  @override
+  String get itemTypeWondrousItem => 'Wundersamer Gegenstand';
+
+  @override
+  String get itemTypeAdventuringGear => 'Abenteuerausrüstung';
+
+  @override
+  String get itemTypeTools => 'Werkzeuge';
+
+  @override
+  String get itemTypeArtisanFocus => 'Handwerkerfokus';
+
+  @override
+  String get itemTypeTradeGoods => 'Handelswaren';
 
   @override
   String get manageItemTypes => 'Gegenstands-Typen verwalten';
@@ -810,9 +879,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get deletestatuseffect => 'Status-Effekt löschen';
 
   @override
-  String get edit => 'Bearbeite';
-
-  @override
   String get add => 'Hinzufügen';
 
   @override
@@ -1024,6 +1090,143 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get skillSurvivalDescription =>
       'Spüre Kreaturen auf, jage nach Nahrung, finde Unterschlupf und navigiere in rauer Natur.';
+
+  @override
+  String get chooseCreationMethod =>
+      'Wähle, wie du deinen Charakter erstellen möchtest:';
+
+  @override
+  String get blankCharacter => 'Leerer Charakterbogen';
+
+  @override
+  String get characterCreator => 'Charaktererstellung';
+
+  @override
+  String get confirmTooltip => 'Bestätigen';
+
+  @override
+  String get selectMethodHint => 'Methode auswählen';
+
+  @override
+  String get standardArray => 'Standardwerte';
+
+  @override
+  String get pointBuy => 'Punktekauf';
+
+  @override
+  String get roll4d6 => '4d6 würfeln, niedrigsten verwerfen';
+
+  @override
+  String get custom => 'Benutzerdefiniert';
+
+  @override
+  String get assignRacialBonuses => 'Volksbonus zuweisen:';
+
+  @override
+  String get assignBonusHint => 'Bonus zuweisen';
+
+  @override
+  String get selectValue => 'Wert auswählen';
+
+  @override
+  String get selectRoll => 'Wurf auswählen';
+
+  @override
+  String get roll => 'Wurf';
+
+  @override
+  String pointsUsed(Object pool, Object used) {
+    return 'Punkte verwendet: $used / $pool';
+  }
+
+  @override
+  String get pleaseAssignAll =>
+      'Bitte weisen Sie alle sechs Fähigkeitswerte zu.';
+
+  @override
+  String rolledValuesLabel(Object values) {
+    return 'Gewürfelte Werte: $values';
+  }
+
+  @override
+  String get assignRolledValues => 'Gewürfelte Werte den Fähigkeiten zuweisen:';
+
+  @override
+  String get rollAllTooltip => 'Alle würfeln';
+
+  @override
+  String get chooserace => 'Volk auswählen';
+
+  @override
+  String get choosebackground => 'Hintergrund auswählen';
+
+  @override
+  String get completeallsteps =>
+      'Bitte schließe alle Schritte ab, bevor du den Charakter erstellst.';
+
+  @override
+  String get choosefeat => 'Wähle eine Fertigkeit';
+
+  @override
+  String get chooseskills => 'Wähle Fertigkeiten';
+
+  @override
+  String get setabilityscores => 'Attributswerte festlegen';
+
+  @override
+  String get selectSkillProficiencies => 'Wähle Fertigkeitsübungen';
+
+  @override
+  String get selectSkillExpertise => 'Wähle Fertigkeitsexpertisen';
+
+  @override
+  String availableSkillChoices(Object count) {
+    return 'Verfügbare Fertigkeitsauswahlen: $count';
+  }
+
+  @override
+  String selectUpToSkills(Object count) {
+    return 'Wähle bis zu $count Fertigkeiten';
+  }
+
+  @override
+  String get fromBackground => 'Vom Hintergrund';
+
+  @override
+  String get fromRace => 'Vom Volk';
+
+  @override
+  String get choosespells => 'Zauber wählen';
+
+  @override
+  String get maximumspelllevel => 'Maximales Zauberstufe';
+
+  @override
+  String get nospellsavailable =>
+      'Keine Zauber für diese Klasse und Stufe verfügbar.';
+
+  @override
+  String get done => 'Fertig';
+
+  @override
+  String usedpoints(Object used, Object pool) {
+    return 'Verwendete Punkte: $used / $pool';
+  }
+
+  @override
+  String rolledstats(Object values) {
+    return 'Gewürfelte Werte: $values';
+  }
+
+  @override
+  String get notrolledyet => 'Noch nicht gewürfelt';
+
+  @override
+  String get exitConfirmationMessage =>
+      'Bist du sicher, dass du abbrechen möchtest? Dein Fortschritt geht verloren.';
+
+  @override
+  String get exitCharacterCreator => 'Charaktererstellung beenden';
 
   @override
   String get session => 'Sitzung';
@@ -1256,4 +1459,55 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get addTalent => 'Talent hinzufügen';
+
+  @override
+  String get setHitPoints => 'Trefferpunkte festlegen';
+
+  @override
+  String get hitPoints => 'Trefferpunkte';
+
+  @override
+  String get hpMethod => 'TP-Methode';
+
+  @override
+  String get rollHp => 'Würfeln';
+
+  @override
+  String get medianHp => 'Median';
+
+  @override
+  String get customHp => 'Benutzerdefiniert';
+
+  @override
+  String get hitDie => 'Trefferwürfel';
+
+  @override
+  String get constitutionModifier => 'Konstitutionsmodifikator';
+
+  @override
+  String get reroll => 'Neu würfeln';
+
+  @override
+  String levelHp(Object level, Object hp) {
+    return 'Stufe $level: $hp TP';
+  }
+
+  @override
+  String get maxLevel => '(Max)';
+
+  @override
+  String get totalHp => 'Gesamt-TP';
+
+  @override
+  String totalHpValue(Object hp) {
+    return 'Gesamt-TP: $hp';
+  }
+
+  @override
+  String get pleaseSetValidHp => 'Bitte gültige TP festlegen';
+
+  @override
+  String hpDisplay(Object hp) {
+    return 'TP: $hp';
+  }
 }

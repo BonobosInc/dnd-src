@@ -33,6 +33,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get edititem => 'Edit Item';
 
   @override
+  String get importitem => 'Import from Wiki';
+
+  @override
   String get item => 'Item';
 
   @override
@@ -87,6 +90,72 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get type => 'Type';
+
+  @override
+  String get itemdetails => 'Item Details';
+
+  @override
+  String get allitems => 'All Items';
+
+  @override
+  String get items => 'Items';
+
+  @override
+  String get sortbytype => 'Sort by Type';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get itemTypeCurrency => 'Currency';
+
+  @override
+  String get itemTypeAmmunition => 'Ammunition';
+
+  @override
+  String get itemTypeLightArmor => 'Light Armor';
+
+  @override
+  String get itemTypeMediumArmor => 'Medium Armor';
+
+  @override
+  String get itemTypeHeavyArmor => 'Heavy Armor';
+
+  @override
+  String get itemTypeMeleeWeapon => 'Melee Weapon';
+
+  @override
+  String get itemTypePotion => 'Potion';
+
+  @override
+  String get itemTypeRangedWeapon => 'Ranged Weapon';
+
+  @override
+  String get itemTypeRod => 'Rod';
+
+  @override
+  String get itemTypeRing => 'Ring';
+
+  @override
+  String get itemTypeScroll => 'Scroll';
+
+  @override
+  String get itemTypeShield => 'Shield';
+
+  @override
+  String get itemTypeWondrousItem => 'Wondrous Item';
+
+  @override
+  String get itemTypeAdventuringGear => 'Adventuring Gear';
+
+  @override
+  String get itemTypeTools => 'Tools';
+
+  @override
+  String get itemTypeArtisanFocus => 'Artisan Focus';
+
+  @override
+  String get itemTypeTradeGoods => 'Trade Goods';
 
   @override
   String get manageItemTypes => 'Manage Item Types';
@@ -806,9 +875,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deletestatuseffect => 'Delete Status Effect';
 
   @override
-  String get edit => 'Edit';
-
-  @override
   String get add => 'Add';
 
   @override
@@ -1019,6 +1085,141 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get skillSurvivalDescription =>
       'Track creatures, hunt for food, find shelter, and navigate harsh natural environments.';
+
+  @override
+  String get chooseCreationMethod => 'Choose how to create your character:';
+
+  @override
+  String get blankCharacter => 'Blank Character';
+
+  @override
+  String get characterCreator => 'Character Creator';
+
+  @override
+  String get confirmTooltip => 'Confirm';
+
+  @override
+  String get selectMethodHint => 'Select Method';
+
+  @override
+  String get standardArray => 'Standard Array';
+
+  @override
+  String get pointBuy => 'Point Buy';
+
+  @override
+  String get roll4d6 => 'Roll 4d6 Drop Lowest';
+
+  @override
+  String get custom => 'Custom';
+
+  @override
+  String get assignRacialBonuses => 'Assign Racial Bonuses:';
+
+  @override
+  String get assignBonusHint => 'Assign bonus';
+
+  @override
+  String get selectValue => 'Select value';
+
+  @override
+  String get selectRoll => 'Select roll';
+
+  @override
+  String get roll => 'Roll';
+
+  @override
+  String pointsUsed(Object pool, Object used) {
+    return 'Points Used: $used / $pool';
+  }
+
+  @override
+  String get pleaseAssignAll => 'Please assign all six ability scores.';
+
+  @override
+  String rolledValuesLabel(Object values) {
+    return 'Rolled values: $values';
+  }
+
+  @override
+  String get assignRolledValues => 'Assign rolled values to abilities:';
+
+  @override
+  String get rollAllTooltip => 'Roll All';
+
+  @override
+  String get chooserace => 'Choose Race';
+
+  @override
+  String get choosebackground => 'Choose Background';
+
+  @override
+  String get completeallsteps =>
+      'Please complete all steps before creating the character.';
+
+  @override
+  String get choosefeat => 'Choose Feat';
+
+  @override
+  String get chooseskills => 'Choose Skills';
+
+  @override
+  String get setabilityscores => 'Set Ability Scores';
+
+  @override
+  String get selectSkillProficiencies => 'Select Skill Proficiencies';
+
+  @override
+  String get selectSkillExpertise => 'Select Skill Expertise';
+
+  @override
+  String availableSkillChoices(Object count) {
+    return 'Available Skill Choices: $count';
+  }
+
+  @override
+  String selectUpToSkills(Object count) {
+    return 'Select up to $count skills';
+  }
+
+  @override
+  String get fromBackground => 'From Background';
+
+  @override
+  String get fromRace => 'From Race';
+
+  @override
+  String get choosespells => 'Choose Spells';
+
+  @override
+  String get maximumspelllevel => 'Maximum Spell Level';
+
+  @override
+  String get nospellsavailable =>
+      'No spells available for this class and level.';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String usedpoints(Object used, Object pool) {
+    return 'Points Used: $used / $pool';
+  }
+
+  @override
+  String rolledstats(Object values) {
+    return 'Rolled values: $values';
+  }
+
+  @override
+  String get notrolledyet => 'Not rolled yet';
+
+  @override
+  String get exitConfirmationMessage =>
+      'Are you sure you want to leave? Your progress will be lost.';
+
+  @override
+  String get exitCharacterCreator => 'Exit Character Creator';
 
   @override
   String get session => 'Session';
@@ -1251,4 +1452,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addTalent => 'Add Talent';
+
+  @override
+  String get setHitPoints => 'Set Hit Points';
+
+  @override
+  String get hitPoints => 'Hit Points';
+
+  @override
+  String get hpMethod => 'HP Method';
+
+  @override
+  String get rollHp => 'Roll';
+
+  @override
+  String get medianHp => 'Median';
+
+  @override
+  String get customHp => 'Custom';
+
+  @override
+  String get hitDie => 'Hit Die';
+
+  @override
+  String get constitutionModifier => 'Constitution Modifier';
+
+  @override
+  String get reroll => 'Reroll';
+
+  @override
+  String levelHp(Object level, Object hp) {
+    return 'Level $level: $hp HP';
+  }
+
+  @override
+  String get maxLevel => '(Max)';
+
+  @override
+  String get totalHp => 'Total HP';
+
+  @override
+  String totalHpValue(Object hp) {
+    return 'Total HP: $hp';
+  }
+
+  @override
+  String get pleaseSetValidHp => 'Please set valid HP';
+
+  @override
+  String hpDisplay(Object hp) {
+    return 'HP: $hp';
+  }
 }

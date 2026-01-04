@@ -64,7 +64,9 @@ class ProfileManager {
       return;
     }
 
-    final db = await openDatabase(dbPath);
+    // Use currentDb if it's already open, otherwise open a temporary connection
+    final bool useCurrentDb = currentDb != null && currentDb!.isOpen;
+    final db = useCurrentDb ? currentDb! : await openDatabase(dbPath);
 
     try {
       final List<Map<String, dynamic>> results = await db.query('info');
@@ -84,7 +86,10 @@ class ProfileManager {
         print("Error querying the database: $e");
       }
     } finally {
-      await db.close();
+      // Only close the database if we opened a temporary connection
+      if (!useCurrentDb) {
+        await db.close();
+      }
     }
   }
 
@@ -541,6 +546,651 @@ class ProfileManager {
 
     // Initialize default item types if they don't exist
     await initializeDefaultItemTypes();
+  }
+
+  Future<void> characterCreator(
+    String name,
+    RaceData race,
+    ClassData classData,
+    BackgroundData background,
+    FeatData? feat,
+    Map<String, int> abilityScores,
+    int level,
+    int hp,
+    Map<String, bool>? skillProficiencies,
+    Map<String, bool>? skillExpertise,
+    List<String>? savingThrowProficiencies,
+    List<SpellData>? selectedSpells,
+    List<ItemData>? selectedItems,
+  ) async {
+    final profileDbPath = await _getPath();
+
+    await createProfile(name);
+
+    final newest = profiles.isNotEmpty
+        ? profiles.reduce((a, b) => a.id > b.id ? a : b)
+        : null;
+
+    if (newest != null && newest.name == name) {
+      selectedProfile = newest.name;
+      selectedID = newest.id;
+    }
+
+    // Step 3: Open database and update basic info
+    currentDb = await openDatabase(profileDbPath);
+
+    updateProfileInfo(field: Defines.infoName, value: name);
+    updateProfileInfo(field: Defines.infoRace, value: race.name);
+    updateProfileInfo(field: Defines.infoClass, value: classData.name);
+    updateProfileInfo(field: Defines.infoBackground, value: background.name);
+    updateProfileInfo(field: Defines.infoSize, value: race.size);
+    updateStats(field: Defines.statLevel, value: level);
+    updateStats(field: Defines.statMaxHP, value: hp);
+    updateStats(field: Defines.statCurrentHP, value: hp);
+
+    // Set hit dice
+    updateStats(field: Defines.statMaxHitDice, value: level);
+    updateStats(field: Defines.statCurrentHitDice, value: level);
+    updateStats(field: Defines.statHitDiceFactor, value: 'd${classData.hd}');
+
+    // Set speed from race
+    updateStats(field: Defines.statMovement, value: race.speed.toString());
+
+    // Collect languages from race and background
+    List<String> languages = [];
+    if (race.proficiency.isNotEmpty) {
+      final raceProficiencies = race.proficiency.split(',').map((s) => s.trim()).toList();
+      // Filter for languages (Common, Elvish, etc.) - assume anything not a skill is a language
+      languages.addAll(raceProficiencies.where((p) => !p.contains('Handling') && !p.contains('Acrobatics') && !p.contains('Animal') && !p.contains('Arcana') && !p.contains('Athletics') && !p.contains('Deception') && !p.contains('History') && !p.contains('Insight') && !p.contains('Intimidation') && !p.contains('Investigation') && !p.contains('Medicine') && !p.contains('Nature') && !p.contains('Perception') && !p.contains('Performance') && !p.contains('Persuasion') && !p.contains('Religion') && !p.contains('Sleight') && !p.contains('Stealth') && !p.contains('Survival')));
+    }
+    if (background.proficiency.isNotEmpty) {
+      final bgProficiencies = background.proficiency.split(',').map((s) => s.trim()).toList();
+      languages.addAll(bgProficiencies.where((p) => !p.contains('Handling') && !p.contains('Acrobatics') && !p.contains('Animal') && !p.contains('Arcana') && !p.contains('Athletics') && !p.contains('Deception') && !p.contains('History') && !p.contains('Insight') && !p.contains('Intimidation') && !p.contains('Investigation') && !p.contains('Medicine') && !p.contains('Nature') && !p.contains('Perception') && !p.contains('Performance') && !p.contains('Persuasion') && !p.contains('Religion') && !p.contains('Sleight') && !p.contains('Stealth') && !p.contains('Survival')));
+    }
+
+    // Build notes with class proficiencies and languages
+    final List<String> noteParts = [];
+    if (classData.proficiency.isNotEmpty) {
+      noteParts.add('Class Proficiencies:\n${classData.proficiency}');
+    }
+    if (languages.isNotEmpty) {
+      noteParts.add('\nLanguages:\n${languages.join(', ')}');
+    }
+    if (noteParts.isNotEmpty) {
+      updateProfileInfo(field: Defines.infoNotes, value: noteParts.join('\n'));
+    }
+
+    // Apply ability scores
+    Map<String, int> finalAbilityScores = Map.from(abilityScores);
+
+    // Apply feat ability score modifiers
+    if (feat != null && feat.modifier != null && feat.modifier!.isNotEmpty) {
+      final modifiers = _parseFeatModifier(feat.modifier!);
+      for (final entry in modifiers.entries) {
+        final currentValue = finalAbilityScores[entry.key] ?? 10;
+        finalAbilityScores[entry.key] = (currentValue + entry.value).toInt();
+      }
+    }
+
+    for (final entry in finalAbilityScores.entries) {
+      final abilityKey = entry.key;
+      final value = entry.value;
+      String statField;
+
+      switch (abilityKey) {
+        case 'STR':
+          statField = Defines.statSTR;
+          break;
+        case 'DEX':
+          statField = Defines.statDEX;
+          break;
+        case 'CON':
+          statField = Defines.statCON;
+          break;
+        case 'INT':
+          statField = Defines.statINT;
+          break;
+        case 'WIS':
+          statField = Defines.statWIS;
+          break;
+        case 'CHA':
+          statField = Defines.statCHA;
+          break;
+        default:
+          continue;
+      }
+
+      updateStats(field: statField, value: value);
+    }
+
+    // Calculate and set AC and Initiative
+    final dexScore = finalAbilityScores['DEX'] ?? 10;
+    final conScore = finalAbilityScores['CON'] ?? 10;
+    final dexModifier = ((dexScore - 10) / 2).floor();
+    final conModifier = ((conScore - 10) / 2).floor();
+
+    int armorClass;
+    if (classData.name == 'Barbarian') {
+      // Barbarian unarmored defense: 10 + DEX + CON
+      armorClass = 10 + dexModifier + conModifier;
+    } else {
+      // Standard AC: 10 + DEX
+      armorClass = 10 + dexModifier;
+    }
+    updateStats(field: Defines.statArmor, value: armorClass);
+
+    // Set initiative to DEX modifier
+    updateStats(field: Defines.statInitiative, value: dexModifier);
+
+    // Apply skill proficiencies and expertise
+    if (skillProficiencies != null) {
+      for (final entry in skillProficiencies.entries) {
+        final skillDefine = entry.key;
+        final isProficient = entry.value;
+
+        if (isProficient) {
+          final hasExpertise = skillExpertise?[skillDefine] ?? false;
+          updateSkills(
+            skill: _mapSkillDefineToConstant(skillDefine),
+            proficiency: 1,
+            expertise: hasExpertise ? 1 : 0,
+          );
+        }
+      }
+    }
+
+    // Apply saving throw proficiencies
+    if (savingThrowProficiencies != null) {
+      for (final savingThrow in savingThrowProficiencies) {
+        String saveField;
+
+        switch (savingThrow) {
+          case 'Strength':
+            saveField = Defines.saveStr;
+            break;
+          case 'Dexterity':
+            saveField = Defines.saveDex;
+            break;
+          case 'Constitution':
+            saveField = Defines.saveCon;
+            break;
+          case 'Intelligence':
+            saveField = Defines.saveInt;
+            break;
+          case 'Wisdom':
+            saveField = Defines.saveWis;
+            break;
+          case 'Charisma':
+            saveField = Defines.saveCha;
+            break;
+          default:
+            continue;
+        }
+
+        updateSavingThrows(field: saveField, value: 1);
+      }
+    }
+
+    // Apply background skill proficiencies
+    final backgroundProficiencies = background.proficiency;
+    if (backgroundProficiencies.isNotEmpty) {
+      final skills = backgroundProficiencies
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+
+      for (final skillName in skills) {
+        // Map skill name to define constant
+        String? skillDefine;
+
+        switch (skillName) {
+          case 'Acrobatics':
+            skillDefine = Defines.skillAcrobatics;
+            break;
+          case 'Animal Handling':
+            skillDefine = Defines.skillAnimalHandling;
+            break;
+          case 'Arcana':
+            skillDefine = Defines.skillArcana;
+            break;
+          case 'Athletics':
+            skillDefine = Defines.skillAthletics;
+            break;
+          case 'Deception':
+            skillDefine = Defines.skillDeception;
+            break;
+          case 'History':
+            skillDefine = Defines.skillHistory;
+            break;
+          case 'Insight':
+            skillDefine = Defines.skillInsight;
+            break;
+          case 'Intimidation':
+            skillDefine = Defines.skillIntimidation;
+            break;
+          case 'Investigation':
+            skillDefine = Defines.skillInvestigation;
+            break;
+          case 'Medicine':
+            skillDefine = Defines.skillMedicine;
+            break;
+          case 'Nature':
+            skillDefine = Defines.skillNature;
+            break;
+          case 'Perception':
+            skillDefine = Defines.skillPerception;
+            break;
+          case 'Performance':
+            skillDefine = Defines.skillPerformance;
+            break;
+          case 'Persuasion':
+            skillDefine = Defines.skillPersuasion;
+            break;
+          case 'Religion':
+            skillDefine = Defines.skillReligion;
+            break;
+          case 'Sleight of Hand':
+            skillDefine = Defines.skillSleightOfHand;
+            break;
+          case 'Stealth':
+            skillDefine = Defines.skillStealth;
+            break;
+          case 'Survival':
+            skillDefine = Defines.skillSurvival;
+            break;
+        }
+
+        if (skillDefine != null) {
+          updateSkills(
+            skill: skillDefine,
+            proficiency: 1,
+            expertise: 0,
+          );
+        }
+      }
+    }
+
+    // Apply race skill proficiencies
+    final raceProficiencies = race.proficiency;
+    if (raceProficiencies.isNotEmpty) {
+      final skills = raceProficiencies
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+
+      for (final skillName in skills) {
+        // Map skill name to define constant
+        String? skillDefine;
+
+        switch (skillName) {
+          case 'Acrobatics':
+            skillDefine = Defines.skillAcrobatics;
+            break;
+          case 'Animal Handling':
+            skillDefine = Defines.skillAnimalHandling;
+            break;
+          case 'Arcana':
+            skillDefine = Defines.skillArcana;
+            break;
+          case 'Athletics':
+            skillDefine = Defines.skillAthletics;
+            break;
+          case 'Deception':
+            skillDefine = Defines.skillDeception;
+            break;
+          case 'History':
+            skillDefine = Defines.skillHistory;
+            break;
+          case 'Insight':
+            skillDefine = Defines.skillInsight;
+            break;
+          case 'Intimidation':
+            skillDefine = Defines.skillIntimidation;
+            break;
+          case 'Investigation':
+            skillDefine = Defines.skillInvestigation;
+            break;
+          case 'Medicine':
+            skillDefine = Defines.skillMedicine;
+            break;
+          case 'Nature':
+            skillDefine = Defines.skillNature;
+            break;
+          case 'Perception':
+            skillDefine = Defines.skillPerception;
+            break;
+          case 'Performance':
+            skillDefine = Defines.skillPerformance;
+            break;
+          case 'Persuasion':
+            skillDefine = Defines.skillPersuasion;
+            break;
+          case 'Religion':
+            skillDefine = Defines.skillReligion;
+            break;
+          case 'Sleight of Hand':
+            skillDefine = Defines.skillSleightOfHand;
+            break;
+          case 'Stealth':
+            skillDefine = Defines.skillStealth;
+            break;
+          case 'Survival':
+            skillDefine = Defines.skillSurvival;
+            break;
+        }
+
+        if (skillDefine != null) {
+          updateSkills(
+            skill: skillDefine,
+            proficiency: 1,
+            expertise: 0,
+          );
+        }
+      }
+    }
+
+    // Set spellcasting info if class has spellcasting
+    print('DEBUG: Class: ${classData.name}, spellAbility: "${classData.spellAbility}"');
+    if (classData.spellAbility.isNotEmpty) {
+      print('DEBUG: Setting spell info for ${classData.name}');
+      await updateProfileInfo(
+        field: Defines.infoSpellcastingAbility,
+        value: classData.spellAbility,
+      );
+      await updateProfileInfo(
+        field: Defines.infoSpellcastingClass,
+        value: classData.name,
+      );
+
+      // Calculate spell attack and spell save DC
+      final proficiencyBonus = _calculateProficiencyBonus(level);
+      final spellAbilityModifier = _getAbilityModifier(
+        classData.spellAbility,
+        finalAbilityScores,
+      );
+
+      final spellAttack = proficiencyBonus + spellAbilityModifier;
+      final spellSaveDC = 8 + proficiencyBonus + spellAbilityModifier;
+
+      await updateStats(field: Defines.statSpellAttackBonus, value: spellAttack);
+      await updateStats(field: Defines.statSpellSaveDC, value: spellSaveDC);
+
+      // Set spell slots based on character level
+      final autolevel = classData.autolevels.firstWhere(
+        (al) => int.parse(al.level) == level && al.slots != null,
+        orElse: () => classData.autolevels.firstWhere(
+          (al) => al.slots != null,
+          orElse: () => classData.autolevels.first,
+        ),
+      );
+
+      if (autolevel.slots != null && autolevel.slots!.slots.isNotEmpty) {
+        final slots = autolevel.slots!.slots;
+        final slotFields = [
+          Defines.slotZero,
+          Defines.slotOne,
+          Defines.slotTwo,
+          Defines.slotThree,
+          Defines.slotFour,
+          Defines.slotFive,
+          Defines.slotSix,
+          Defines.slotSeven,
+          Defines.slotEight,
+          Defines.slotNine,
+        ];
+
+        for (int i = 0; i < slots.length && i < slotFields.length; i++) {
+          await updateSpellSlots(
+            spellslot: slotFields[i],
+            total: slots[i],
+            spent: slots[i],
+          );
+        }
+      }
+    }
+
+    // Add selected feat
+    if (feat != null) {
+      addFeat(
+        featName: feat.name,
+        description: feat.text,
+        type: "Talent",
+      );
+    }
+
+    for (final trait in race.traits) {
+      addFeat(
+        featName: trait.name,
+        description: trait.description,
+        type: "Rasse",
+      );
+    }
+
+    // Apply features and spell slots for all levels up to selected level
+    for (int currentLevel = 1; currentLevel <= level; currentLevel++) {
+      final levelData = classData.autolevels.where(
+        (entry) => int.tryParse(entry.level) == currentLevel,
+      );
+
+      for (final autolevel in levelData) {
+        // Add features for this level
+        if (autolevel.features != null) {
+          for (final feature in autolevel.features!) {
+            addFeat(
+              featName: feature.name,
+              description: feature.description,
+              type: "Klasse",
+            );
+          }
+        }
+
+        // Update spell slots (only the last level's slots are kept)
+        if (currentLevel == level && autolevel.slots != null) {
+          final slots = autolevel.slots!.slots;
+          for (int i = 0; i < slots.length; i++) {
+            if (slots[i] > 0) {
+              updateSpellSlots(spellslot: i.toString(), total: slots[i]);
+            }
+          }
+        }
+      }
+    }
+
+    parseRaceProficiencies(race.proficiency);
+
+    // Add selected spells to character
+    if (selectedSpells != null && selectedSpells.isNotEmpty) {
+      for (final spell in selectedSpells) {
+        await addSpell(
+          spellName: spell.name,
+          status: Defines.spellKnown,
+          level: int.tryParse(spell.level) ?? 0,
+          description: spell.text,
+          reach: spell.range,
+          duration: spell.duration,
+        );
+      }
+    }
+
+    // Add selected items to character
+    if (selectedItems != null && selectedItems.isNotEmpty) {
+      for (final item in selectedItems) {
+        // Add the item to the character's inventory
+        await addItem(
+          itemname: item.name,
+          type: item.type,
+          description: item.text,
+          amount: 1,
+        );
+      }
+    }
+  }
+
+  String _mapSkillDefineToConstant(String skillDefine) {
+    switch (skillDefine) {
+      case 'acrobatics':
+        return Defines.skillAcrobatics;
+      case 'animal_handling':
+        return Defines.skillAnimalHandling;
+      case 'arcana':
+        return Defines.skillArcana;
+      case 'athletics':
+        return Defines.skillAthletics;
+      case 'deception':
+        return Defines.skillDeception;
+      case 'history':
+        return Defines.skillHistory;
+      case 'insight':
+        return Defines.skillInsight;
+      case 'intimidation':
+        return Defines.skillIntimidation;
+      case 'investigation':
+        return Defines.skillInvestigation;
+      case 'medicine':
+        return Defines.skillMedicine;
+      case 'nature':
+        return Defines.skillNature;
+      case 'perception':
+        return Defines.skillPerception;
+      case 'performance':
+        return Defines.skillPerformance;
+      case 'persuasion':
+        return Defines.skillPersuasion;
+      case 'religion':
+        return Defines.skillReligion;
+      case 'sleight_of_hand':
+        return Defines.skillSleightOfHand;
+      case 'stealth':
+        return Defines.skillStealth;
+      case 'survival':
+        return Defines.skillSurvival;
+      default:
+        return skillDefine;
+    }
+  }
+
+  int _calculateProficiencyBonus(int level) {
+    if (level >= 17) return 6;
+    if (level >= 13) return 5;
+    if (level >= 9) return 4;
+    if (level >= 5) return 3;
+    return 2;
+  }
+
+  int _getAbilityModifier(String abilityName, Map<String, int> abilityScores) {
+    String abilityKey;
+    switch (abilityName.toLowerCase()) {
+      case 'strength':
+        abilityKey = 'STR';
+        break;
+      case 'dexterity':
+        abilityKey = 'DEX';
+        break;
+      case 'constitution':
+        abilityKey = 'CON';
+        break;
+      case 'intelligence':
+        abilityKey = 'INT';
+        break;
+      case 'wisdom':
+        abilityKey = 'WIS';
+        break;
+      case 'charisma':
+        abilityKey = 'CHA';
+        break;
+      default:
+        return 0;
+    }
+
+    final abilityScore = abilityScores[abilityKey] ?? 10;
+    return ((abilityScore - 10) / 2).floor();
+  }
+
+  Map<String, int> _parseFeatModifier(String modifierString) {
+    // Parse modifier string like "Dexterity +1" or "Constitution +1"
+    final Map<String, int> modifiers = {};
+
+    // Handle case-insensitive matching
+    final lowerModifier = modifierString.toLowerCase();
+
+    if (lowerModifier.contains('strength')) {
+      final match = RegExp(r'([+-]?\d+)').firstMatch(modifierString);
+      if (match != null) {
+        modifiers['STR'] = int.parse(match.group(1)!);
+      }
+    }
+    if (lowerModifier.contains('dexterity')) {
+      final match = RegExp(r'([+-]?\d+)').firstMatch(modifierString);
+      if (match != null) {
+        modifiers['DEX'] = int.parse(match.group(1)!);
+      }
+    }
+    if (lowerModifier.contains('constitution')) {
+      final match = RegExp(r'([+-]?\d+)').firstMatch(modifierString);
+      if (match != null) {
+        modifiers['CON'] = int.parse(match.group(1)!);
+      }
+    }
+    if (lowerModifier.contains('intelligence')) {
+      final match = RegExp(r'([+-]?\d+)').firstMatch(modifierString);
+      if (match != null) {
+        modifiers['INT'] = int.parse(match.group(1)!);
+      }
+    }
+    if (lowerModifier.contains('wisdom')) {
+      final match = RegExp(r'([+-]?\d+)').firstMatch(modifierString);
+      if (match != null) {
+        modifiers['WIS'] = int.parse(match.group(1)!);
+      }
+    }
+    if (lowerModifier.contains('charisma')) {
+      final match = RegExp(r'([+-]?\d+)').firstMatch(modifierString);
+      if (match != null) {
+        modifiers['CHA'] = int.parse(match.group(1)!);
+      }
+    }
+
+    return modifiers;
+  }
+
+  Map<String, int> parseRaceProficiencies(String? proficiencyString) {
+    const skillNameMap = {
+      "Acrobatics": Defines.skillAcrobatics,
+      "Animal Handling": Defines.skillAnimalHandling,
+      "Arcana": Defines.skillArcana,
+      "Athletics": Defines.skillAthletics,
+      "Deception": Defines.skillDeception,
+      "History": Defines.skillHistory,
+      "Insight": Defines.skillInsight,
+      "Intimidation": Defines.skillIntimidation,
+      "Investigation": Defines.skillInvestigation,
+      "Medicine": Defines.skillMedicine,
+      "Nature": Defines.skillNature,
+      "Perception": Defines.skillPerception,
+      "Performance": Defines.skillPerformance,
+      "Persuasion": Defines.skillPersuasion,
+      "Religion": Defines.skillReligion,
+      "Sleight of Hand": Defines.skillSleightOfHand,
+      "Stealth": Defines.skillStealth,
+      "Survival": Defines.skillSurvival,
+    };
+
+    final parsed = (proficiencyString?.isNotEmpty ?? false)
+        ? proficiencyString!
+            .split(',')
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty)
+            .toSet()
+        : <String>{};
+
+    final result = <String, int>{};
+    for (final entry in skillNameMap.entries) {
+      result[entry.value] = parsed.contains(entry.key) ? 1 : 0;
+    }
+
+    return result;
   }
 
   Future<void> deleteProfile(Character profile) async {

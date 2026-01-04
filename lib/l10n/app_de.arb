@@ -8,6 +8,7 @@
     "equipments": "Gegenstände/Ausrüstung",
     "additem": "Gegenstand hinzufügen",
     "edititem": "Gegenstand bearbeiten",
+    "importitem": "Aus Wiki importieren",
     "item": "Gegenstand",
     "equipment": "Ausrüstung",
     "other": "Sonstiges",
@@ -32,6 +33,28 @@
         }
     },
     "type": "Typ",
+    "itemdetails": "Gegenstandsdetails",
+    "allitems": "Alle Gegenstände",
+    "items": "Gegenstände",
+    "sortbytype": "Nach Typ sortieren",
+    "edit": "Bearbeiten",
+    "itemTypeCurrency": "Währung",
+    "itemTypeAmmunition": "Munition",
+    "itemTypeLightArmor": "Leichte Rüstung",
+    "itemTypeMediumArmor": "Mittlere Rüstung",
+    "itemTypeHeavyArmor": "Schwere Rüstung",
+    "itemTypeMeleeWeapon": "Nahkampfwaffe",
+    "itemTypePotion": "Trank",
+    "itemTypeRangedWeapon": "Fernkampfwaffe",
+    "itemTypeRod": "Stab",
+    "itemTypeRing": "Ring",
+    "itemTypeScroll": "Schriftrolle",
+    "itemTypeShield": "Schild",
+    "itemTypeWondrousItem": "Wundersamer Gegenstand",
+    "itemTypeAdventuringGear": "Abenteuerausrüstung",
+    "itemTypeTools": "Werkzeuge",
+    "itemTypeArtisanFocus": "Handwerkerfokus",
+    "itemTypeTradeGoods": "Handelswaren",
     "manageItemTypes": "Gegenstands-Typen verwalten",
     "newTypeName": "Neuer Typname",
     "defaultType": "Standard",
@@ -363,6 +386,70 @@
     "skillSleightOfHandDescription": "Führe schnelle, präzise oder verdeckte manuelle Tricks aus, wie Taschendiebstahl oder Zauberkunststücke.",
     "skillStealthDescription": "Bewege dich lautlos und bleibe ungesehen, um einer Entdeckung zu entgehen.",
     "skillSurvivalDescription": "Spüre Kreaturen auf, jage nach Nahrung, finde Unterschlupf und navigiere in rauer Natur.",
+    "chooseCreationMethod": "Wähle, wie du deinen Charakter erstellen möchtest:",
+    "blankCharacter": "Leerer Charakterbogen",
+    "characterCreator": "Charaktererstellung",
+    "confirmTooltip": "Bestätigen",
+    "selectMethodHint": "Methode auswählen",
+    "standardArray": "Standardwerte",
+    "pointBuy": "Punktekauf",
+    "roll4d6": "4d6 würfeln, niedrigsten verwerfen",
+    "custom": "Benutzerdefiniert",
+    "assignRacialBonuses": "Volksbonus zuweisen:",
+    "assignBonusHint": "Bonus zuweisen",
+    "selectValue": "Wert auswählen",
+    "selectRoll": "Wurf auswählen",
+    "roll": "Wurf",
+    "pointsUsed": "Punkte verwendet: {used} / {pool}",
+    "pleaseAssignAll": "Bitte weisen Sie alle sechs Fähigkeitswerte zu.",
+    "rolledValuesLabel": "Gewürfelte Werte: {values}",
+    "assignRolledValues": "Gewürfelte Werte den Fähigkeiten zuweisen:",
+    "rollAllTooltip": "Alle würfeln",
+    "chooserace": "Volk auswählen",
+    "choosebackground": "Hintergrund auswählen",
+    "completeallsteps": "Bitte schließe alle Schritte ab, bevor du den Charakter erstellst.",
+    "choosefeat": "Wähle eine Fertigkeit",
+    "chooseskills": "Wähle Fertigkeiten",
+    "setabilityscores": "Attributswerte festlegen",
+    "selectSkillProficiencies": "Wähle Fertigkeitsübungen",
+    "selectSkillExpertise": "Wähle Fertigkeitsexpertisen",
+    "availableSkillChoices": "Verfügbare Fertigkeitsauswahlen: {count}",
+    "@availableSkillChoices": {
+        "description": "Available skill choices remaining",
+        "placeholders": {
+            "count": {}
+        }
+    },
+    "selectUpToSkills": "Wähle bis zu {count} Fertigkeiten",
+    "@selectUpToSkills": {
+        "description": "Select up to X skills",
+        "placeholders": {
+            "count": {}
+        }
+    },    "fromBackground": "Vom Hintergrund",
+    "fromRace": "Vom Volk",
+    "choosespells": "Zauber wählen",
+    "maximumspelllevel": "Maximales Zauberstufe",
+    "nospellsavailable": "Keine Zauber für diese Klasse und Stufe verfügbar.",
+    "done": "Fertig",
+    "usedpoints": "Verwendete Punkte: {used} / {pool}",
+    "@usedpoints": {
+        "description": "Used points",
+        "placeholders": {
+            "used": {},
+            "pool": {}
+        }
+    },
+    "rolledstats": "Gewürfelte Werte: {values}",
+    "@rolledstats": {
+        "description": "Rolled values",
+        "placeholders": {
+            "values": {}
+        }
+    },
+    "notrolledyet" : "Noch nicht gewürfelt",
+    "exitConfirmationMessage": "Bist du sicher, dass du abbrechen möchtest? Dein Fortschritt geht verloren.",
+    "exitCharacterCreator": "Charaktererstellung beenden",
     "session": "Sitzung",
     "hostSession": "Sitzung hosten",
     "joinedSession": "Beigetretene Sitzung",
@@ -469,5 +556,39 @@
     "addBackground": "Hintergrund hinzufügen",
     "addClass": "Klasse hinzufügen",
     "addSpellWiki": "Zauber hinzufügen",
-    "addTalent": "Talent hinzufügen"
+    "addTalent": "Talent hinzufügen",
+    "setHitPoints": "Trefferpunkte festlegen",
+    "hitPoints": "Trefferpunkte",
+    "hpMethod": "TP-Methode",
+    "rollHp": "Würfeln",
+    "medianHp": "Median",
+    "customHp": "Benutzerdefiniert",
+    "hitDie": "Trefferwürfel",
+    "constitutionModifier": "Konstitutionsmodifikator",
+    "reroll": "Neu würfeln",
+    "levelHp": "Stufe {level}: {hp} TP",
+    "@levelHp": {
+        "description": "TP für eine bestimmte Stufe",
+        "placeholders": {
+            "level": {},
+            "hp": {}
+        }
+    },
+    "maxLevel": "(Max)",
+    "totalHp": "Gesamt-TP",
+    "totalHpValue": "Gesamt-TP: {hp}",
+    "@totalHpValue": {
+        "description": "Gesamt-TP Anzeige",
+        "placeholders": {
+            "hp": {}
+        }
+    },
+    "pleaseSetValidHp": "Bitte gültige TP festlegen",
+    "hpDisplay": "TP: {hp}",
+    "@hpDisplay": {
+        "description": "TP Anzeige im Charakterersteller",
+        "placeholders": {
+            "hp": {}
+        }
+    }
 }
