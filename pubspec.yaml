@@ -35,7 +35,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  file_picker: ^8.1.2
+  file_picker: ^10.3.8
   sqflite: ^2.3.3+2
   path: ^1.9.0
   sqflite_common_ffi: ^2.3.3+1
@@ -49,8 +49,8 @@ dependencies:
       url: https://github.com/google/flutter-desktop-embedding
       path: plugins/window_size
   image_picker: ^1.1.2
-  syncfusion_flutter_pdf: ^28.1.33
-  share_plus: ^10.1.3
+  syncfusion_flutter_pdf: ^32.1.21
+  share_plus: ^12.0.1
   http: ^1.3.0
   permission_handler: ^12.0.0+1
   app_installer: ^1.3.1
@@ -68,7 +68,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
   msix: ^3.16.8
 
 msix_config:
