@@ -5,10 +5,10 @@ services:
     build: .
     container_name: dnd-session-server
     ports:
-      - "9000:9000"
+      - "31333:31333"
     environment:
       - PYTHONUNBUFFERED=1
-      - SERVER_PORT=9000
+      - SERVER_PORT=31333
     restart: unless-stopped
     networks:
       - dnd-network

@@ -80,7 +80,7 @@ class _RemoteClientViewState extends State<RemoteClientView> {
     final loc = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundColor,
+      backgroundColor: AppColors.primaryColor,
       appBar: AppBar(
         backgroundColor: AppColors.appBarColor,
         title: Column(

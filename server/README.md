@@ -45,7 +45,7 @@ docker build -t dnd-server .
 
 Run the container:
 ```bash
-docker run -d -p 9000:9000 --name dnd-server dnd-server
+docker run -d -p 31333:31333 --name dnd-server dnd-server
 ```
 
 ### Running Without Docker
@@ -60,7 +60,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-Server will start on `http://0.0.0.0:9000`
+Server will start on `http://0.0.0.0:31333`
 
 ## API Endpoints
 
@@ -163,14 +163,14 @@ Server will start on `http://0.0.0.0:9000`
 
 ## Configuration
 
-The server runs on port 9000 by default. To change this:
+The server runs on port 31333 by default. To change this:
 
 **Docker Compose**: Edit `docker-compose.yml`
 ```yaml
 ports:
-  - "YOUR_PORT:9000"
+  - "YOUR_PORT:31333"
 environment:
-  - SERVER_PORT=9000
+  - SERVER_PORT=31333
 ```
 
 **Direct Python**: Set environment variable
@@ -182,7 +182,7 @@ SERVER_PORT=8080 python main.py
 
 To make your server accessible from the internet:
 
-1. Configure your router to forward **TCP port 9000** to your server's local IP
+1. Configure your router to forward **TCP port 31333** to your server's local IP
 2. Use a dynamic DNS service (e.g., DuckDNS: bonodnd.duckdns.org)
 3. Consider using a reverse proxy (nginx) with SSL for production
 

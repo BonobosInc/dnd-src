@@ -393,7 +393,7 @@ class DnDServer:
 
         return ws
 
-    def run(self, host='0.0.0.0', port=9000):
+    def run(self, host='0.0.0.0', port=31333):
         """Start the server"""
         logger.info(f"Starting D&D Session Server on {host}:{port}")
         web.run_app(self.app, host=host, port=port)
@@ -402,5 +402,5 @@ class DnDServer:
 if __name__ == '__main__':
     import os
     server = DnDServer()
-    port = int(os.environ.get('SERVER_PORT', 9000))
+    port = int(os.environ.get('SERVER_PORT', 31333))
     server.run(port=port)

@@ -425,7 +425,7 @@ class _RemoteSessionViewState extends State<RemoteSessionView> {
                     controller: _serverUrlController,
                     style: TextStyle(color: AppColors.textColorLight),
                     decoration: InputDecoration(
-                      hintText: 'http://bonodnd.duckdns.org:9000',
+                      hintText: 'http://bonodnd.duckdns.org:31333',
                       hintStyle: TextStyle(color: AppColors.textColorDark),
                       filled: true,
                       fillColor: AppColors.cardColor,

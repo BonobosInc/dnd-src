@@ -14,11 +14,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY main.py .
 
 # Expose the port
-EXPOSE 9000
+EXPOSE 31333
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
-ENV SERVER_PORT=9000
+ENV SERVER_PORT=31333
 
 # Run the application
 CMD ["python", "main.py"]
