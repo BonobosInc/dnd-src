@@ -1510,4 +1510,55 @@ class AppLocalizationsDe extends AppLocalizations {
   String hpDisplay(Object hp) {
     return 'TP: $hp';
   }
+
+  @override
+  String get canvasNote => 'Leinwand-Notiz';
+
+  @override
+  String get enterTitle => 'Titel eingeben...';
+
+  @override
+  String get switchToWriting => 'Zum Schreiben wechseln';
+
+  @override
+  String get switchToDrawing => 'Zum Zeichnen wechseln';
+
+  @override
+  String get strokeWidth => 'Strichstärke';
+
+  @override
+  String get changeColor => 'Farbe ändern';
+
+  @override
+  String get changeStrokeWidth => 'Strichstärke ändern';
+
+  @override
+  String get clearCanvas => 'Leinwand löschen';
+
+  @override
+  String get undo => 'Rückgängig';
+
+  @override
+  String get eraser => 'Radiergummi';
+
+  @override
+  String get notesSaved => 'Notizen gespeichert!';
+
+  @override
+  String errorSaving(Object error) {
+    return 'Fehler beim Speichern: $error';
+  }
+
+  @override
+  String get canvasNotes => 'Notizen';
+
+  @override
+  String get noCanvasNotesYet => 'Noch keine Notizen';
+
+  @override
+  String get tapPlusToCreate => 'Tippen Sie auf +, um eine zu erstellen';
+
+  @override
+  String get deleteCanvasNoteConfirm =>
+      'Sind Sie sicher, dass Sie diese Notiz löschen möchten?';
 }

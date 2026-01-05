@@ -2947,6 +2947,102 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'TP: {hp}'**
   String hpDisplay(Object hp);
+
+  /// No description provided for @canvasNote.
+  ///
+  /// In de, this message translates to:
+  /// **'Leinwand-Notiz'**
+  String get canvasNote;
+
+  /// No description provided for @enterTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Titel eingeben...'**
+  String get enterTitle;
+
+  /// No description provided for @switchToWriting.
+  ///
+  /// In de, this message translates to:
+  /// **'Zum Schreiben wechseln'**
+  String get switchToWriting;
+
+  /// No description provided for @switchToDrawing.
+  ///
+  /// In de, this message translates to:
+  /// **'Zum Zeichnen wechseln'**
+  String get switchToDrawing;
+
+  /// No description provided for @strokeWidth.
+  ///
+  /// In de, this message translates to:
+  /// **'Strichstärke'**
+  String get strokeWidth;
+
+  /// No description provided for @changeColor.
+  ///
+  /// In de, this message translates to:
+  /// **'Farbe ändern'**
+  String get changeColor;
+
+  /// No description provided for @changeStrokeWidth.
+  ///
+  /// In de, this message translates to:
+  /// **'Strichstärke ändern'**
+  String get changeStrokeWidth;
+
+  /// No description provided for @clearCanvas.
+  ///
+  /// In de, this message translates to:
+  /// **'Leinwand löschen'**
+  String get clearCanvas;
+
+  /// No description provided for @undo.
+  ///
+  /// In de, this message translates to:
+  /// **'Rückgängig'**
+  String get undo;
+
+  /// No description provided for @eraser.
+  ///
+  /// In de, this message translates to:
+  /// **'Radiergummi'**
+  String get eraser;
+
+  /// No description provided for @notesSaved.
+  ///
+  /// In de, this message translates to:
+  /// **'Notizen gespeichert!'**
+  String get notesSaved;
+
+  /// Fehlermeldung wenn Speichern fehlschlägt
+  ///
+  /// In de, this message translates to:
+  /// **'Fehler beim Speichern: {error}'**
+  String errorSaving(Object error);
+
+  /// No description provided for @canvasNotes.
+  ///
+  /// In de, this message translates to:
+  /// **'Notizen'**
+  String get canvasNotes;
+
+  /// No description provided for @noCanvasNotesYet.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Notizen'**
+  String get noCanvasNotesYet;
+
+  /// No description provided for @tapPlusToCreate.
+  ///
+  /// In de, this message translates to:
+  /// **'Tippen Sie auf +, um eine zu erstellen'**
+  String get tapPlusToCreate;
+
+  /// No description provided for @deleteCanvasNoteConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'Sind Sie sicher, dass Sie diese Notiz löschen möchten?'**
+  String get deleteCanvasNoteConfirm;
 }
 
 class _AppLocalizationsDelegate

@@ -599,13 +599,53 @@ class ProfileManager {
     // Collect languages from race and background
     List<String> languages = [];
     if (race.proficiency.isNotEmpty) {
-      final raceProficiencies = race.proficiency.split(',').map((s) => s.trim()).toList();
+      final raceProficiencies =
+          race.proficiency.split(',').map((s) => s.trim()).toList();
       // Filter for languages (Common, Elvish, etc.) - assume anything not a skill is a language
-      languages.addAll(raceProficiencies.where((p) => !p.contains('Handling') && !p.contains('Acrobatics') && !p.contains('Animal') && !p.contains('Arcana') && !p.contains('Athletics') && !p.contains('Deception') && !p.contains('History') && !p.contains('Insight') && !p.contains('Intimidation') && !p.contains('Investigation') && !p.contains('Medicine') && !p.contains('Nature') && !p.contains('Perception') && !p.contains('Performance') && !p.contains('Persuasion') && !p.contains('Religion') && !p.contains('Sleight') && !p.contains('Stealth') && !p.contains('Survival')));
+      languages.addAll(raceProficiencies.where((p) =>
+          !p.contains('Handling') &&
+          !p.contains('Acrobatics') &&
+          !p.contains('Animal') &&
+          !p.contains('Arcana') &&
+          !p.contains('Athletics') &&
+          !p.contains('Deception') &&
+          !p.contains('History') &&
+          !p.contains('Insight') &&
+          !p.contains('Intimidation') &&
+          !p.contains('Investigation') &&
+          !p.contains('Medicine') &&
+          !p.contains('Nature') &&
+          !p.contains('Perception') &&
+          !p.contains('Performance') &&
+          !p.contains('Persuasion') &&
+          !p.contains('Religion') &&
+          !p.contains('Sleight') &&
+          !p.contains('Stealth') &&
+          !p.contains('Survival')));
     }
     if (background.proficiency.isNotEmpty) {
-      final bgProficiencies = background.proficiency.split(',').map((s) => s.trim()).toList();
-      languages.addAll(bgProficiencies.where((p) => !p.contains('Handling') && !p.contains('Acrobatics') && !p.contains('Animal') && !p.contains('Arcana') && !p.contains('Athletics') && !p.contains('Deception') && !p.contains('History') && !p.contains('Insight') && !p.contains('Intimidation') && !p.contains('Investigation') && !p.contains('Medicine') && !p.contains('Nature') && !p.contains('Perception') && !p.contains('Performance') && !p.contains('Persuasion') && !p.contains('Religion') && !p.contains('Sleight') && !p.contains('Stealth') && !p.contains('Survival')));
+      final bgProficiencies =
+          background.proficiency.split(',').map((s) => s.trim()).toList();
+      languages.addAll(bgProficiencies.where((p) =>
+          !p.contains('Handling') &&
+          !p.contains('Acrobatics') &&
+          !p.contains('Animal') &&
+          !p.contains('Arcana') &&
+          !p.contains('Athletics') &&
+          !p.contains('Deception') &&
+          !p.contains('History') &&
+          !p.contains('Insight') &&
+          !p.contains('Intimidation') &&
+          !p.contains('Investigation') &&
+          !p.contains('Medicine') &&
+          !p.contains('Nature') &&
+          !p.contains('Perception') &&
+          !p.contains('Performance') &&
+          !p.contains('Persuasion') &&
+          !p.contains('Religion') &&
+          !p.contains('Sleight') &&
+          !p.contains('Stealth') &&
+          !p.contains('Survival')));
     }
 
     // Build notes with class proficiencies and languages
@@ -892,7 +932,8 @@ class ProfileManager {
     }
 
     // Set spellcasting info if class has spellcasting
-    print('DEBUG: Class: ${classData.name}, spellAbility: "${classData.spellAbility}"');
+    print(
+        'DEBUG: Class: ${classData.name}, spellAbility: "${classData.spellAbility}"');
     if (classData.spellAbility.isNotEmpty) {
       print('DEBUG: Setting spell info for ${classData.name}');
       await updateProfileInfo(
@@ -914,7 +955,8 @@ class ProfileManager {
       final spellAttack = proficiencyBonus + spellAbilityModifier;
       final spellSaveDC = 8 + proficiencyBonus + spellAbilityModifier;
 
-      await updateStats(field: Defines.statSpellAttackBonus, value: spellAttack);
+      await updateStats(
+          field: Defines.statSpellAttackBonus, value: spellAttack);
       await updateStats(field: Defines.statSpellSaveDC, value: spellSaveDC);
 
       // Set spell slots based on character level
@@ -4815,5 +4857,82 @@ class ProfileManager {
         filledValues["Klassenmerkmale2"] = allFeatures2.toString().trim();
       }
     }
+  }
+
+  // Canvas Notes CRUD operations
+  Future<List<Map<String, dynamic>>> getCanvasNotes() async {
+    if (selectedID == null || currentDb == null) return [];
+
+    final List<Map<String, dynamic>> results = await currentDb!.query(
+      'canvas_notes',
+      where: 'charId = ?',
+      whereArgs: [selectedID],
+      orderBy: 'updated_at DESC',
+    );
+    return results;
+  }
+
+  Future<int> createCanvasNote({
+    required String title,
+    String? canvasData,
+    String? textNotes,
+  }) async {
+    if (selectedID == null || currentDb == null) return -1;
+
+    final now = DateTime.now().toIso8601String();
+    final int id = await currentDb!.insert('canvas_notes', {
+      'charId': selectedID,
+      'title': title,
+      'canvas_data': canvasData,
+      'text_notes': textNotes,
+      'created_at': now,
+      'updated_at': now,
+    });
+    return id;
+  }
+
+  Future<void> updateCanvasNote({
+    required int id,
+    String? title,
+    String? canvasData,
+    String? textNotes,
+  }) async {
+    if (selectedID == null || currentDb == null) return;
+
+    final Map<String, dynamic> updates = {
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+
+    if (title != null) updates['title'] = title;
+    if (canvasData != null) updates['canvas_data'] = canvasData;
+    if (textNotes != null) updates['text_notes'] = textNotes;
+
+    await currentDb!.update(
+      'canvas_notes',
+      updates,
+      where: 'ID = ? AND charId = ?',
+      whereArgs: [id, selectedID],
+    );
+  }
+
+  Future<void> deleteCanvasNote(int id) async {
+    if (selectedID == null || currentDb == null) return;
+
+    await currentDb!.delete(
+      'canvas_notes',
+      where: 'ID = ? AND charId = ?',
+      whereArgs: [id, selectedID],
+    );
+  }
+
+  Future<Map<String, dynamic>?> getCanvasNoteById(int id) async {
+    if (selectedID == null || currentDb == null) return null;
+
+    final List<Map<String, dynamic>> results = await currentDb!.query(
+      'canvas_notes',
+      where: 'ID = ? AND charId = ?',
+      whereArgs: [id, selectedID],
+    );
+    return results.isNotEmpty ? results.first : null;
   }
 }

@@ -215,6 +215,15 @@ class DatabaseSchema {
       'legendary_action_name': 'TEXT',
       'legendary_action_description': 'TEXT',
     },
+    'canvas_notes': {
+      'ID': 'INTEGER PRIMARY KEY AUTOINCREMENT',
+      'charId': 'INTEGER',
+      'title': 'TEXT',
+      'canvas_data': 'TEXT',
+      'text_notes': 'TEXT',
+      'created_at': 'TEXT',
+      'updated_at': 'TEXT',
+    },
   };
 
   static String createTable(String tableName) {

@@ -57,6 +57,8 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   intl: any
+  signature: ^6.3.0
+  flutter_colorpicker: ^1.1.0
 
 dev_dependencies:
   flutter_test:

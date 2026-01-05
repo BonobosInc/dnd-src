@@ -1,6 +1,7 @@
 import 'package:dnd/classes/wiki_classes.dart';
 import 'package:dnd/classes/wiki_parser.dart';
 import 'package:dnd/views/wiki_view.dart';
+import 'package:dnd/views/canvas_notes_list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:dnd/classes/profile_manager.dart';
 import 'package:dnd/configs/defines.dart';
@@ -204,6 +205,20 @@ class NotesPageState extends State<NotesPage> {
           title: Text(loc.notes),
           backgroundColor: AppColors.appBarColor,
           actions: [
+            IconButton(
+              icon: Icon(Icons.draw, color: AppColors.accentCyan),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CanvasNotesListPage(
+                      profileManager: widget.profileManager,
+                    ),
+                  ),
+                );
+              },
+              tooltip: 'Canvas Notes',
+            ),
             PopupMenuButton<String>(
               icon: Icon(Icons.add, color: AppColors.accentCyan),
               onSelected: (String value) {

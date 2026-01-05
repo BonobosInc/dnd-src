@@ -590,5 +590,27 @@
         "placeholders": {
             "hp": {}
         }
-    }
+    },
+    "canvasNote": "Canvas Note",
+    "enterTitle": "Enter title...",
+    "switchToWriting": "Switch to Writing",
+    "switchToDrawing": "Switch to Drawing",
+    "strokeWidth": "Stroke Width",
+    "changeColor": "Change Color",
+    "changeStrokeWidth": "Change Stroke Width",
+    "clearCanvas": "Clear Canvas",
+    "undo": "Undo",
+    "eraser": "Eraser",
+    "notesSaved": "Notes saved!",
+    "errorSaving": "Error saving: {error}",
+    "@errorSaving": {
+        "description": "Error message when saving fails",
+        "placeholders": {
+            "error": {}
+        }
+    },
+    "canvasNotes": "Notes",
+    "noCanvasNotesYet": "No notes yet",
+    "tapPlusToCreate": "Tap + to create one",
+    "deleteCanvasNoteConfirm": "Are you sure you want to delete this note?"
 }

@@ -1503,4 +1503,55 @@ class AppLocalizationsEn extends AppLocalizations {
   String hpDisplay(Object hp) {
     return 'HP: $hp';
   }
+
+  @override
+  String get canvasNote => 'Canvas Note';
+
+  @override
+  String get enterTitle => 'Enter title...';
+
+  @override
+  String get switchToWriting => 'Switch to Writing';
+
+  @override
+  String get switchToDrawing => 'Switch to Drawing';
+
+  @override
+  String get strokeWidth => 'Stroke Width';
+
+  @override
+  String get changeColor => 'Change Color';
+
+  @override
+  String get changeStrokeWidth => 'Change Stroke Width';
+
+  @override
+  String get clearCanvas => 'Clear Canvas';
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String get eraser => 'Eraser';
+
+  @override
+  String get notesSaved => 'Notes saved!';
+
+  @override
+  String errorSaving(Object error) {
+    return 'Error saving: $error';
+  }
+
+  @override
+  String get canvasNotes => 'Notes';
+
+  @override
+  String get noCanvasNotesYet => 'No notes yet';
+
+  @override
+  String get tapPlusToCreate => 'Tap + to create one';
+
+  @override
+  String get deleteCanvasNoteConfirm =>
+      'Are you sure you want to delete this note?';
 }

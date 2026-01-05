@@ -590,5 +590,27 @@
         "placeholders": {
             "hp": {}
         }
-    }
+    },
+    "canvasNote": "Leinwand-Notiz",
+    "enterTitle": "Titel eingeben...",
+    "switchToWriting": "Zum Schreiben wechseln",
+    "switchToDrawing": "Zum Zeichnen wechseln",
+    "strokeWidth": "Strichstärke",
+    "changeColor": "Farbe ändern",
+    "changeStrokeWidth": "Strichstärke ändern",
+    "clearCanvas": "Leinwand löschen",
+    "undo": "Rückgängig",
+    "eraser": "Radiergummi",
+    "notesSaved": "Notizen gespeichert!",
+    "errorSaving": "Fehler beim Speichern: {error}",
+    "@errorSaving": {
+        "description": "Fehlermeldung wenn Speichern fehlschlägt",
+        "placeholders": {
+            "error": {}
+        }
+    },
+    "canvasNotes": "Notizen",
+    "noCanvasNotesYet": "Noch keine Notizen",
+    "tapPlusToCreate": "Tippen Sie auf +, um eine zu erstellen",
+    "deleteCanvasNoteConfirm": "Sind Sie sicher, dass Sie diese Notiz löschen möchten?"
 }
