@@ -1561,4 +1561,46 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get deleteCanvasNoteConfirm =>
       'Sind Sie sicher, dass Sie diese Notiz löschen möchten?';
+
+  @override
+  String get remoteSession => 'Remote-Sitzung';
+
+  @override
+  String get serverUrl => 'Server-URL';
+
+  @override
+  String get sessionCode => 'Sitzungscode';
+
+  @override
+  String get enterServerUrl => 'Bitte Server-URL eingeben';
+
+  @override
+  String get sessionCreated => 'Sitzung erstellt!';
+
+  @override
+  String get shareThisCode => 'Teile diesen Code mit deinen Spielern:';
+
+  @override
+  String get failedToCreateSession => 'Sitzung konnte nicht erstellt werden';
+
+  @override
+  String get enterSessionCode => 'Bitte Sitzungscode eingeben';
+
+  @override
+  String get invalidSessionCode => 'Ungültiges Sitzungscode-Format';
+
+  @override
+  String get failedToJoinSession => 'Beitritt zur Sitzung fehlgeschlagen';
+
+  @override
+  String get connecting => 'Verbinde...';
+
+  @override
+  String get sessionName => 'Sitzungsname';
+
+  @override
+  String get createSession => 'Sitzung erstellen';
+
+  @override
+  String get error => 'Fehler';
 }

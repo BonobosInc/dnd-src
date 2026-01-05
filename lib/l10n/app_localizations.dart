@@ -3043,6 +3043,90 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Sind Sie sicher, dass Sie diese Notiz löschen möchten?'**
   String get deleteCanvasNoteConfirm;
+
+  /// No description provided for @remoteSession.
+  ///
+  /// In de, this message translates to:
+  /// **'Remote-Sitzung'**
+  String get remoteSession;
+
+  /// No description provided for @serverUrl.
+  ///
+  /// In de, this message translates to:
+  /// **'Server-URL'**
+  String get serverUrl;
+
+  /// No description provided for @sessionCode.
+  ///
+  /// In de, this message translates to:
+  /// **'Sitzungscode'**
+  String get sessionCode;
+
+  /// No description provided for @enterServerUrl.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte Server-URL eingeben'**
+  String get enterServerUrl;
+
+  /// No description provided for @sessionCreated.
+  ///
+  /// In de, this message translates to:
+  /// **'Sitzung erstellt!'**
+  String get sessionCreated;
+
+  /// No description provided for @shareThisCode.
+  ///
+  /// In de, this message translates to:
+  /// **'Teile diesen Code mit deinen Spielern:'**
+  String get shareThisCode;
+
+  /// No description provided for @failedToCreateSession.
+  ///
+  /// In de, this message translates to:
+  /// **'Sitzung konnte nicht erstellt werden'**
+  String get failedToCreateSession;
+
+  /// No description provided for @enterSessionCode.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte Sitzungscode eingeben'**
+  String get enterSessionCode;
+
+  /// No description provided for @invalidSessionCode.
+  ///
+  /// In de, this message translates to:
+  /// **'Ungültiges Sitzungscode-Format'**
+  String get invalidSessionCode;
+
+  /// No description provided for @failedToJoinSession.
+  ///
+  /// In de, this message translates to:
+  /// **'Beitritt zur Sitzung fehlgeschlagen'**
+  String get failedToJoinSession;
+
+  /// No description provided for @connecting.
+  ///
+  /// In de, this message translates to:
+  /// **'Verbinde...'**
+  String get connecting;
+
+  /// No description provided for @sessionName.
+  ///
+  /// In de, this message translates to:
+  /// **'Sitzungsname'**
+  String get sessionName;
+
+  /// No description provided for @createSession.
+  ///
+  /// In de, this message translates to:
+  /// **'Sitzung erstellen'**
+  String get createSession;
+
+  /// No description provided for @error.
+  ///
+  /// In de, this message translates to:
+  /// **'Fehler'**
+  String get error;
 }
 
 class _AppLocalizationsDelegate

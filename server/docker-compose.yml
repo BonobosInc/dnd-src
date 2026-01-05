@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  dnd-server:
+    build: .
+    container_name: dnd-session-server
+    ports:
+      - "9000:9000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - SERVER_PORT=9000
+    restart: unless-stopped
+    networks:
+      - dnd-network
+
+networks:
+  dnd-network:
+    driver: bridge

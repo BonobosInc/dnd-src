@@ -3,6 +3,7 @@ import 'package:dnd/classes/profile_manager.dart';
 import 'package:dnd/classes/wiki_parser.dart';
 import 'package:dnd/views/session/client_view.dart';
 import 'package:dnd/views/session/host.dart';
+import 'package:dnd/views/session/remote_session_view.dart';
 import 'package:flutter/material.dart';
 import 'package:dnd/configs/colours.dart';
 import 'package:dnd/classes/server.dart';
@@ -355,6 +356,71 @@ class _LobbyPageState extends State<LobbyPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          Text(
+            'Session Type',
+            style: TextStyle(
+              color: AppColors.textColorLight,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 40),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.accentPurple,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 20),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+            ),
+            icon: const Icon(Icons.wifi, size: 28),
+            label: Text('Local Network', style: TextStyle(fontSize: 18)),
+            onPressed: () => setState(() => isHosting = true),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.accentCyan,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 20),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+            ),
+            icon: const Icon(Icons.cloud, size: 28),
+            label: Text('Remote Server', style: TextStyle(fontSize: 18)),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => RemoteSessionView(
+                    profileManager: widget.profileManager,
+                    profiles: widget.profiles,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 40),
+          Text(
+            'Local Network: Quick setup, LAN only\nRemote Server: Persistent sessions, internet play',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.textColorDark,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLocalModeSelection() {
+    final loc = AppLocalizations.of(context)!;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.sessionHost,
@@ -365,7 +431,7 @@ class _LobbyPageState extends State<LobbyPage> {
             ),
             icon: const Icon(Icons.shield, size: 28),
             label: Text(loc.hostGame, style: TextStyle(fontSize: 18)),
-            onPressed: () => setState(() => isHosting = true),
+            onPressed: () => setState(() => isPlayer = false),
           ),
           const SizedBox(height: 30),
           ElevatedButton.icon(
@@ -416,11 +482,13 @@ class _LobbyPageState extends State<LobbyPage> {
         padding: const EdgeInsets.all(20),
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 400),
-          child: isHosting
-              ? _buildHostView()
-              : isPlayer
-                  ? _buildPlayerView()
-                  : _buildModeSelection(),
+          child: !isHosting && !isPlayer
+              ? _buildModeSelection()
+              : isHosting && !serverRunning
+                  ? _buildLocalModeSelection()
+                  : isHosting
+                      ? _buildHostView()
+                      : _buildPlayerView(),
         ),
       ),
     );

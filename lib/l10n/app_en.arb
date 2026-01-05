@@ -612,5 +612,19 @@
     "canvasNotes": "Notes",
     "noCanvasNotesYet": "No notes yet",
     "tapPlusToCreate": "Tap + to create one",
-    "deleteCanvasNoteConfirm": "Are you sure you want to delete this note?"
+    "deleteCanvasNoteConfirm": "Are you sure you want to delete this note?",
+    "remoteSession": "Remote Session",
+    "serverUrl": "Server URL",
+    "sessionCode": "Session Code",
+    "enterServerUrl": "Please enter server URL",
+    "sessionCreated": "Session Created!",
+    "shareThisCode": "Share this code with your players:",
+    "failedToCreateSession": "Failed to create session",
+    "enterSessionCode": "Please enter session code",
+    "invalidSessionCode": "Invalid session code format",
+    "failedToJoinSession": "Failed to join session",
+    "connecting": "Connecting...",
+    "sessionName": "Session Name",
+    "createSession": "Create Session",
+    "error": "Error"
 }

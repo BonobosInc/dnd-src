@@ -612,5 +612,19 @@
     "canvasNotes": "Notizen",
     "noCanvasNotesYet": "Noch keine Notizen",
     "tapPlusToCreate": "Tippen Sie auf +, um eine zu erstellen",
-    "deleteCanvasNoteConfirm": "Sind Sie sicher, dass Sie diese Notiz löschen möchten?"
+    "deleteCanvasNoteConfirm": "Sind Sie sicher, dass Sie diese Notiz löschen möchten?",
+    "remoteSession": "Remote-Sitzung",
+    "serverUrl": "Server-URL",
+    "sessionCode": "Sitzungscode",
+    "enterServerUrl": "Bitte Server-URL eingeben",
+    "sessionCreated": "Sitzung erstellt!",
+    "shareThisCode": "Teile diesen Code mit deinen Spielern:",
+    "failedToCreateSession": "Sitzung konnte nicht erstellt werden",
+    "enterSessionCode": "Bitte Sitzungscode eingeben",
+    "invalidSessionCode": "Ungültiges Sitzungscode-Format",
+    "failedToJoinSession": "Beitritt zur Sitzung fehlgeschlagen",
+    "connecting": "Verbinde...",
+    "sessionName": "Sitzungsname",
+    "createSession": "Sitzung erstellen",
+    "error": "Fehler"
 }

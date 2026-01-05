@@ -1554,4 +1554,46 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get deleteCanvasNoteConfirm =>
       'Are you sure you want to delete this note?';
+
+  @override
+  String get remoteSession => 'Remote Session';
+
+  @override
+  String get serverUrl => 'Server URL';
+
+  @override
+  String get sessionCode => 'Session Code';
+
+  @override
+  String get enterServerUrl => 'Please enter server URL';
+
+  @override
+  String get sessionCreated => 'Session Created!';
+
+  @override
+  String get shareThisCode => 'Share this code with your players:';
+
+  @override
+  String get failedToCreateSession => 'Failed to create session';
+
+  @override
+  String get enterSessionCode => 'Please enter session code';
+
+  @override
+  String get invalidSessionCode => 'Invalid session code format';
+
+  @override
+  String get failedToJoinSession => 'Failed to join session';
+
+  @override
+  String get connecting => 'Connecting...';
+
+  @override
+  String get sessionName => 'Session Name';
+
+  @override
+  String get createSession => 'Create Session';
+
+  @override
+  String get error => 'Error';
 }
