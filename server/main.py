@@ -18,26 +18,22 @@ logger = logging.getLogger(__name__)
 
 
 class SessionCode:
-    """Generate and validate 6-part session codes (e.g., ABC-DEF-GHI-JKL-MNO-PQR)"""
+    """Generate and validate 6-character session codes (e.g., ABCDEF)"""
 
     @staticmethod
     def generate() -> str:
-        """Generate a random 6-part code"""
-        parts = []
-        for _ in range(6):
-            part = ''.join(random.choices(string.ascii_uppercase, k=3))
-            parts.append(part)
-        return '-'.join(parts)
+        """Generate a random 6-character alphanumeric code"""
+        chars = string.ascii_uppercase + string.digits
+        return ''.join(random.choices(chars, k=6))
 
     @staticmethod
     def validate(code: str) -> bool:
-        """Validate a 6-part code format"""
+        """Validate a 6-character alphanumeric code format"""
         if not code:
             return False
-        parts = code.split('-')
-        if len(parts) != 6:
+        if len(code) != 6:
             return False
-        return all(len(part) == 3 and part.isalpha() and part.isupper() for part in parts)
+        return code.isalnum() and code.isupper()
 
 
 class Player:
@@ -120,8 +116,8 @@ class GameSession:
             })
 
     def get_players_list(self) -> List[dict]:
-        """Get list of all players as dictionaries"""
-        return [player.to_dict() for player in self.players.values()]
+        """Get list of all players as dictionaries (excluding DM)"""
+        return [player.to_dict() for player in self.players.values() if not player.is_dm]
 
     def get_combatants(self) -> List[dict]:
         """Get combined list of players and monsters for combat"""
@@ -346,8 +342,10 @@ class DnDServer:
 
                         # Handle initiative update
                         elif msg_type == 'initiative_update' and player_name:
+                            # Check if DM is updating someone else's initiative or own
+                            target_name = data.get('name', player_name)
                             initiative = data.get('initiative', 0)
-                            await session.update_initiative(player_name, initiative)
+                            await session.update_initiative(target_name, initiative)
 
                         # Handle add monster (DM only)
                         elif msg_type == 'add_monster' and player and player.is_dm:

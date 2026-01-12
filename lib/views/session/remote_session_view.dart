@@ -1,10 +1,10 @@
 import 'package:dnd/classes/profile_manager.dart';
 import 'package:dnd/classes/remote_client.dart';
+import 'package:dnd/classes/session_manager.dart';
 import 'package:dnd/views/session/remote_client_view.dart';
 import 'package:flutter/material.dart';
 import 'package:dnd/configs/colours.dart';
 import 'package:dnd/l10n/app_localizations.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class RemoteSessionView extends StatefulWidget {
   final ProfileManager profileManager;
@@ -21,55 +21,39 @@ class RemoteSessionView extends StatefulWidget {
 }
 
 class _RemoteSessionViewState extends State<RemoteSessionView> {
-  final RemoteClient _remoteClient = RemoteClient();
-  final TextEditingController _serverUrlController = TextEditingController();
+  final SessionManager _sessionManager = SessionManager();
+  late final RemoteClient _remoteClient;
   final TextEditingController _sessionCodeController = TextEditingController();
   final TextEditingController _sessionNameController = TextEditingController();
 
+  static const String serverUrl = 'http://bonodnd.duckdns.org:31333';
+
   bool _isHost = false;
   bool _isConnecting = false;
-  String? _savedServerUrl;
   Character? _selectedCharacter;
   Map<String, String>? _savedDMSession;
 
   @override
   void initState() {
     super.initState();
-    _loadSavedServerUrl();
+    _remoteClient = _sessionManager.getOrCreateRemoteClient();
     _checkForSavedDMSession();
   }
 
   @override
   void dispose() {
-    _serverUrlController.dispose();
     _sessionCodeController.dispose();
     _sessionNameController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadSavedServerUrl() async {
-    final prefs = await SharedPreferences.getInstance();
-    final url = prefs.getString('remote_server_url');
-    if (url != null) {
-      setState(() {
-        _savedServerUrl = url;
-        _serverUrlController.text = url;
-      });
-    }
-  }
-
-  Future<void> _checkForSavedDMSession() async {
+Future<void> _checkForSavedDMSession() async {
     final savedSession = await _remoteClient.loadSavedDMSession();
     if (savedSession != null && mounted) {
       setState(() {
         _savedDMSession = savedSession;
       });
     }
-  }
-
-  Future<void> _saveServerUrl(String url) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('remote_server_url', url);
   }
 
   Future<void> _reconnectAsDM() async {
@@ -127,13 +111,6 @@ class _RemoteSessionViewState extends State<RemoteSessionView> {
   Future<void> _createSession() async {
     final loc = AppLocalizations.of(context)!;
 
-    if (_serverUrlController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.enterServerUrl)),
-      );
-      return;
-    }
-
     final sessionName = _sessionNameController.text.trim().isEmpty
         ? loc.unnamedSession
         : _sessionNameController.text.trim();
@@ -141,9 +118,6 @@ class _RemoteSessionViewState extends State<RemoteSessionView> {
     setState(() => _isConnecting = true);
 
     try {
-      final serverUrl = _serverUrlController.text.trim();
-      await _saveServerUrl(serverUrl);
-
       final code = await _remoteClient.createSession(
         serverUrl,
         sessionName,
@@ -250,13 +224,6 @@ class _RemoteSessionViewState extends State<RemoteSessionView> {
   Future<void> _joinSession() async {
     final loc = AppLocalizations.of(context)!;
 
-    if (_serverUrlController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.enterServerUrl)),
-      );
-      return;
-    }
-
     if (_sessionCodeController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please enter session code')),
@@ -283,9 +250,6 @@ class _RemoteSessionViewState extends State<RemoteSessionView> {
     setState(() => _isConnecting = true);
 
     try {
-      final serverUrl = _serverUrlController.text.trim();
-      await _saveServerUrl(serverUrl);
-
       // Load character stats
       await widget.profileManager.selectProfile(_selectedCharacter!);
 
@@ -420,21 +384,6 @@ class _RemoteSessionViewState extends State<RemoteSessionView> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _serverUrlController,
-                    style: TextStyle(color: AppColors.textColorLight),
-                    decoration: InputDecoration(
-                      hintText: 'http://bonodnd.duckdns.org:31333',
-                      hintStyle: TextStyle(color: AppColors.textColorDark),
-                      filled: true,
-                      fillColor: AppColors.cardColor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: AppColors.borderColor),
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 24),
 
                   // Host or Join selection
@@ -535,7 +484,7 @@ class _RemoteSessionViewState extends State<RemoteSessionView> {
                       ),
                       textCapitalization: TextCapitalization.characters,
                       decoration: InputDecoration(
-                        hintText: 'ABC-DEF-GHI-JKL-MNO-PQR',
+                        hintText: 'ABCDEF',
                         hintStyle: TextStyle(color: AppColors.textColorDark),
                         filled: true,
                         fillColor: AppColors.cardColor,
@@ -545,23 +494,16 @@ class _RemoteSessionViewState extends State<RemoteSessionView> {
                         ),
                       ),
                       onChanged: (value) {
-                        // Auto-format with dashes
-                        String formatted = value.toUpperCase().replaceAll('-', '');
-                        if (formatted.length > 18) {
-                          formatted = formatted.substring(0, 18);
+                        // Auto-format to uppercase alphanumeric, max 6 chars
+                        String formatted = value.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+                        if (formatted.length > 6) {
+                          formatted = formatted.substring(0, 6);
                         }
-                        String withDashes = '';
-                        for (int i = 0; i < formatted.length; i++) {
-                          if (i > 0 && i % 3 == 0) {
-                            withDashes += '-';
-                          }
-                          withDashes += formatted[i];
-                        }
-                        if (withDashes != value) {
+                        if (formatted != value) {
                           _sessionCodeController.value = TextEditingValue(
-                            text: withDashes,
+                            text: formatted,
                             selection: TextSelection.collapsed(
-                              offset: withDashes.length,
+                              offset: formatted.length,
                             ),
                           );
                         }

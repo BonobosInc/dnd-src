@@ -32,11 +32,10 @@ class RemoteClient {
   Stream<List<Map<String, dynamic>>> get playerListStream =>
       _playerListController.stream;
 
-  /// Validate session code format (ABC-DEF-GHI-JKL-MNO-PQR)
+  /// Validate session code format (ABCDEF - 6 alphanumeric characters)
   static bool validateSessionCode(String code) {
-    final parts = code.split('-');
-    if (parts.length != 6) return false;
-    return parts.every((part) => part.length == 3 && RegExp(r'^[A-Z]{3}$').hasMatch(part));
+    if (code.length != 6) return false;
+    return RegExp(r'^[A-Z0-9]{6}$').hasMatch(code);
   }
 
   /// Create a new session on the remote server
@@ -307,6 +306,19 @@ class RemoteClient {
     }));
 
     if (kDebugMode) print('📤 Sent initiative: $initiative');
+  }
+
+  /// Update initiative for any player (DM only)
+  Future<void> updateInitiative(String playerName, int initiative) async {
+    if (!isConnected) return;
+
+    _channel?.sink.add(jsonEncode({
+      'type': 'initiative_update',
+      'name': playerName,
+      'initiative': initiative,
+    }));
+
+    if (kDebugMode) print('📤 Updated initiative for $playerName: $initiative');
   }
 
   /// Add monster (DM only)

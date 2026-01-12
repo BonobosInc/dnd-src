@@ -6,6 +6,7 @@ import 'package:dnd/views/settings_view.dart';
 import 'package:dnd/views/session/client_view.dart';
 import 'package:dnd/views/session/host.dart';
 import 'package:dnd/views/session/session_view.dart';
+import 'package:dnd/views/session/remote_client_view.dart';
 import 'package:dnd/classes/server.dart';
 import 'package:dnd/classes/client.dart';
 import 'package:dnd/classes/session_manager.dart';
@@ -864,6 +865,18 @@ class CharacterViewState extends State<CharacterView> {
                                     server: _sessionManager.server!,
                                     sessionName: _sessionManager.server!.name,
                                     wikiParser: widget.wikiParser,
+                                  ),
+                                ),
+                              );
+                            } else if (_sessionManager.isRemoteConnected) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => RemoteClientView(
+                                    client: _sessionManager.remoteClient!,
+                                    playerName: _sessionManager.remoteClient!.playerName ?? 'Unknown Player',
+                                    isDM: _sessionManager.remoteClient!.isDM,
+                                    profileManager: widget.profileManager,
                                   ),
                                 ),
                               );
