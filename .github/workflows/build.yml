@@ -56,6 +56,49 @@ jobs:
           name: release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
+  build-appbundle:
+    name: Build Android AppBundle
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          version: '3.38.3'
+          channel: 'stable'
+          cache: false
+      - name: 'Checkout Flutter 3.38.3'
+        shell: bash
+        run: |
+          cd $FLUTTER_ROOT
+          git fetch --tags
+          git checkout 3.38.3
+          flutter --version
+          cd -
+      - run: flutter --version
+      - run: flutter pub get
+
+      - name: Decode and Save Keystore
+        run: echo "${{ secrets.APP_KEY }}" | base64 -d > android/app/keystore.jks
+
+      - name: Create key.properties
+        run: |
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=keystore.jks" >> android/key.properties
+
+      - name: Build AppBundle (disable GitHub updates)
+        run: flutter build appbundle --release --dart-define=CHECK_GITHUB_UPDATES=false
+
+      - name: Save AppBundle Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-appbundle
+          path: build/app/outputs/bundle/release/app-release.aab
+
   build-windows:
     name: Build Windows
     runs-on: windows-latest

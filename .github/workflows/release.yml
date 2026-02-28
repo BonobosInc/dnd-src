@@ -31,6 +31,14 @@ jobs:
           path: ./artifacts
           run_id: ${{ github.event.workflow_run.id }}
 
+      - name: Download Android AppBundle Artifact
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: build.yml
+          name: release-appbundle
+          path: ./artifacts
+          run_id: ${{ github.event.workflow_run.id }}
+
       - name: Download Windows Build Artifact
         uses: dawidd6/action-download-artifact@v6
         with:
@@ -58,6 +66,7 @@ jobs:
       - name: Rename artifacts
         run: |
           mv ./artifacts/app-release.apk ./artifacts/BonoDND-${{ env.version }}.apk
+          if [ -f ./artifacts/app-release.aab ]; then mv ./artifacts/app-release.aab ./artifacts/BonoDND-${{ env.version }}.aab; fi
           mv ./artifacts/bonodnd-windows.zip ./artifacts/BonoDND-${{ env.version }}-windows.zip
           mv ./artifacts/bonodnd-linux.zip ./artifacts/BonoDND-${{ env.version }}-linux.zip
           mv ./artifacts/bonodnd-x86_64.AppImage ./artifacts/BonoDND-${{ env.version }}-x86_64.AppImage
@@ -67,6 +76,7 @@ jobs:
         with:
           artifacts: |
             ./artifacts/BonoDND-${{ env.version }}.apk
+              ./artifacts/BonoDND-${{ env.version }}.aab
             ./artifacts/BonoDND-${{ env.version }}-windows.zip
             ./artifacts/BonoDND-${{ env.version }}-linux.zip
             ./artifacts/BonoDND-${{ env.version }}-x86_64.AppImage
@@ -80,6 +90,7 @@ jobs:
         with:
           artifacts: |
             ./artifacts/BonoDND-${{ env.version }}.apk
+              ./artifacts/BonoDND-${{ env.version }}.aab
             ./artifacts/BonoDND-${{ env.version }}-windows.zip
             ./artifacts/BonoDND-${{ env.version }}-linux.zip
             ./artifacts/BonoDND-${{ env.version }}-x86_64.AppImage

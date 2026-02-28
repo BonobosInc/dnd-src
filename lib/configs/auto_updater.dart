@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:app_installer/app_installer.dart';
@@ -12,9 +13,27 @@ import 'package:dnd/l10n/app_localizations.dart';
 
 const String repoOwner = 'BonobosInc';
 const String repoName = 'dnd';
+const bool githubUpdatesEnabled = bool.fromEnvironment('CHECK_GITHUB_UPDATES', defaultValue: true);
+const MethodChannel _installerChannel = MethodChannel('com.bonobo.dnd/installer');
 
 Future<void> checkForUpdate(BuildContext context) async {
   if (!Platform.isAndroid) return;
+
+  if (!githubUpdatesEnabled) {
+    if (kDebugMode) print('GitHub updates disabled via dart-define.');
+    return;
+  }
+
+  // If the app was installed from the Play Store, skip GitHub release checks.
+  try {
+    final installer = await _getInstallerPackageName();
+    if (installer != null && installer.contains('com.android.vending')) {
+      if (kDebugMode) print('Skipping GitHub update check (Play Store install): $installer');
+      return;
+    }
+  } catch (e) {
+    if (kDebugMode) print('Installer check failed: $e');
+  }
 
   try {
     final response = await http.get(Uri.parse(
@@ -65,6 +84,19 @@ Future<void> checkForUpdate(BuildContext context) async {
     if (kDebugMode) {
       print('Update check failed: $e');
     }
+  }
+}
+
+Future<String?> _getInstallerPackageName() async {
+  try {
+    final res = await _installerChannel.invokeMethod('getInstallerPackage');
+    if (res == null) return null;
+    final installer = res as String;
+    if (installer.isEmpty) return null;
+    return installer;
+  } catch (e) {
+    if (kDebugMode) print('Failed to get installer package: $e');
+    return null;
   }
 }
 
