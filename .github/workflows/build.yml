@@ -48,13 +48,13 @@ jobs:
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "storeFile=keystore.jks" >> android/key.properties
 
-      - run: flutter build apk --release
+      - run: flutter build apk --release --flavor github
 
       - name: Save Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: build/app/outputs/flutter-apk/app-*-release.apk
 
   build-appbundle:
     name: Build Android AppBundle
@@ -78,6 +78,7 @@ jobs:
           flutter --version
           cd -
       - run: flutter --version
+
       - run: flutter pub get
 
       - name: Decode and Save Keystore
@@ -90,14 +91,14 @@ jobs:
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "storeFile=keystore.jks" >> android/key.properties
 
-      - name: Build AppBundle (disable GitHub updates)
-        run: flutter build appbundle --release --dart-define=CHECK_GITHUB_UPDATES=false
+      - name: Build AppBundle (Play flavor, disable GitHub updates)
+        run: flutter build appbundle --release --flavor play --dart-define=CHECK_GITHUB_UPDATES=false
 
       - name: Save AppBundle Artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-appbundle
-          path: build/app/outputs/bundle/release/app-release.aab
+          path: build/app/outputs/**/app-*-release.aab
 
   build-windows:
     name: Build Windows

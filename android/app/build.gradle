@@ -36,6 +36,20 @@ android {
         versionName = flutter.versionName
     }
 
+    flavorDimensions += "env"
+
+    productFlavors {
+        play {
+            dimension "env"
+        }
+
+        github {
+            dimension "env"
+            applicationIdSuffix ".github"
+            versionNameSuffix "-github"
+        }
+    }
+
     signingConfigs {
         release {
             keyAlias keystoreProperties['keyAlias']
