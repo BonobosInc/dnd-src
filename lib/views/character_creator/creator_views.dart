@@ -166,7 +166,23 @@ class FeatPage extends StatelessWidget {
 
 class AbilityScoresPage extends StatefulWidget {
   final String bonusInput;
-  const AbilityScoresPage({super.key, this.bonusInput = ""});
+  final Map<String, int>? initialAbilityScores;
+  final String? initialMethod;
+  final List<int>? initialRolledValues;
+  final Map<String, int>? initialRolledAssignments;
+  final Map<int, String>? initialBonusAssignments;
+  final Map<String, int>? initialPointBuyScores;
+
+  const AbilityScoresPage({
+    super.key,
+    this.bonusInput = "",
+    this.initialAbilityScores,
+    this.initialMethod,
+    this.initialRolledValues,
+    this.initialRolledAssignments,
+    this.initialBonusAssignments,
+    this.initialPointBuyScores,
+  });
 
   @override
   State<AbilityScoresPage> createState() => _AbilityScoresPageState();
@@ -175,10 +191,10 @@ class AbilityScoresPage extends StatefulWidget {
 class _AbilityScoresPageState extends State<AbilityScoresPage> {
   final List<String> abilities = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
   final List<int> standardArray = [15, 14, 13, 12, 10, 8];
-  final Map<String, int> abilityScores = {};
-  String selectedMethod = "Standard Array";
-  List<int> rolledValues = [];
-  final Map<String, int> rolledAssignments = {};
+  late Map<String, int> abilityScores;
+  late String selectedMethod;
+  late List<int> rolledValues;
+  late Map<String, int> rolledAssignments;
 
   final List<String> methods = [
     "Standard Array",
@@ -189,14 +205,7 @@ class _AbilityScoresPageState extends State<AbilityScoresPage> {
 
   // Point Buy
   int pointBuyPool = 27;
-  final Map<String, int> pointBuyScores = {
-    "STR": 8,
-    "DEX": 8,
-    "CON": 8,
-    "INT": 8,
-    "WIS": 8,
-    "CHA": 8,
-  };
+  late Map<String, int> pointBuyScores;
 
   int calculatePointCost(int score) {
     if (score < 8 || score > 15) return 0;
@@ -232,8 +241,6 @@ class _AbilityScoresPageState extends State<AbilityScoresPage> {
       int bonus = int.parse(match.group(2)!);
       parsedBonuses.add(bonus);
     }
-
-    bonusAssignments.clear();
   }
 
   @override
@@ -241,7 +248,27 @@ class _AbilityScoresPageState extends State<AbilityScoresPage> {
     super.initState();
     parseBonuses(widget.bonusInput);
 
-    if (selectedMethod == "Standard Array") {
+    selectedMethod = widget.initialMethod ?? "Standard Array";
+    abilityScores = widget.initialAbilityScores != null
+        ? Map<String, int>.from(widget.initialAbilityScores!)
+        : {};
+    rolledValues = widget.initialRolledValues != null
+        ? List<int>.from(widget.initialRolledValues!)
+        : [];
+    rolledAssignments = widget.initialRolledAssignments != null
+        ? Map<String, int>.from(widget.initialRolledAssignments!)
+        : {};
+    bonusAssignments = widget.initialBonusAssignments != null
+        ? Map<int, String>.from(widget.initialBonusAssignments!)
+        : {};
+    pointBuyScores = widget.initialPointBuyScores != null
+        ? Map<String, int>.from(widget.initialPointBuyScores!)
+        : {
+            for (var ability in abilities) ability: 8,
+          };
+
+    if (widget.initialAbilityScores == null &&
+        selectedMethod == "Standard Array") {
       for (int i = 0; i < abilities.length; i++) {
         abilityScores[abilities[i]] = standardArray[i];
       }
@@ -657,6 +684,18 @@ class _AbilityScoresPageState extends State<AbilityScoresPage> {
     }
   }
 
+  Map<String, dynamic> _getCurrentState(Map<String, int> finalScores) {
+    return {
+      'finalScores': finalScores,
+      'method': selectedMethod,
+      'abilityScores': Map<String, int>.from(abilityScores),
+      'rolledValues': List<int>.from(rolledValues),
+      'rolledAssignments': Map<String, int>.from(rolledAssignments),
+      'bonusAssignments': Map<int, String>.from(bonusAssignments),
+      'pointBuyScores': Map<String, int>.from(pointBuyScores),
+    };
+  }
+
   void confirmScores() {
     final loc = AppLocalizations.of(context)!;
 
@@ -685,7 +724,7 @@ class _AbilityScoresPageState extends State<AbilityScoresPage> {
       return;
     }
 
-    Navigator.pop(context, finalScores);
+    Navigator.pop(context, _getCurrentState(finalScores));
   }
 
   String getLocalizedAbilityName(String ability) {
@@ -727,117 +766,135 @@ class _AbilityScoresPageState extends State<AbilityScoresPage> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(loc.setabilityscores),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: confirmScores,
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Card(
-              color: AppColors.cardColor,
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Method',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textColorLight,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      dropdownColor: AppColors.cardColor,
-                      value: selectedMethod,
-                      isExpanded: true,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: AppColors.primaryColor,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                      items: methods
-                          .map((m) => DropdownMenuItem(
-                                value: m,
-                                child: Text(
-                                  getLocalizedMethodName(m),
-                                  style: TextStyle(
-                                      color: AppColors.textColorLight),
-                                ),
-                              ))
-                          .toList(),
-                      onChanged: (val) => setState(() {
-                        selectedMethod = val!;
-                        if (selectedMethod == "Standard Array") {
-                          for (int i = 0; i < abilities.length; i++) {
-                            abilityScores[abilities[i]] = standardArray[i];
-                          }
-                        }
-                        if (selectedMethod == "Point Buy") {
-                          for (var ability in abilities) {
-                            pointBuyScores[ability] = 8;
-                          }
-                        }
-                        if (selectedMethod == "Custom" ||
-                            selectedMethod == "Roll 4d6 Drop Lowest") {
-                          abilityScores.clear();
-                        }
-                        bonusAssignments.clear();
-                      }),
-                    ),
-                  ],
-                ),
-              ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+
+        Map<String, int> finalScores = selectedMethod == "Point Buy"
+            ? Map<String, int>.from(pointBuyScores)
+            : Map<String, int>.from(abilityScores);
+
+        for (var entry in bonusAssignments.entries) {
+          finalScores.update(
+              entry.value, (value) => value + parsedBonuses[entry.key],
+              ifAbsent: () => parsedBonuses[entry.key]);
+        }
+
+        Navigator.pop(context, _getCurrentState(finalScores));
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(loc.setabilityscores),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: confirmScores,
             ),
-            const SizedBox(height: 16),
-            Card(
-              color: AppColors.cardColor,
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Ability Scores',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textColorLight,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    buildMethodWidget(),
-                  ],
-                ),
-              ),
-            ),
-            buildBonusAssignment(),
           ],
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Card(
+                color: AppColors.cardColor,
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Method',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textColorLight,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        dropdownColor: AppColors.cardColor,
+                        value: selectedMethod,
+                        isExpanded: true,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: AppColors.primaryColor,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        items: methods
+                            .map((m) => DropdownMenuItem(
+                                  value: m,
+                                  child: Text(
+                                    getLocalizedMethodName(m),
+                                    style: TextStyle(
+                                        color: AppColors.textColorLight),
+                                  ),
+                                ))
+                            .toList(),
+                        onChanged: (val) => setState(() {
+                          selectedMethod = val!;
+                          if (selectedMethod == "Standard Array") {
+                            for (int i = 0; i < abilities.length; i++) {
+                              abilityScores[abilities[i]] = standardArray[i];
+                            }
+                          }
+                          if (selectedMethod == "Point Buy") {
+                            for (var ability in abilities) {
+                              pointBuyScores[ability] = 8;
+                            }
+                          }
+                          if (selectedMethod == "Custom" ||
+                              selectedMethod == "Roll 4d6 Drop Lowest") {
+                            abilityScores.clear();
+                          }
+                          bonusAssignments.clear();
+                        }),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                color: AppColors.cardColor,
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Ability Scores',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textColorLight,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      buildMethodWidget(),
+                    ],
+                  ),
+                ),
+              ),
+              buildBonusAssignment(),
+            ],
+          ),
         ),
       ),
     );
@@ -848,12 +905,18 @@ class HPSelectionPage extends StatefulWidget {
   final ClassData classData;
   final int level;
   final int constitutionModifier;
+  final String? initialMethod;
+  final List<int>? initialRolledHP;
+  final int? initialCustomHP;
 
   const HPSelectionPage({
     super.key,
     required this.classData,
     required this.level,
     required this.constitutionModifier,
+    this.initialMethod,
+    this.initialRolledHP,
+    this.initialCustomHP,
   });
 
   @override
@@ -861,15 +924,23 @@ class HPSelectionPage extends StatefulWidget {
 }
 
 class _HPSelectionPageState extends State<HPSelectionPage> {
-  String selectedMethod = "Median";
+  late String selectedMethod;
   final List<String> methods = ["Roll", "Median", "Custom"];
-  List<int> rolledHP = [];
-  int customHP = 0;
+  late List<int> rolledHP;
+  late int customHP;
 
   @override
   void initState() {
     super.initState();
-    _calculateHP();
+    selectedMethod = widget.initialMethod ?? "Median";
+    rolledHP = widget.initialRolledHP != null
+        ? List<int>.from(widget.initialRolledHP!)
+        : [];
+    customHP = widget.initialCustomHP ?? 0;
+
+    if (rolledHP.isEmpty && selectedMethod != "Custom") {
+      _calculateHP();
+    }
   }
 
   int _getHitDie() {
@@ -924,6 +995,15 @@ class _HPSelectionPageState extends State<HPSelectionPage> {
     }
   }
 
+  Map<String, dynamic> _getCurrentState() {
+    return {
+      'hp': _getTotalHP(),
+      'method': selectedMethod,
+      'rolledHP': List<int>.from(rolledHP),
+      'customHP': customHP,
+    };
+  }
+
   void _confirmHP() {
     final loc = AppLocalizations.of(context)!;
     final hp = _getTotalHP();
@@ -933,7 +1013,7 @@ class _HPSelectionPageState extends State<HPSelectionPage> {
       );
       return;
     }
-    Navigator.pop(context, hp);
+    Navigator.pop(context, _getCurrentState());
   }
 
   @override
@@ -942,176 +1022,184 @@ class _HPSelectionPageState extends State<HPSelectionPage> {
     final hitDie = _getHitDie();
     final totalHP = _getTotalHP();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(loc.setHitPoints),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _confirmHP,
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Card(
-              color: AppColors.cardColor,
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Method',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textColorLight,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      dropdownColor: AppColors.cardColor,
-                      value: selectedMethod,
-                      isExpanded: true,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: AppColors.primaryColor,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                      items: methods
-                          .map((m) => DropdownMenuItem(
-                                value: m,
-                                child: Text(
-                                  m,
-                                  style: TextStyle(
-                                      color: AppColors.textColorLight),
-                                ),
-                              ))
-                          .toList(),
-                      onChanged: (val) {
-                        setState(() {
-                          selectedMethod = val!;
-                          _calculateHP();
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        Navigator.pop(context, _getCurrentState());
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(loc.setHitPoints),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: _confirmHP,
             ),
-            const SizedBox(height: 16),
-            Card(
-              color: AppColors.cardColor,
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Hit Points',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textColorLight,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    if (selectedMethod == "Roll" ||
-                        selectedMethod == "Median") ...[
+          ],
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Card(
+                color: AppColors.cardColor,
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        'Hit Die: d$hitDie',
+                        'Method',
                         style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                           color: AppColors.textColorLight,
-                          fontSize: 14,
                         ),
                       ),
-                      Text(
-                        'Constitution Modifier: ${widget.constitutionModifier >= 0 ? '+' : ''}${widget.constitutionModifier}',
-                        style: TextStyle(
-                          color: AppColors.textColorLight,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      if (selectedMethod == "Roll")
-                        Row(
-                          children: [
-                            ElevatedButton.icon(
-                              onPressed: _calculateHP,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.accentTeal,
-                                foregroundColor: Colors.white,
-                              ),
-                              icon: const Icon(Icons.casino, size: 20),
-                              label: Text(loc.reroll),
-                            ),
-                          ],
-                        ),
                       const SizedBox(height: 12),
-                      ...List.generate(widget.level, (index) {
-                        final hp =
-                            index < rolledHP.length ? rolledHP[index] : 0;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Text(
-                            'Level ${index + 1}: $hp HP${index == 0 ? ' (Max)' : ''}',
-                            style: TextStyle(
-                              color: AppColors.textColorLight,
-                              fontSize: 16,
-                            ),
-                          ),
-                        );
-                      }),
-                    ],
-                    if (selectedMethod == "Custom")
-                      TextField(
-                        keyboardType: TextInputType.number,
+                      DropdownButtonFormField<String>(
+                        dropdownColor: AppColors.cardColor,
+                        value: selectedMethod,
+                        isExpanded: true,
                         decoration: InputDecoration(
-                          labelText: loc.totalHp,
-                          border: const OutlineInputBorder(),
                           filled: true,
                           fillColor: AppColors.primaryColor,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
+                        items: methods
+                            .map((m) => DropdownMenuItem(
+                                  value: m,
+                                  child: Text(
+                                    _getLocalizedMethod(m, loc),
+                                    style: TextStyle(
+                                        color: AppColors.textColorLight),
+                                  ),
+                                ))
+                            .toList(),
                         onChanged: (val) {
                           setState(() {
-                            customHP = int.tryParse(val) ?? 0;
+                            selectedMethod = val!;
+                            _calculateHP();
                           });
                         },
                       ),
-                    const SizedBox(height: 16),
-                    Divider(color: AppColors.textColorLight.withOpacity(0.3)),
-                    const SizedBox(height: 16),
-                    Text(
-                      loc.totalHpValue(totalHP),
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.accentTeal,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Card(
+                color: AppColors.cardColor,
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Hit Points',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textColorLight,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      if (selectedMethod == "Roll" ||
+                          selectedMethod == "Median") ...[
+                        Text(
+                          'Hit Die: d$hitDie',
+                          style: TextStyle(
+                            color: AppColors.textColorLight,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Text(
+                          'Constitution Modifier: ${widget.constitutionModifier >= 0 ? '+' : ''}${widget.constitutionModifier}',
+                          style: TextStyle(
+                            color: AppColors.textColorLight,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        if (selectedMethod == "Roll")
+                          Row(
+                            children: [
+                              ElevatedButton.icon(
+                                onPressed: _calculateHP,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.accentTeal,
+                                  foregroundColor: Colors.white,
+                                ),
+                                icon: const Icon(Icons.casino, size: 20),
+                                label: Text(loc.reroll),
+                              ),
+                            ],
+                          ),
+                        const SizedBox(height: 12),
+                        ...List.generate(widget.level, (index) {
+                          final hp =
+                              index < rolledHP.length ? rolledHP[index] : 0;
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Text(
+                              'Level ${index + 1}: $hp HP${index == 0 ? ' (Max)' : ''}',
+                              style: TextStyle(
+                                color: AppColors.textColorLight,
+                                fontSize: 16,
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
+                      if (selectedMethod == "Custom")
+                        TextFormField(
+                          initialValue: customHP == 0 ? "" : customHP.toString(),
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: loc.totalHp,
+                            border: const OutlineInputBorder(),
+                            filled: true,
+                            fillColor: AppColors.primaryColor,
+                          ),
+                          onChanged: (val) {
+                            setState(() {
+                              customHP = int.tryParse(val) ?? 0;
+                            });
+                          },
+                        ),
+                      const SizedBox(height: 16),
+                      Divider(color: AppColors.textColorLight.withOpacity(0.3)),
+                      const SizedBox(height: 16),
+                      Text(
+                        loc.totalHpValue(totalHP),
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.accentTeal,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1123,6 +1211,8 @@ class SkillSelectionPage extends StatefulWidget {
   final FeatData? featData;
   final BackgroundData? backgroundData;
   final RaceData? raceData;
+  final Map<String, bool>? initialSelectedSkills;
+  final Map<String, bool>? initialSelectedExpertise;
 
   const SkillSelectionPage({
     super.key,
@@ -1130,6 +1220,8 @@ class SkillSelectionPage extends StatefulWidget {
     this.featData,
     this.backgroundData,
     this.raceData,
+    this.initialSelectedSkills,
+    this.initialSelectedExpertise,
   });
 
   @override
@@ -1137,8 +1229,8 @@ class SkillSelectionPage extends StatefulWidget {
 }
 
 class _SkillSelectionPageState extends State<SkillSelectionPage> {
-  final Map<String, bool> selectedSkills = {};
-  final Map<String, bool> selectedExpertise = {};
+  late Map<String, bool> selectedSkills;
+  late Map<String, bool> selectedExpertise;
   int maxSkillChoices = 0;
   int maxExpertiseChoices = 0;
   List<Map<String, String>> availableSkills = [];
@@ -1201,10 +1293,17 @@ class _SkillSelectionPageState extends State<SkillSelectionPage> {
       }
     }
 
-    // Initialize available skills as unselected
+    selectedSkills = widget.initialSelectedSkills != null
+        ? Map<String, bool>.from(widget.initialSelectedSkills!)
+        : {};
+    selectedExpertise = widget.initialSelectedExpertise != null
+        ? Map<String, bool>.from(widget.initialSelectedExpertise!)
+        : {};
+
+    // Initialize available skills as unselected if not already in initial state
     for (var skill in availableSkills) {
-      selectedSkills[skill['define']!] = false;
-      selectedExpertise[skill['define']!] = false;
+      selectedSkills.putIfAbsent(skill['define']!, () => false);
+      selectedExpertise.putIfAbsent(skill['define']!, () => false);
     }
   }
 
@@ -1355,244 +1454,255 @@ class _SkillSelectionPageState extends State<SkillSelectionPage> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(loc.chooseskills),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: () {
-              // Return the selected skills, expertise, and saving throws
-              Navigator.of(context).pop({
-                'proficiencies': Map<String, bool>.from(selectedSkills),
-                'expertise': Map<String, bool>.from(selectedExpertise),
-                'savingThrows': List<String>.from(allowedSavingThrows),
-              });
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (maxSkillChoices > 0) ...[
-              Card(
-                color: AppColors.cardColor,
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        loc.selectSkillProficiencies,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textColorLight,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        loc.selectUpToSkills(maxSkillChoices),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textColorLight.withOpacity(0.7),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        loc.availableSkillChoices(
-                            maxSkillChoices - selectedProficiencyCount),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: selectedProficiencyCount >= maxSkillChoices
-                              ? AppColors.warningColor
-                              : AppColors.accentTeal,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ...availableSkills.map((skill) {
-                final skillDefine = skill['define']!;
-                final skillName = skill['name']!;
-                final isSelected = selectedSkills[skillDefine] ?? false;
-                final isFromBackground = backgroundSkills.contains(skillDefine);
-                final isFromRace = raceSkills.contains(skillDefine);
-                final isAutoGranted = isFromBackground || isFromRace;
-
-                String? sourceLabel;
-                if (isFromBackground) {
-                  sourceLabel = loc.fromBackground;
-                } else if (isFromRace) {
-                  sourceLabel = loc.fromRace;
-                }
-
-                return Card(
-                  color: isAutoGranted
-                      ? AppColors.appBarColor.withOpacity(0.5)
-                      : isSelected
-                          ? AppColors.accentTeal.withOpacity(0.2)
-                          : AppColors.cardColor,
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: CheckboxListTile(
-                    title: Text(
-                      getLocalizedSkillName(skillName),
-                      style: TextStyle(
-                        color: isAutoGranted
-                            ? AppColors.textColorDark
-                            : AppColors.textColorLight,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.normal,
-                      ),
-                    ),
-                    subtitle: sourceLabel != null
-                        ? Text(
-                            sourceLabel,
-                            style: TextStyle(
-                              color: AppColors.textColorDark,
-                              fontSize: 12,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          )
-                        : null,
-                    value: isAutoGranted ? true : isSelected,
-                    onChanged: isAutoGranted
-                        ? null
-                        : (value) {
-                            setState(() {
-                              if (value == true) {
-                                if (canSelectMoreProficiencies()) {
-                                  selectedSkills[skillDefine] = true;
-                                }
-                              } else {
-                                selectedSkills[skillDefine] = false;
-                                // If removing proficiency, also remove expertise
-                                selectedExpertise[skillDefine] = false;
-                              }
-                            });
-                          },
-                    activeColor: isAutoGranted
-                        ? AppColors.textColorDark
-                        : AppColors.accentTeal,
-                  ),
-                );
-              }).toList(),
-            ],
-            if (maxExpertiseChoices > 0) ...[
-              const SizedBox(height: 24),
-              Card(
-                color: AppColors.cardColor,
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        loc.selectSkillExpertise,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textColorLight,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        loc.selectUpToSkills(maxExpertiseChoices),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textColorLight.withOpacity(0.7),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        loc.availableSkillChoices(
-                            maxExpertiseChoices - selectedExpertiseCount),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: selectedExpertiseCount >= maxExpertiseChoices
-                              ? AppColors.warningColor
-                              : AppColors.accentPurple,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ...availableSkills.map((skill) {
-                final skillDefine = skill['define']!;
-                final skillName = skill['name']!;
-                final isProficient = selectedSkills[skillDefine] ?? false;
-                final hasExpertise = selectedExpertise[skillDefine] ?? false;
-
-                return Card(
-                  color: hasExpertise
-                      ? AppColors.accentPurple.withOpacity(0.2)
-                      : AppColors.cardColor,
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: CheckboxListTile(
-                    title: Text(
-                      getLocalizedSkillName(skillName),
-                      style: TextStyle(
-                        color: isProficient
-                            ? AppColors.textColorLight
-                            : AppColors.textColorDark,
-                        fontWeight:
-                            hasExpertise ? FontWeight.bold : FontWeight.normal,
-                      ),
-                    ),
-                    subtitle: !isProficient
-                        ? Text(
-                            loc.proficiency,
-                            style: TextStyle(
-                              color: AppColors.textColorDark,
-                              fontSize: 12,
-                            ),
-                          )
-                        : null,
-                    value: hasExpertise,
-                    onChanged: isProficient
-                        ? (value) {
-                            setState(() {
-                              if (value == true) {
-                                if (canSelectMoreExpertise()) {
-                                  selectedExpertise[skillDefine] = true;
-                                }
-                              } else {
-                                selectedExpertise[skillDefine] = false;
-                              }
-                            });
-                          }
-                        : null,
-                    activeColor: AppColors.accentPurple,
-                  ),
-                );
-              }).toList(),
-            ],
-            if (maxSkillChoices == 0 && maxExpertiseChoices == 0)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32.0),
-                  child: Text(
-                    'No skill selections available for this class.',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppColors.textColorLight.withOpacity(0.6),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        Navigator.of(context).pop({
+          'proficiencies': Map<String, bool>.from(selectedSkills),
+          'expertise': Map<String, bool>.from(selectedExpertise),
+          'savingThrows': List<String>.from(allowedSavingThrows),
+        });
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(loc.chooseskills),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.check),
+              onPressed: () {
+                // Return the selected skills, expertise, and saving throws
+                Navigator.of(context).pop({
+                  'proficiencies': Map<String, bool>.from(selectedSkills),
+                  'expertise': Map<String, bool>.from(selectedExpertise),
+                  'savingThrows': List<String>.from(allowedSavingThrows),
+                });
+              },
+            ),
           ],
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (maxSkillChoices > 0) ...[
+                Card(
+                  color: AppColors.cardColor,
+                  elevation: 4,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          loc.selectSkillProficiencies,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textColorLight,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          loc.selectUpToSkills(maxSkillChoices),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textColorLight.withOpacity(0.7),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          loc.availableSkillChoices(
+                              maxSkillChoices - selectedProficiencyCount),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: selectedProficiencyCount >= maxSkillChoices
+                                ? AppColors.warningColor
+                                : AppColors.accentTeal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ...availableSkills.map((skill) {
+                  final skillDefine = skill['define']!;
+                  final skillName = skill['name']!;
+                  final isSelected = selectedSkills[skillDefine] ?? false;
+                  final isFromBackground = backgroundSkills.contains(skillDefine);
+                  final isFromRace = raceSkills.contains(skillDefine);
+                  final isAutoGranted = isFromBackground || isFromRace;
+
+                  String? sourceLabel;
+                  if (isFromBackground) {
+                    sourceLabel = loc.fromBackground;
+                  } else if (isFromRace) {
+                    sourceLabel = loc.fromRace;
+                  }
+
+                  return Card(
+                    color: isAutoGranted
+                        ? AppColors.appBarColor.withOpacity(0.5)
+                        : isSelected
+                            ? AppColors.accentTeal.withOpacity(0.2)
+                            : AppColors.cardColor,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: CheckboxListTile(
+                      title: Text(
+                        getLocalizedSkillName(skillName),
+                        style: TextStyle(
+                          color: isAutoGranted
+                              ? AppColors.textColorDark
+                              : AppColors.textColorLight,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                      subtitle: sourceLabel != null
+                          ? Text(
+                              sourceLabel,
+                              style: TextStyle(
+                                color: AppColors.textColorDark,
+                                fontSize: 12,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            )
+                          : null,
+                      value: isAutoGranted ? true : isSelected,
+                      onChanged: isAutoGranted
+                          ? null
+                          : (value) {
+                              setState(() {
+                                if (value == true) {
+                                  if (canSelectMoreProficiencies()) {
+                                    selectedSkills[skillDefine] = true;
+                                  }
+                                } else {
+                                  selectedSkills[skillDefine] = false;
+                                  // If removing proficiency, also remove expertise
+                                  selectedExpertise[skillDefine] = false;
+                                }
+                              });
+                            },
+                      activeColor: isAutoGranted
+                          ? AppColors.textColorDark
+                          : AppColors.accentTeal,
+                    ),
+                  );
+                }).toList(),
+              ],
+              if (maxExpertiseChoices > 0) ...[
+                const SizedBox(height: 24),
+                Card(
+                  color: AppColors.cardColor,
+                  elevation: 4,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          loc.selectSkillExpertise,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textColorLight,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          loc.selectUpToSkills(maxExpertiseChoices),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textColorLight.withOpacity(0.7),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          loc.availableSkillChoices(
+                              maxExpertiseChoices - selectedExpertiseCount),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: selectedExpertiseCount >= maxExpertiseChoices
+                                ? AppColors.warningColor
+                                : AppColors.accentPurple,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ...availableSkills.map((skill) {
+                  final skillDefine = skill['define']!;
+                  final skillName = skill['name']!;
+                  final isProficient = selectedSkills[skillDefine] ?? false;
+                  final hasExpertise = selectedExpertise[skillDefine] ?? false;
+
+                  return Card(
+                    color: hasExpertise
+                        ? AppColors.accentPurple.withOpacity(0.2)
+                        : AppColors.cardColor,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: CheckboxListTile(
+                      title: Text(
+                        getLocalizedSkillName(skillName),
+                        style: TextStyle(
+                          color: isProficient
+                              ? AppColors.textColorLight
+                              : AppColors.textColorDark,
+                          fontWeight:
+                              hasExpertise ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                      subtitle: !isProficient
+                          ? Text(
+                              loc.proficiency,
+                              style: TextStyle(
+                                color: AppColors.textColorDark,
+                                fontSize: 12,
+                              ),
+                            )
+                          : null,
+                      value: hasExpertise,
+                      onChanged: isProficient
+                          ? (value) {
+                              setState(() {
+                                if (value == true) {
+                                  if (canSelectMoreExpertise()) {
+                                    selectedExpertise[skillDefine] = true;
+                                  }
+                                } else {
+                                  selectedExpertise[skillDefine] = false;
+                                }
+                              });
+                            }
+                          : null,
+                      activeColor: AppColors.accentPurple,
+                    ),
+                  );
+                }).toList(),
+              ],
+              if (maxSkillChoices == 0 && maxExpertiseChoices == 0)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Text(
+                      'No skill selections available for this class.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: AppColors.textColorLight.withOpacity(0.6),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
