@@ -49,6 +49,11 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
   int _selectedLevel = 1;
   int? _selectedHP;
 
+  // Persistent state for sub-pages
+  Map<String, dynamic>? _abilityScoreState;
+  Map<String, dynamic>? _skillSelectionState;
+  Map<String, dynamic>? _hpSelectionState;
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -371,17 +376,22 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
                     featData: _selectedFeat,
                     backgroundData: _selectedBackground,
                     raceData: _selectedRace,
+                    initialSelectedSkills: _skillSelectionState?['proficiencies'],
+                    initialSelectedExpertise: _skillSelectionState?['expertise'],
                   ),
                   (result) {
                     if (result != null) {
                       setState(() {
-                        skillsSelected = true;
+                        _skillSelectionState = result;
                         _selectedProficiencies =
                             result['proficiencies'] as Map<String, bool>?;
                         _selectedExpertise =
                             result['expertise'] as Map<String, bool>?;
                         _selectedSavingThrows =
                             result['savingThrows'] as List<String>?;
+                        
+                        // Mark as skills selected if any selections exist
+                        skillsSelected = _selectedProficiencies != null && _selectedProficiencies!.values.any((v) => v);
                       });
                     }
                   },
@@ -393,13 +403,26 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
                 title: loc.setabilityscores,
                 completed: abilityScoresSet,
                 enabled: skillsSelected,
-                onTap: () => _navigateTo<Map<String, int>>(
-                  AbilityScoresPage(bonusInput: _selectedRace?.ability ?? ""),
-                  (finalScores) {
-                    if (finalScores != null) {
+                onTap: () => _navigateTo<Map<String, dynamic>>(
+                  AbilityScoresPage(
+                    bonusInput: _selectedRace?.ability ?? "",
+                    initialAbilityScores: _abilityScoreState?['abilityScores'],
+                    initialMethod: _abilityScoreState?['method'],
+                    initialRolledValues: _abilityScoreState?['rolledValues'],
+                    initialRolledAssignments: _abilityScoreState?['rolledAssignments'],
+                    initialBonusAssignments: _abilityScoreState?['bonusAssignments'],
+                    initialPointBuyScores: _abilityScoreState?['pointBuyScores'],
+                  ),
+                  (result) {
+                    if (result != null) {
                       setState(() {
-                        abilityScoresSet = true;
-                        _selectedFinalScores = finalScores;
+                        _abilityScoreState = result;
+                        _selectedFinalScores = result['finalScores'] as Map<String, int>?;
+                        
+                        // Mark as set if all scores are valid
+                        abilityScoresSet = _selectedFinalScores != null && 
+                                           _selectedFinalScores!.length == 6 && 
+                                           !_selectedFinalScores!.values.any((v) => v < 0);
                       });
                     }
                   },
@@ -463,19 +486,23 @@ class _CharacterCreatorPageState extends State<CharacterCreatorPage> {
                 subtitle: _selectedHP != null ? loc.hpDisplay(_selectedHP!) : null,
                 completed: hpSet,
                 enabled: itemsSelected && classSelected,
-                onTap: () => _navigateTo<int>(
+                onTap: () => _navigateTo<Map<String, dynamic>>(
                   HPSelectionPage(
                     classData: _selectedClass!,
                     level: _selectedLevel,
                     constitutionModifier: _selectedFinalScores != null
                         ? ((_selectedFinalScores!['CON'] ?? 10) - 10) ~/ 2
                         : 0,
+                    initialMethod: _hpSelectionState?['method'],
+                    initialRolledHP: _hpSelectionState?['rolledHP'],
+                    initialCustomHP: _hpSelectionState?['customHP'],
                   ),
-                  (hp) {
-                    if (hp != null) {
+                  (result) {
+                    if (result != null) {
                       setState(() {
-                        hpSet = true;
-                        _selectedHP = hp;
+                        _hpSelectionState = result;
+                        _selectedHP = result['hp'] as int?;
+                        hpSet = _selectedHP != null && _selectedHP! > 0;
                       });
                     }
                   },
