@@ -178,6 +178,7 @@ class _AbilityScoresPageState extends State<AbilityScoresPage> {
   final Map<String, int> abilityScores = {};
   String selectedMethod = "Standard Array";
   List<int> rolledValues = [];
+  final Map<String, int> rolledAssignments = {};
 
   final List<String> methods = [
     "Standard Array",
@@ -211,6 +212,7 @@ class _AbilityScoresPageState extends State<AbilityScoresPage> {
   void rollStats() {
     setState(() {
       rolledValues = List.generate(6, (_) => roll4d6DropLowest());
+      rolledAssignments.clear();
       abilityScores.clear();
       for (var ability in abilities) {
         abilityScores[ability] = -1;
@@ -469,22 +471,21 @@ class _AbilityScoresPageState extends State<AbilityScoresPage> {
         ),
         const SizedBox(height: 12),
         ...abilities.map((ability) {
-          int assignedRoll = abilityScores[ability] ?? -1;
+          int assignedIndex = rolledAssignments[ability] ?? -1;
+          int assignedRoll = assignedIndex != -1 ? rolledValues[assignedIndex] : -1;
           int bonus = getBonusForAbility(ability);
           int total = (assignedRoll == -1) ? 0 : assignedRoll + bonus;
 
-          List<int> assignedRolls = abilityScores.entries
-              .where((entry) => entry.key != ability && entry.value != -1)
+          Set<int> usedIndices = rolledAssignments.entries
+              .where((entry) => entry.key != ability)
               .map((entry) => entry.value)
-              .toList();
+              .toSet();
 
-          final dropdownOptionsSet = <int>{};
-          if (assignedRoll != -1) dropdownOptionsSet.add(assignedRoll);
-          dropdownOptionsSet.addAll(
-            rolledValues.where(
-                (val) => !assignedRolls.contains(val) || val == assignedRoll),
-          );
-          final dropdownOptions = List<int>.from(rolledValues)..sort();
+          List<MapEntry<int, int>> indexedOptions = rolledValues
+              .asMap()
+              .entries
+              .toList()
+            ..sort((a, b) => a.value.compareTo(b.value));
 
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
@@ -500,23 +501,26 @@ class _AbilityScoresPageState extends State<AbilityScoresPage> {
                   child: DropdownButton<int>(
                     dropdownColor: AppColors.cardColor,
                     isExpanded: true,
-                    value: assignedRoll == -1 ? null : assignedRoll,
+                    value: assignedIndex == -1 ? null : assignedIndex,
                     hint: Text(loc.roll),
-                    items: dropdownOptions.map((val) {
+                    items: indexedOptions.map((entry) {
+                      bool isUsed = usedIndices.contains(entry.key);
                       return DropdownMenuItem<int>(
-                        value: val,
-                        child: Text(val.toString()),
+                        value: entry.key,
+                        enabled: !isUsed,
+                        child: Text(
+                          entry.value.toString(),
+                          style: isUsed
+                              ? TextStyle(color: Colors.grey)
+                              : null,
+                        ),
                       );
                     }).toList(),
-                    onChanged: (val) {
-                      if (val != null) {
+                    onChanged: (idx) {
+                      if (idx != null) {
                         setState(() {
-                          abilityScores.forEach((key, value) {
-                            if (key != ability && value == val) {
-                              abilityScores[key] = -1;
-                            }
-                          });
-                          abilityScores[ability] = val;
+                          rolledAssignments[ability] = idx;
+                          abilityScores[ability] = rolledValues[idx];
                         });
                       }
                     },
@@ -655,6 +659,15 @@ class _AbilityScoresPageState extends State<AbilityScoresPage> {
 
   void confirmScores() {
     final loc = AppLocalizations.of(context)!;
+
+    if (selectedMethod == "Roll 4d6 Drop Lowest" &&
+        abilityScores.values.any((v) => v == -1)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loc.pleaseAssignAll)),
+      );
+      return;
+    }
+
     Map<String, int> finalScores = selectedMethod == "Point Buy"
         ? Map<String, int>.from(pointBuyScores)
         : Map<String, int>.from(abilityScores);
@@ -665,7 +678,7 @@ class _AbilityScoresPageState extends State<AbilityScoresPage> {
           ifAbsent: () => parsedBonuses[entry.key]);
     }
 
-    if (finalScores.length != 6) {
+    if (finalScores.length != 6 || finalScores.values.any((v) => v < 0)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(loc.pleaseAssignAll)),
       );

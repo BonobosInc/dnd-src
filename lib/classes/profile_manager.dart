@@ -579,22 +579,22 @@ class ProfileManager {
     // Step 3: Open database and update basic info
     currentDb = await openDatabase(profileDbPath);
 
-    updateProfileInfo(field: Defines.infoName, value: name);
-    updateProfileInfo(field: Defines.infoRace, value: race.name);
-    updateProfileInfo(field: Defines.infoClass, value: classData.name);
-    updateProfileInfo(field: Defines.infoBackground, value: background.name);
-    updateProfileInfo(field: Defines.infoSize, value: race.size);
-    updateStats(field: Defines.statLevel, value: level);
-    updateStats(field: Defines.statMaxHP, value: hp);
-    updateStats(field: Defines.statCurrentHP, value: hp);
+    await updateProfileInfo(field: Defines.infoName, value: name);
+    await updateProfileInfo(field: Defines.infoRace, value: race.name);
+    await updateProfileInfo(field: Defines.infoClass, value: classData.name);
+    await updateProfileInfo(field: Defines.infoBackground, value: background.name);
+    await updateProfileInfo(field: Defines.infoSize, value: race.size);
+    await updateStats(field: Defines.statLevel, value: level);
+    await updateStats(field: Defines.statMaxHP, value: hp);
+    await updateStats(field: Defines.statCurrentHP, value: hp);
 
     // Set hit dice
-    updateStats(field: Defines.statMaxHitDice, value: level);
-    updateStats(field: Defines.statCurrentHitDice, value: level);
-    updateStats(field: Defines.statHitDiceFactor, value: 'd${classData.hd}');
+    await updateStats(field: Defines.statMaxHitDice, value: level);
+    await updateStats(field: Defines.statCurrentHitDice, value: level);
+    await updateStats(field: Defines.statHitDiceFactor, value: 'd${classData.hd}');
 
     // Set speed from race
-    updateStats(field: Defines.statMovement, value: race.speed.toString());
+    await updateStats(field: Defines.statMovement, value: race.speed.toString());
 
     // Collect languages from race and background
     List<String> languages = [];
@@ -617,7 +617,7 @@ class ProfileManager {
       noteParts.add('\nLanguages:\n${languages.join(', ')}');
     }
     if (noteParts.isNotEmpty) {
-      updateProfileInfo(field: Defines.infoNotes, value: noteParts.join('\n'));
+      await updateProfileInfo(field: Defines.infoNotes, value: noteParts.join('\n'));
     }
 
     // Apply ability scores
@@ -660,7 +660,7 @@ class ProfileManager {
           continue;
       }
 
-      updateStats(field: statField, value: value);
+      await updateStats(field: statField, value: value);
     }
 
     // Calculate and set AC and Initiative
@@ -677,10 +677,10 @@ class ProfileManager {
       // Standard AC: 10 + DEX
       armorClass = 10 + dexModifier;
     }
-    updateStats(field: Defines.statArmor, value: armorClass);
+    await updateStats(field: Defines.statArmor, value: armorClass);
 
     // Set initiative to DEX modifier
-    updateStats(field: Defines.statInitiative, value: dexModifier);
+    await updateStats(field: Defines.statInitiative, value: dexModifier);
 
     // Apply skill proficiencies and expertise
     if (skillProficiencies != null) {
@@ -690,7 +690,7 @@ class ProfileManager {
 
         if (isProficient) {
           final hasExpertise = skillExpertise?[skillDefine] ?? false;
-          updateSkills(
+          await updateSkills(
             skill: _mapSkillDefineToConstant(skillDefine),
             proficiency: 1,
             expertise: hasExpertise ? 1 : 0,
@@ -727,7 +727,7 @@ class ProfileManager {
             continue;
         }
 
-        updateSavingThrows(field: saveField, value: 1);
+        await updateSavingThrows(field: saveField, value: 1);
       }
     }
 
@@ -802,7 +802,7 @@ class ProfileManager {
         }
 
         if (skillDefine != null) {
-          updateSkills(
+          await updateSkills(
             skill: skillDefine,
             proficiency: 1,
             expertise: 0,
@@ -882,7 +882,7 @@ class ProfileManager {
         }
 
         if (skillDefine != null) {
-          updateSkills(
+          await updateSkills(
             skill: skillDefine,
             proficiency: 1,
             expertise: 0,
@@ -945,7 +945,7 @@ class ProfileManager {
           await updateSpellSlots(
             spellslot: slotFields[i],
             total: slots[i],
-            spent: slots[i],
+            spent: 0,
           );
         }
       }
@@ -953,7 +953,7 @@ class ProfileManager {
 
     // Add selected feat
     if (feat != null) {
-      addFeat(
+      await addFeat(
         featName: feat.name,
         description: feat.text,
         type: "Talent",
@@ -961,7 +961,7 @@ class ProfileManager {
     }
 
     for (final trait in race.traits) {
-      addFeat(
+      await addFeat(
         featName: trait.name,
         description: trait.description,
         type: "Rasse",
@@ -978,7 +978,7 @@ class ProfileManager {
         // Add features for this level
         if (autolevel.features != null) {
           for (final feature in autolevel.features!) {
-            addFeat(
+            await addFeat(
               featName: feature.name,
               description: feature.description,
               type: "Klasse",
@@ -989,9 +989,15 @@ class ProfileManager {
         // Update spell slots (only the last level's slots are kept)
         if (currentLevel == level && autolevel.slots != null) {
           final slots = autolevel.slots!.slots;
-          for (int i = 0; i < slots.length; i++) {
+          final slotFields = [
+            Defines.slotZero, Defines.slotOne, Defines.slotTwo,
+            Defines.slotThree, Defines.slotFour, Defines.slotFive,
+            Defines.slotSix, Defines.slotSeven, Defines.slotEight,
+            Defines.slotNine,
+          ];
+          for (int i = 0; i < slots.length && i < slotFields.length; i++) {
             if (slots[i] > 0) {
-              updateSpellSlots(spellslot: i.toString(), total: slots[i]);
+              await updateSpellSlots(spellslot: slotFields[i], total: slots[i], spent: 0);
             }
           }
         }
@@ -1109,46 +1115,26 @@ class ProfileManager {
   }
 
   Map<String, int> _parseFeatModifier(String modifierString) {
-    // Parse modifier string like "Dexterity +1" or "Constitution +1"
     final Map<String, int> modifiers = {};
 
-    // Handle case-insensitive matching
-    final lowerModifier = modifierString.toLowerCase();
+    final abilityMap = {
+      'strength': 'STR',
+      'dexterity': 'DEX',
+      'constitution': 'CON',
+      'intelligence': 'INT',
+      'wisdom': 'WIS',
+      'charisma': 'CHA',
+    };
 
-    if (lowerModifier.contains('strength')) {
-      final match = RegExp(r'([+-]?\d+)').firstMatch(modifierString);
-      if (match != null) {
-        modifiers['STR'] = int.parse(match.group(1)!);
-      }
-    }
-    if (lowerModifier.contains('dexterity')) {
-      final match = RegExp(r'([+-]?\d+)').firstMatch(modifierString);
-      if (match != null) {
-        modifiers['DEX'] = int.parse(match.group(1)!);
-      }
-    }
-    if (lowerModifier.contains('constitution')) {
-      final match = RegExp(r'([+-]?\d+)').firstMatch(modifierString);
-      if (match != null) {
-        modifiers['CON'] = int.parse(match.group(1)!);
-      }
-    }
-    if (lowerModifier.contains('intelligence')) {
-      final match = RegExp(r'([+-]?\d+)').firstMatch(modifierString);
-      if (match != null) {
-        modifiers['INT'] = int.parse(match.group(1)!);
-      }
-    }
-    if (lowerModifier.contains('wisdom')) {
-      final match = RegExp(r'([+-]?\d+)').firstMatch(modifierString);
-      if (match != null) {
-        modifiers['WIS'] = int.parse(match.group(1)!);
-      }
-    }
-    if (lowerModifier.contains('charisma')) {
-      final match = RegExp(r'([+-]?\d+)').firstMatch(modifierString);
-      if (match != null) {
-        modifiers['CHA'] = int.parse(match.group(1)!);
+    final regex = RegExp(
+      r'(strength|dexterity|constitution|intelligence|wisdom|charisma)\s*([+-]?\d+)',
+      caseSensitive: false,
+    );
+
+    for (final match in regex.allMatches(modifierString)) {
+      final abilityKey = abilityMap[match.group(1)!.toLowerCase()];
+      if (abilityKey != null) {
+        modifiers[abilityKey] = int.parse(match.group(2)!);
       }
     }
 
@@ -1255,8 +1241,8 @@ class ProfileManager {
       }
 
       await currentDb!.execute(
-          'INSERT OR REPLACE INTO info (charId, ${Defines.infoName}) VALUES (?, ?)',
-          [profiles[index].id, newName]);
+          'UPDATE info SET ${Defines.infoName} = ? WHERE charId = ?',
+          [newName, profiles[index].id]);
     }
 
     await loadProfiles();
