@@ -22,7 +22,7 @@ jobs:
     if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Update version.dart from tag
         if: startsWith(github.ref, 'refs/tags/')
         shell: bash
@@ -71,7 +71,7 @@ jobs:
     if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Update version.dart from tag
         if: startsWith(github.ref, 'refs/tags/')
         shell: bash
@@ -121,7 +121,7 @@ jobs:
     if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Update version.dart from tag
         if: startsWith(github.ref, 'refs/tags/')
         shell: bash
@@ -164,7 +164,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Update version.dart from tag
         if: startsWith(github.ref, 'refs/tags/')
         shell: bash
