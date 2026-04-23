@@ -60,7 +60,7 @@ jobs:
       - run: flutter build apk --release
 
       - name: Save Build Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
@@ -110,7 +110,7 @@ jobs:
         run: flutter build appbundle --release --dart-define=CHECK_GITHUB_UPDATES=false
 
       - name: Save AppBundle Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-appbundle
           path: build/app/outputs/bundle/release/app-release.aab
@@ -154,7 +154,7 @@ jobs:
           Compress-Archive -Path "$outputPath\*" -DestinationPath "bonodnd-windows.zip" -Force
 
       - name: Upload Windows Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-windows
           path: bonodnd-windows.zip
@@ -243,13 +243,13 @@ jobs:
           zip -r ../../../../../bonodnd-linux.zip .
 
       - name: Upload AppImage Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-linux-appimage
           path: bonodnd-x86_64.AppImage
 
       - name: Upload Linux Zip Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-linux
           path: bonodnd-linux.zip
