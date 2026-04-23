@@ -50,7 +50,7 @@ dependencies:
       path: plugins/window_size
   image_picker: ^1.1.2
   syncfusion_flutter_pdf: ^32.1.21
-  share_plus: ^12.0.1
+  share_plus: ^12.0.2
   http: ^1.3.0
   permission_handler: ^12.0.0+1
   app_installer: ^1.3.1
