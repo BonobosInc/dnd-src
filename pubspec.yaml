@@ -43,7 +43,7 @@ dependencies:
   flutter_launcher_icons: ^0.14.1
   xml: ^6.5.0
   material_design_icons_flutter: ^7.0.7296
-  shared_preferences: ^2.3.3
+  shared_preferences: ^2.5.5
   window_size:
     git:
       url: https://github.com/google/flutter-desktop-embedding
