@@ -21,7 +21,6 @@ jobs:
   check-tag:
     name: Validate Tag (only allow master)
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
     outputs:
       valid: ${{ steps.check.outputs.valid }}
     steps:
@@ -30,9 +29,13 @@ jobs:
       - name: Check if tag commit is in master
         id: check
         run: |
-          git fetch origin master
-          if git branch -r --contains $GITHUB_SHA | grep origin/master; then
-            echo "valid=true" >> $GITHUB_OUTPUT
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            git fetch origin master
+            if git branch -r --contains $GITHUB_SHA | grep origin/master; then
+              echo "valid=true" >> $GITHUB_OUTPUT
+            else
+              echo "valid=false" >> $GITHUB_OUTPUT
+            fi
           else
             echo "valid=false" >> $GITHUB_OUTPUT
           fi
@@ -43,6 +46,7 @@ jobs:
     needs: [check-tag]
     if: |
       github.ref == 'refs/heads/master' ||
+      github.ref == 'refs/heads/development' ||
       (startsWith(github.ref, 'refs/tags/') && needs.check-tag.outputs.valid == 'true')
 
     steps:
@@ -88,6 +92,7 @@ jobs:
     needs: [check-tag]
     if: |
       github.ref == 'refs/heads/master' ||
+      github.ref == 'refs/heads/development' ||
       (startsWith(github.ref, 'refs/tags/') && needs.check-tag.outputs.valid == 'true')
 
     steps:
@@ -134,6 +139,7 @@ jobs:
     needs: [check-tag]
     if: |
       github.ref == 'refs/heads/master' ||
+      github.ref == 'refs/heads/development' ||
       (startsWith(github.ref, 'refs/tags/') && needs.check-tag.outputs.valid == 'true')
 
     steps:
@@ -182,6 +188,7 @@ jobs:
     needs: [check-tag]
     if: |
       github.ref == 'refs/heads/master' ||
+      github.ref == 'refs/heads/development' ||
       (startsWith(github.ref, 'refs/tags/') && needs.check-tag.outputs.valid == 'true')
 
     steps:
