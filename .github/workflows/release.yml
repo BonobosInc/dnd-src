@@ -27,7 +27,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_ENV
 
       - name: Download Android APK Artifact
-        uses: dawidd6/action-download-artifact@v6
+        uses: dawidd6/action-download-artifact@v21
         with:
           workflow: build.yml
           name: release-apk
@@ -35,7 +35,7 @@ jobs:
           run_id: ${{ github.event.workflow_run.id }}
 
       - name: Download Android AppBundle Artifact
-        uses: dawidd6/action-download-artifact@v6
+        uses: dawidd6/action-download-artifact@v21
         with:
           workflow: build.yml
           name: release-appbundle
@@ -43,7 +43,7 @@ jobs:
           run_id: ${{ github.event.workflow_run.id }}
 
       - name: Download Windows Build Artifact
-        uses: dawidd6/action-download-artifact@v6
+        uses: dawidd6/action-download-artifact@v21
         with:
           workflow: build.yml
           name: release-windows
@@ -51,7 +51,7 @@ jobs:
           run_id: ${{ github.event.workflow_run.id }}
 
       - name: Download Linux Build Artifact
-        uses: dawidd6/action-download-artifact@v6
+        uses: dawidd6/action-download-artifact@v21
         with:
           workflow: build.yml
           name: release-linux
@@ -59,7 +59,7 @@ jobs:
           run_id: ${{ github.event.workflow_run.id }}
 
       - name: Download Linux AppImage Artifact
-        uses: dawidd6/action-download-artifact@v6
+        uses: dawidd6/action-download-artifact@v21
         with:
           workflow: build.yml
           name: release-linux-appimage
